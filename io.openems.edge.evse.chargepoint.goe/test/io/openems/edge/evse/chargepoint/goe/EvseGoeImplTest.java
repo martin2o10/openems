@@ -101,10 +101,6 @@ public class EvseGoeImplTest {
 						.withInputRegisters(120, 360000 & 0xFFFF, 360000 >>> 16)
 						// ENERGY_TOTAL (128/129): 360 in 0.1 kWh units = 36 kWh
 						.withInputRegisters(128, 360, 0)
-						// 130-131 are read as part of the block but not mapped
-						.withInputRegisters(130, 0, 0)
-						// ENERGY_CHARGE (132/133): 360000 Deka-Watt-seconds = 1000 Wh
-						.withInputRegisters(132, 360000 & 0xFFFF, 360000 >>> 16)
 						// VOLT_N (144/145): 0 V
 						.withInputRegisters(144, 0, 0)
 						// POWER_L1/L2/L3 (146-151): 1200 W each in 0.1 kW units
@@ -153,9 +149,9 @@ public class EvseGoeImplTest {
 						.output(EvseGoe.ChannelId.CAR_STATE, CarState.CHARGING) //
 						.output(EvseGoe.ChannelId.ERROR, ErrorCode.NO_ERROR))
 
-				.next(new TestCase("Read-once registers are filled and their Tasks removed") //
-						.output(EvseGoe.ChannelId.FWV, "506") //
-						.output(EvseGoe.ChannelId.SNR, "0123456789AB") //
+				.next(new TestCase("Device information is read") //
+						.output(EvseGoe.ChannelId.FIRMWARE_VERSION, "506") //
+						.output(EvseGoe.ChannelId.SERIAL_NUMBER, "0123456789AB") //
 						.output(EvseGoe.ChannelId.HARDWARE_MAX_CURRENT, 32.f))
 
 				.deactivate();
@@ -185,9 +181,8 @@ public class EvseGoeImplTest {
 						.output(ElectricityMeter.ChannelId.ACTIVE_POWER_L2, 1200) //
 						.output(ElectricityMeter.ChannelId.ACTIVE_POWER_L3, 1200))
 
-				.next(new TestCase("Energies are read in 0.1 kWh units and scaled to Wh") //
-						.output(ElectricityMeter.ChannelId.ACTIVE_CONSUMPTION_ENERGY, 36000L) //
-						.output(EvseGoe.ChannelId.ENERGY_SESSION, 1000))
+				.next(new TestCase("Energy is read in 0.1 kWh units and scaled to Wh") //
+						.output(ElectricityMeter.ChannelId.ACTIVE_CONSUMPTION_ENERGY, 36000L))
 
 				.next(new TestCase("go-e specific values") //
 						.output(EvseGoe.ChannelId.VOLTAGE_N, 0.f) //
@@ -286,35 +281,6 @@ public class EvseGoeImplTest {
 		test.next(new TestCase(), 10) //
 				.next(new TestCase() //
 						.output(EvseGoe.ChannelId.ERROR, ErrorCode.INTERNAL));
-
-		test.deactivate();
-	}
-
-	@Test
-	public void testEnergySessionConverter() throws Exception {
-		final var sut = new EvseGoeImpl();
-		final var test = prepareGoeTest(sut, false);
-		final var bridge = (DummyModbusBridge) sut.getBridgeModbus();
-
-		// 360000 Deka-Watt-seconds = 1000 Wh
-		test.next(new TestCase(), 20) //
-				.next(new TestCase() //
-						.output(EvseGoe.ChannelId.ENERGY_SESSION, 1000));
-
-		// 100000 Deka-Watt-seconds = 277 Wh (example from the go-e Modbus API v2)
-		test.next(new TestCase("Change to 100000 Deka-Watt-seconds") //
-				.onBeforeProcessImage(() -> bridge //
-						.withInputRegisters(132, 100000 & 0xFFFF, 100000 >>> 16)));
-		test.next(new TestCase(), 10) //
-				.next(new TestCase() //
-						.output(EvseGoe.ChannelId.ENERGY_SESSION, 277));
-
-		// 0 Deka-Watt-seconds = 0 Wh
-		test.next(new TestCase("Change to 0 Deka-Watt-seconds") //
-				.onBeforeProcessImage(() -> bridge.withInputRegisters(132, 0, 0)));
-		test.next(new TestCase(), 10) //
-				.next(new TestCase() //
-						.output(EvseGoe.ChannelId.ENERGY_SESSION, 0));
 
 		test.deactivate();
 	}

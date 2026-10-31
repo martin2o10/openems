@@ -56,15 +56,9 @@ public interface EvseGoe extends EvseChargePoint, ElectricityMeter, OpenemsCompo
 				.unit(Unit.PERCENT)//
 				.persistencePriority(PersistencePriority.LOW)//
 				.text("Power factor L3")), //
-		// Charged energy of the current charging session; Deka-Watt-seconds are
-		// converted to Watt-hours
-		ENERGY_SESSION(Doc.of(INTEGER)//
-				.unit(Unit.WATT_HOURS)//
-				.persistencePriority(PersistencePriority.LOW)//
-				.text("Charged energy of the current charging session")), //
-		FWV(Doc.of(STRING)//
+		FIRMWARE_VERSION(Doc.of(STRING)//
 				.text("Firmware version")), //
-		SNR(Doc.of(STRING)//
+		SERIAL_NUMBER(Doc.of(STRING)//
 				.text("Serial number")), //
 		// Phase states before/after the contactor; binary flags 0b00ABCDEF per
 		// go-e Modbus API v2 (verification on hardware pending)

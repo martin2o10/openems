@@ -1,6 +1,10 @@
 package io.openems.edge.evse.chargepoint.goe;
 
+import static io.openems.edge.bridge.modbus.api.ElementToChannelConverter.SCALE_FACTOR_2;
 import static io.openems.edge.bridge.modbus.api.ElementToChannelConverter.SCALE_FACTOR_3;
+import static io.openems.edge.bridge.modbus.api.ElementToChannelConverter.SCALE_FACTOR_MINUS_2;
+import static io.openems.edge.bridge.modbus.api.ModbusUtils.FunctionCode.FC4;
+import static io.openems.edge.bridge.modbus.api.ModbusUtils.readElementOnce;
 import static io.openems.edge.bridge.modbus.api.element.WordOrder.LSWMSW;
 import static io.openems.edge.common.channel.ChannelUtils.setValue;
 import static io.openems.edge.common.event.EdgeEventConstants.TOPIC_CYCLE_BEFORE_PROCESS_IMAGE;
@@ -35,6 +39,7 @@ import io.openems.edge.bridge.modbus.api.BridgeModbus;
 import io.openems.edge.bridge.modbus.api.ElementToChannelConverter;
 import io.openems.edge.bridge.modbus.api.ModbusComponent;
 import io.openems.edge.bridge.modbus.api.ModbusProtocol;
+import io.openems.edge.bridge.modbus.api.ModbusUtils;
 import io.openems.edge.bridge.modbus.api.element.DummyRegisterElement;
 import io.openems.edge.bridge.modbus.api.element.StringWordElement;
 import io.openems.edge.bridge.modbus.api.element.UnsignedDoublewordElement;
@@ -42,7 +47,6 @@ import io.openems.edge.bridge.modbus.api.element.UnsignedWordElement;
 import io.openems.edge.bridge.modbus.api.task.FC16WriteRegistersTask;
 import io.openems.edge.bridge.modbus.api.task.FC3ReadRegistersTask;
 import io.openems.edge.bridge.modbus.api.task.FC4ReadInputRegistersTask;
-import io.openems.edge.bridge.modbus.api.task.Task;
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.common.taskmanager.Priority;
 import io.openems.edge.common.type.Phase.SingleOrThreePhase;
@@ -68,49 +72,7 @@ import io.openems.edge.timedata.api.TimedataProvider;
 public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseGoe, EvseChargePoint,
 		ElectricityMeter, OpenemsComponent, TimedataProvider, EventHandler, ModbusComponent {
 
-	/**
-	 * Register 299 (AMPERE_VOLATILE) holds whole Amperes in 6..32; the Channel
-	 * follows the OpenEMS convention and holds Milliamperes.
-	 */
-	private static final ElementToChannelConverter AMPERE_TO_MILLIAMPERE = new ElementToChannelConverter(//
-			value -> ((Number) value).intValue() * 1000, //
-			value -> (int) Math.round(((Number) value).doubleValue() / 1000));
-
-	/** Registers holding 0/1 map to/from Boolean. */
-	private static final ElementToChannelConverter ZERO_ONE_TO_BOOLEAN = new ElementToChannelConverter(//
-			value -> ((Number) value).intValue() != 0, //
-			value -> Boolean.TRUE.equals(value) ? 1 : 0);
-
-	/** Converts go-e 0.1 Ampere units to [mA]. */
-	private static final ElementToChannelConverter DECIAMPERE_TO_MILLIAMPERE = new ElementToChannelConverter(//
-			value -> ((Number) value).longValue() * 100, //
-			value -> value);
-
-	/** Converts go-e 0.01 Watt units to [W]. */
-	private static final ElementToChannelConverter CENTIWATT_TO_WATT = new ElementToChannelConverter(//
-			value -> ((Number) value).longValue() * 0.01, //
-			value -> value);
-
-	/** Converts go-e 0.1 Kilowatt units to [W]. */
-	private static final ElementToChannelConverter DECI_KILOWATT_TO_WATT = new ElementToChannelConverter(//
-			value -> ((Number) value).longValue() * 100, //
-			value -> value);
-
-	/** Converts go-e 0.1 Kilowatt-hour units to [Wh]. */
-	private static final ElementToChannelConverter DECI_KILOWATT_HOURS_TO_WATT_HOURS = new ElementToChannelConverter(//
-			value -> ((Number) value).longValue() * 100, //
-			value -> value);
-
-	/**
-	 * Converts go-e Deka-Watt-seconds (10 Ws) to [Wh]: 10 Ws / 3600 = 1/360 Wh.
-	 * Values are floored, so charged energy is never overstated (the go-e
-	 * Modbus API v2 example rounds 1'000'000 Ws down to 277 Wh).
-	 */
-	private static final ElementToChannelConverter DEKA_WATT_SECONDS_TO_WATT_HOURS = new ElementToChannelConverter(//
-			value -> Math.floor(((Number) value).longValue() / 360.), //
-			value -> value);
-
-	/** Parses the raw value of input register 107 to an {@link ErrorCode}. */
+	/** Maps unknown values of register 107 to INTERNAL, as documented by go-e. */
 	private static final ElementToChannelConverter TO_ERROR_CODE = new ElementToChannelConverter(//
 			value -> ErrorCode.fromValue(value instanceof Number n ? n.intValue() : -1).getValue());
 
@@ -134,12 +96,6 @@ public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseG
 	/** Mirrors the last written state of the ALLOW register (200). */
 	private boolean chargingEnabled = false;
 
-	// Read-once Tasks; removed from the ModbusProtocol after the first
-	// successful read
-	private FC4ReadInputRegistersTask fwvTask = null;
-	private FC4ReadInputRegistersTask snrTask = null;
-	private FC3ReadRegistersTask hardwareMaxCurrentTask = null;
-
 	public EvseGoeImpl() {
 		super(//
 				OpenemsComponent.ChannelId.values(), //
@@ -156,6 +112,8 @@ public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseG
 	private void activate(ComponentContext context, Config config) {
 		this.config = config;
 		super.activate(context, config.id(), config.alias(), config.enabled(), config.modbusUnitId());
+		readElementOnce(FC4, this.getModbusProtocol(), ModbusUtils::retryOnNull, new StringWordElement(304, 6)) //
+				.thenAccept(serialNumber -> setValue(this, EvseGoe.ChannelId.SERIAL_NUMBER, serialNumber));
 	}
 
 	@Modified
@@ -174,98 +132,61 @@ public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseG
 	protected ModbusProtocol defineModbusProtocol() {
 		final var pr = this.getPhaseRotation();
 		var modbusProtocol = new ModbusProtocol(this, //
-				// Car state and current measurement (Input Registers)
 				new FC4ReadInputRegistersTask(100, Priority.HIGH, //
 						m(EvseGoe.ChannelId.CAR_STATE, new UnsignedWordElement(100)), //
-						// 101 (PP_CABLE) and 102-106 are not used here
-						new DummyRegisterElement(101, 106), //
+						new DummyRegisterElement(101, 104), //
+						m(EvseGoe.ChannelId.FIRMWARE_VERSION, new StringWordElement(105, 2)), //
 						m(EvseGoe.ChannelId.ERROR, new UnsignedWordElement(107), TO_ERROR_CODE), //
-						m(pr.channelVoltageL1(), new UnsignedDoublewordElement(108).wordOrder(LSWMSW), SCALE_FACTOR_3), //
-						m(pr.channelVoltageL2(), new UnsignedDoublewordElement(110).wordOrder(LSWMSW), SCALE_FACTOR_3), //
-						m(pr.channelVoltageL3(), new UnsignedDoublewordElement(112).wordOrder(LSWMSW), SCALE_FACTOR_3), //
+						m(pr.channelVoltageL1(), new UnsignedDoublewordElement(108).wordOrder(LSWMSW),
+								SCALE_FACTOR_3), //
+						m(pr.channelVoltageL2(), new UnsignedDoublewordElement(110).wordOrder(LSWMSW),
+								SCALE_FACTOR_3), //
+						m(pr.channelVoltageL3(), new UnsignedDoublewordElement(112).wordOrder(LSWMSW),
+								SCALE_FACTOR_3), //
 						m(pr.channelCurrentL1(), new UnsignedDoublewordElement(114).wordOrder(LSWMSW),
-								DECIAMPERE_TO_MILLIAMPERE), //
+								SCALE_FACTOR_2), //
 						m(pr.channelCurrentL2(), new UnsignedDoublewordElement(116).wordOrder(LSWMSW),
-								DECIAMPERE_TO_MILLIAMPERE), //
+								SCALE_FACTOR_2), //
 						m(pr.channelCurrentL3(), new UnsignedDoublewordElement(118).wordOrder(LSWMSW),
-								DECIAMPERE_TO_MILLIAMPERE), //
+								SCALE_FACTOR_2), //
 						m(ElectricityMeter.ChannelId.ACTIVE_POWER, new UnsignedDoublewordElement(120).wordOrder(LSWMSW),
-								CENTIWATT_TO_WATT)), //
-
-				// Energy (Input Registers)
+								SCALE_FACTOR_MINUS_2)), //
 				new FC4ReadInputRegistersTask(128, Priority.LOW, //
 						m(ElectricityMeter.ChannelId.ACTIVE_CONSUMPTION_ENERGY,
-								new UnsignedDoublewordElement(128).wordOrder(LSWMSW),
-								DECI_KILOWATT_HOURS_TO_WATT_HOURS), //
-						// 130-131 are not used here
-						new DummyRegisterElement(130, 131), //
-						m(EvseGoe.ChannelId.ENERGY_SESSION, new UnsignedDoublewordElement(132).wordOrder(LSWMSW),
-								DEKA_WATT_SECONDS_TO_WATT_HOURS)), //
-
-				// Per-phase power and power factor (Input Registers)
+								new UnsignedDoublewordElement(128).wordOrder(LSWMSW), SCALE_FACTOR_2)), //
 				new FC4ReadInputRegistersTask(144, Priority.LOW, //
 						m(EvseGoe.ChannelId.VOLTAGE_N, new UnsignedDoublewordElement(144).wordOrder(LSWMSW)), //
 						m(pr.channelActivePowerL1(), new UnsignedDoublewordElement(146).wordOrder(LSWMSW),
-								DECI_KILOWATT_TO_WATT), //
+								SCALE_FACTOR_2), //
 						m(pr.channelActivePowerL2(), new UnsignedDoublewordElement(148).wordOrder(LSWMSW),
-								DECI_KILOWATT_TO_WATT), //
+								SCALE_FACTOR_2), //
 						m(pr.channelActivePowerL3(), new UnsignedDoublewordElement(150).wordOrder(LSWMSW),
-								DECI_KILOWATT_TO_WATT), //
+								SCALE_FACTOR_2), //
 						m(EvseGoe.ChannelId.POWER_FACTOR_L1, new UnsignedDoublewordElement(152).wordOrder(LSWMSW)), //
 						m(EvseGoe.ChannelId.POWER_FACTOR_L2, new UnsignedDoublewordElement(154).wordOrder(LSWMSW)), //
 						m(EvseGoe.ChannelId.POWER_FACTOR_L3, new UnsignedDoublewordElement(156).wordOrder(LSWMSW))), //
-
-				// Phase states before/after contactor (Input Register)
 				new FC4ReadInputRegistersTask(205, Priority.LOW, //
 						m(EvseGoe.ChannelId.PHASES, new UnsignedWordElement(205))), //
-
-				// Charging state readbacks (Holding Registers)
 				new FC3ReadRegistersTask(200, Priority.LOW, //
-						m(EvseGoe.ChannelId.SET_ALLOW_CHARGING, new UnsignedWordElement(200), ZERO_ONE_TO_BOOLEAN)), //
+						m(EvseGoe.ChannelId.SET_ALLOW_CHARGING, new UnsignedWordElement(200))), //
+				new FC3ReadRegistersTask(211, Priority.LOW, //
+						m(EvseGoe.ChannelId.HARDWARE_MAX_CURRENT, new UnsignedWordElement(211))), //
 				new FC3ReadRegistersTask(299, Priority.HIGH, //
-						m(EvseGoe.ChannelId.SET_CHARGING_CURRENT, new UnsignedWordElement(299),
-								AMPERE_TO_MILLIAMPERE)), //
+						m(EvseGoe.ChannelId.SET_CHARGING_CURRENT, new UnsignedWordElement(299), SCALE_FACTOR_3)), //
 				new FC3ReadRegistersTask(332, Priority.LOW, //
-						m(EvseGoe.ChannelId.PHASE_SWITCH_MODE, new UnsignedWordElement(332))), //
-
-				// Read-once registers; the Tasks remove themselves after the
-				// first successful read (see removeTask())
-				this.fwvTask = new FC4ReadInputRegistersTask(105, Priority.LOW, //
-						m(EvseGoe.ChannelId.FWV, new StringWordElement(105, 2) //
-								.onUpdateCallback(v -> this.removeTask(this.fwvTask)))), //
-				this.snrTask = new FC4ReadInputRegistersTask(304, Priority.LOW, //
-						m(EvseGoe.ChannelId.SNR, new StringWordElement(304, 6) //
-								.onUpdateCallback(v -> this.removeTask(this.snrTask)))), //
-				this.hardwareMaxCurrentTask = new FC3ReadRegistersTask(211, Priority.LOW, //
-						m(EvseGoe.ChannelId.HARDWARE_MAX_CURRENT, new UnsignedWordElement(211)) //
-								.onUpdateCallback(v -> this.removeTask(this.hardwareMaxCurrentTask))));
+						m(EvseGoe.ChannelId.PHASE_SWITCH_MODE, new UnsignedWordElement(332))));
 
 		if (!this.config.readOnly()) {
-			/*
-			 * Writes via FC16 only: FN6 (Preset Single Register) is not supported by
-			 * go-e. The EEPROM-Register 40301 (AMPERE_EEPROM) must never be written
-			 * cyclically (max ~100.000 write cycles); charging regulation uses the
-			 * volatile register 299 instead.
-			 */
+			// FC6 is not supported by go-e. Register 299 is volatile; the EEPROM register
+			// 300 must never be written cyclically.
 			modbusProtocol.addTasks(//
 					new FC16WriteRegistersTask(299, //
 							m(EvseGoe.ChannelId.SET_CHARGING_CURRENT, new UnsignedWordElement(299),
-									AMPERE_TO_MILLIAMPERE)), //
+									SCALE_FACTOR_3)), //
 					new FC16WriteRegistersTask(200, //
-							m(EvseGoe.ChannelId.SET_ALLOW_CHARGING, new UnsignedWordElement(200),
-									ZERO_ONE_TO_BOOLEAN)));
+							m(EvseGoe.ChannelId.SET_ALLOW_CHARGING, new UnsignedWordElement(200))));
 		}
 		return modbusProtocol;
-	}
-
-	/**
-	 * Removes a read-once {@link Task} from the {@link ModbusProtocol}; called
-	 * from the element's onUpdateCallback after the first successful read.
-	 *
-	 * @param task the {@link Task}
-	 */
-	private void removeTask(Task task) {
-		this.getModbusProtocol().removeTask(task);
 	}
 
 	@Override

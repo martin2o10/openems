@@ -1,31 +1,15 @@
 = EVSE Charge-Point go-e
 
-Implementation for the go-e Gemini charging station via Modbus/TCP.
-
-https://github.com/OpenEMS/openems/tree/develop/io.openems.edge.evse.chargepoint.goe[Source Code icon:github[]]
+Implementation for the go-e Gemini charging station series.
 
 == Supported devices
 
-- go-e Gemini (flex)
-- go-e Modbus TCP API v2; the read-only register PHASE_SWITCH_MODE requires firmware >= 55.5
+- go-e Gemini
+- go-e Gemini flex
 
 == Communication
 
-This component communicates via Modbus/TCP on port 502. The Modbus interface
-must be enabled first: in the go-e App under "Internet" -> "Erweiterte
-Einstellungen" -> "Modbus", or via the HTTP API key `men=true` (a restart of
-the charge point is required).
-
-- Reads use Modbus function code 3 (Holding Registers) and 4 (Input
-Registers).
-- Writes use function code 16 only. Function code 6 is not supported by go-e,
-even for single registers.
-- The EEPROM register 40301 (AMPERE_EEPROM) is never written: it tolerates
-only ~100.000 write cycles. Charging regulation uses the volatile register
-40300 (299, AMPERE_VOLATILE) instead.
-- Multi-register values (uint32) are read with low word first (word order
-LSWMSW), as documented by go-e ("Big Endian (Word Swap)"). The go-e API keys
-`msb` (swap bytes) and `msr` (swap registers) must remain disabled.
+This component communicates via Modbus/TCP (go-e Modbus TCP API v2). The Modbus interface has to be enabled in the go-e App or via the HTTP API key `men`. Writes use function code 16 only, because function code 6 is not supported by go-e.
 
 == Configuration
 
@@ -79,144 +63,11 @@ LSWMSW), as documented by go-e ("Big Endian (Word Swap)"). The go-e API keys
 |Maximum charging current in [mA]; internally limited by the charge point hardware (register 211 AMPERE_MAX)
 |===
 
-== Implemented channels
-
-Register addresses are given in wire format, as documented by the go-e Modbus
-TCP API v2.
-
-[cols="1,2,2,1"]
-|===
-|Register |Name |Channel |Priority
-
-4+^|Input Registers (read via function code 4)
-
-|100
-|CAR_STATE
-|EvseGoe.CAR_STATE, EvseGoe.IS_EV_CONNECTED, EvseChargePoint.IS_READY_FOR_CHARGING
-|HIGH
-
-|107
-|ERROR
-|EvseGoe.ERROR
-|HIGH
-
-|108-113
-|VOLT_L1..VOLT_L3
-|ElectricityMeter.VOLTAGE_L1..L3 in [mV]
-|HIGH
-
-|114-119
-|AMP_L1..AMP_L3
-|ElectricityMeter.CURRENT_L1..L3 in [mA] (0.1 A per step)
-|HIGH
-
-|120/121
-|POWER_TOTAL
-|ElectricityMeter.ACTIVE_POWER in [W] (0.01 W per step)
-|HIGH
-
-|128/129
-|ENERGY_TOTAL
-|ElectricityMeter.ACTIVE_CONSUMPTION_ENERGY in [Wh] (0.1 kWh per step)
-|LOW
-
-|132/133
-|ENERGY_CHARGE
-|EvseGoe.ENERGY_SESSION in [Wh] (Deka-Watt-seconds)
-|LOW
-
-|144/145
-|VOLT_N
-|EvseGoe.VOLTAGE_N in [V]
-|LOW
-
-|146-151
-|POWER_L1..POWER_L3
-|ElectricityMeter.ACTIVE_POWER_L1..L3 in [W] (0.1 kW per step)
-|LOW
-
-|152-157
-|POWER_FACTOR_L1..L3
-|EvseGoe.POWER_FACTOR_L1..L3 in [%]
-|LOW
-
-|205
-|PHASES
-|EvseGoe.PHASES (raw binary flags)
-|LOW
-
-|105/106
-|FWV
-|EvseGoe.FWV
-|once
-
-|304-309
-|SNR
-|EvseGoe.SNR
-|once
-
-4+^|Holding Registers (read via function code 3, written via function code 16)
-
-|200
-|ALLOW
-|EvseGoe.SET_ALLOW_CHARGING
-|LOW / write
-
-|211
-|AMPERE_MAX
-|EvseGoe.HARDWARE_MAX_CURRENT in [A]
-|once
-
-|299
-|AMPERE_VOLATILE
-|EvseGoe.SET_CHARGING_CURRENT in [mA] (register holds whole 6..32 A)
-|HIGH / write
-
-|332
-|PHASE_SWITCH_MODE
-|EvseGoe.PHASE_SWITCH_MODE (read only)
-|LOW
-|===
-
-"once" registers are read one time after activation; their read Tasks are
-removed from the Modbus protocol afterwards.
-
 == Features
 
-- Reading of meter values (voltage, current, power, energy), car state and
-error state
-- Setting the charging current via AMPERE_VOLATILE (register 299) with
-write-on-change: identical set-points are not written again
-- Enable-on-charge via the ALLOW register (200): the transition from 0 to a
-set-point greater than zero writes ALLOW=1 once, returning to zero writes
-ALLOW=0. A set-point of zero does not write the current register, because it
-accepts only 6..32 A
-- The advertised maximum charging current is the configured value limited by
-the hardware maximum current (register 211, e.g. 16 A for the 11 kW variant)
-- Session energy (ENERGY_CHARGE) is provided as EvseGoe.ENERGY_SESSION in
-[Wh]
+- Supports reading of meter values (voltage, current, power, energy)
+- Supports setting charging current
+- Supports enabling and disabling charging
+- Maximum charging current is limited by the hardware maximum of the charge point
 
-== Known limitations
-
-- Phase switching is out of scope. PHASE_SWITCH_MODE (register 332) is read
-for diagnostics only and never written; no phase-switch ability is
-advertised
-- AMPERE_EEPROM (register 40301) is never written (EEPROM wear, ~100.000
-write cycles)
-- The real FC16 write transactions are executed on the Modbus bridge; unit
-tests cover the write-decision logic (queued write values), not the bridge
-communication itself
-
-== Hardware verification status
-
-The register mapping follows the go-e Modbus TCP API v2 documentation
-(modbus-de.md). It has not been verified on real hardware yet. Planned
-verification points:
-
-- uint32 word order (assumed low word first, see Communication)
-- ALLOW register vs. FORCE_STATE interplay
-- ERROR register value 0 (interpreted as "no error")
-- ENERGY_CHARGE (Deka-Watt-seconds to Watt-hours)
-- PHASES bit layout (0b00ABCDEF, phases before/after the contactor)
-- Modbus Unit-ID (go-e Modbus interface is documented without Unit-ID
-selection; default 1 is assumed)
+https://github.com/OpenEMS/openems/tree/develop/io.openems.edge.evse.chargepoint.goe[Source Code icon:github[]]
