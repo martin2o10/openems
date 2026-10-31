@@ -197,7 +197,6 @@ public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseG
 		switch (event.getTopic()) {
 		case TOPIC_CYCLE_BEFORE_PROCESS_IMAGE -> {
 			final CarState carState = this.getCarStateChannel().getNextValue().asEnum();
-			setValue(this, EvseGoe.ChannelId.IS_EV_CONNECTED, carState.isEvConnected);
 			setValue(this, EvseChargePoint.ChannelId.IS_READY_FOR_CHARGING, carState.isReadyForCharging);
 		}
 		}
@@ -219,9 +218,8 @@ public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseG
 	}
 
 	/**
-	 * Gets the maximum charging current in [mA]: the configured value, limited
-	 * by the hardware maximum current from register 211 (AMPERE_MAX), e.g. 16 A
-	 * for the 11 kW variant of the go-e Gemini.
+	 * Gets the configured maximum charging current, limited by the hardware
+	 * maximum of the charge point.
 	 *
 	 * @return the maximum charging current in [mA]
 	 */
@@ -262,12 +260,8 @@ public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseG
 	 * Applies the Set-Point in [mA].
 	 *
 	 * <p>
-	 * Enable-on-charge (KEBA pattern): the transition from 0 to a Set-Point
-	 * greater than zero writes ALLOW=1 once; returning to zero writes ALLOW=0.
-	 * The current register is written on change only, so identical Set-Points
-	 * are not queued again. A Set-Point of zero does not write the current
-	 * register, because register 299 accepts only 6..32 A; stopping the charging
-	 * session is handled by ALLOW=0 alone.
+	 * Charging is started and stopped via ALLOW, because register 299 accepts
+	 * only 6..32 A. The current is written on change only.
 	 *
 	 * @param setPointInMilliAmpere the Set-Point in [mA]
 	 */

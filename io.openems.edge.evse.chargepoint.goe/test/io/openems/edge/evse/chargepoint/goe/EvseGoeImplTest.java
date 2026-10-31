@@ -81,48 +81,48 @@ public class EvseGoeImplTest {
 	 */
 	private static DummyModbusBridge createFixtureBridge(int ampereMax) {
 		return new DummyModbusBridge("modbus0") //
-						// CAR_STATE (100): 2 = Charging
-						.withInputRegisters(100, 2)
-						// 101-106 are read as part of the block but not mapped
-						.withInputRegisters(101, 0, 0, 0, 0, 0, 0)
-						// FWV (105/106): "506" as ASCII, null-padded
-						.withInputRegisters(105, 0x3530, 0x3600)
-						// ERROR (107): 0 = no error
-						.withInputRegisters(107, 0)
-						// VOLT_L1/L2/L3 (108-113): 230, 231, 229 V
-						.withInputRegisters(108, 230, 0)
-						.withInputRegisters(110, 231, 0)
-						.withInputRegisters(112, 229, 0)
-						// AMP_L1/L2/L3 (114-119): 10.5, 10.3, 10.7 A in 0.1 A units
-						.withInputRegisters(114, 105, 0)
-						.withInputRegisters(116, 103, 0)
-						.withInputRegisters(118, 107, 0)
-						// POWER_TOTAL (120/121): 360000 in 0.01 W units = 3600 W
-						.withInputRegisters(120, 360000 & 0xFFFF, 360000 >>> 16)
-						// ENERGY_TOTAL (128/129): 360 in 0.1 kWh units = 36 kWh
-						.withInputRegisters(128, 360, 0)
-						// VOLT_N (144/145): 0 V
-						.withInputRegisters(144, 0, 0)
-						// POWER_L1/L2/L3 (146-151): 1200 W each in 0.1 kW units
-						.withInputRegisters(146, 12, 0)
-						.withInputRegisters(148, 12, 0)
-						.withInputRegisters(150, 12, 0)
-						// POWER_FACTOR_L1/L2/L3 (152-157): 98, 97, 99 %
-						.withInputRegisters(152, 98, 0)
-						.withInputRegisters(154, 97, 0)
-						.withInputRegisters(156, 99, 0)
-						// PHASES (205): all three phases present before/after contactor
-						.withInputRegisters(205, 0b00111000)
-						// SNR (304-309): "0123456789AB" as ASCII
-						.withInputRegisters(304, 0x3031, 0x3233, 0x3435, 0x3637, 0x3839, 0x4142)
-						// ALLOW (200): 1 = charging allowed
-						.withRegisters(200, 1)
-						// AMPERE_MAX (211)
-						.withRegisters(211, ampereMax)
-						// AMPERE_VOLATILE (299): 16 A
-						.withRegisters(299, 16)
-						// PHASE_SWITCH_MODE (332): 2 = three-phased
-						.withRegisters(332, 2);
+				// CAR_STATE (100): 2 = Charging
+				.withInputRegisters(100, 2)
+				// 101-104 are read as part of the block but not mapped
+				.withInputRegisters(101, 0, 0, 0, 0)
+				// FWV (105/106): "506" as ASCII, null-padded
+				.withInputRegisters(105, 0x3530, 0x3600)
+				// ERROR (107): 0 = no error
+				.withInputRegisters(107, 0)
+				// VOLT_L1/L2/L3 (108-113): 230, 231, 229 V
+				.withInputRegisters(108, 230, 0)
+				.withInputRegisters(110, 231, 0)
+				.withInputRegisters(112, 229, 0)
+				// AMP_L1/L2/L3 (114-119): 10.5, 10.3, 10.7 A in 0.1 A units
+				.withInputRegisters(114, 105, 0)
+				.withInputRegisters(116, 103, 0)
+				.withInputRegisters(118, 107, 0)
+				// POWER_TOTAL (120/121): 360000 in 0.01 W units = 3600 W
+				.withInputRegisters(120, 360000 & 0xFFFF, 360000 >>> 16)
+				// ENERGY_TOTAL (128/129): 360 in 0.1 kWh units = 36 kWh
+				.withInputRegisters(128, 360, 0)
+				// VOLT_N (144/145): 0 V
+				.withInputRegisters(144, 0, 0)
+				// POWER_L1/L2/L3 (146-151): 1200 W each in 0.1 kW units
+				.withInputRegisters(146, 12, 0)
+				.withInputRegisters(148, 12, 0)
+				.withInputRegisters(150, 12, 0)
+				// POWER_FACTOR_L1/L2/L3 (152-157): 98, 97, 99 %
+				.withInputRegisters(152, 98, 0)
+				.withInputRegisters(154, 97, 0)
+				.withInputRegisters(156, 99, 0)
+				// PHASES (205): all three phases present before/after contactor
+				.withInputRegisters(205, 0b00111000)
+				// SNR (304-309): "0123456789AB" as ASCII
+				.withInputRegisters(304, 0x3031, 0x3233, 0x3435, 0x3637, 0x3839, 0x4142)
+				// ALLOW (200): 1 = charging allowed
+				.withRegisters(200, 1)
+				// AMPERE_MAX (211)
+				.withRegisters(211, ampereMax)
+				// AMPERE_VOLATILE (299): 16 A
+				.withRegisters(299, 16)
+				// PHASE_SWITCH_MODE (332): 2 = three-phased
+				.withRegisters(332, 2);
 	}
 
 	/**
@@ -194,8 +194,6 @@ public class EvseGoeImplTest {
 
 				.deactivate();
 
-		// readbacks of the READ_WRITE channels: register 299 reads 16 A,
-		// register 200 reads 1 = allowed
 		assertEquals(16000, sut.getSetChargingCurrentChannel().value().get());
 		assertEquals(true, sut.getSetAllowChargingChannel().value().get());
 	}
@@ -210,8 +208,8 @@ public class EvseGoeImplTest {
 		test.next(new TestCase(), 20) //
 				.next(new TestCase() //
 						.output(EvseGoe.ChannelId.CAR_STATE, CarState.CHARGING) //
-						.output(EvseGoe.ChannelId.IS_EV_CONNECTED, true) //
 						.output(EvseChargePoint.ChannelId.IS_READY_FOR_CHARGING, true));
+		assertTrue(sut.getChargePointAbilities().isEvConnected());
 
 		// 1 = Ready, no EV connected - NOT considered as EV connected
 		test.next(new TestCase("Change to 1 = Ready, no EV connected") //
@@ -219,8 +217,8 @@ public class EvseGoeImplTest {
 		test.next(new TestCase(), 10) //
 				.next(new TestCase() //
 						.output(EvseGoe.ChannelId.CAR_STATE, CarState.READY_NO_EV) //
-						.output(EvseGoe.ChannelId.IS_EV_CONNECTED, false) //
 						.output(EvseChargePoint.ChannelId.IS_READY_FOR_CHARGING, false));
+		assertFalse(sut.getChargePointAbilities().isEvConnected());
 
 		// 0 = Defective
 		test.next(new TestCase("Change to 0 = Defective") //
@@ -228,8 +226,8 @@ public class EvseGoeImplTest {
 		test.next(new TestCase(), 10) //
 				.next(new TestCase() //
 						.output(EvseGoe.ChannelId.CAR_STATE, CarState.DEFECT) //
-						.output(EvseGoe.ChannelId.IS_EV_CONNECTED, false) //
 						.output(EvseChargePoint.ChannelId.IS_READY_FOR_CHARGING, false));
+		assertFalse(sut.getChargePointAbilities().isEvConnected());
 
 		// 3 = Waiting for vehicle
 		test.next(new TestCase("Change to 3 = Waiting for vehicle") //
@@ -237,8 +235,8 @@ public class EvseGoeImplTest {
 		test.next(new TestCase(), 10) //
 				.next(new TestCase() //
 						.output(EvseGoe.ChannelId.CAR_STATE, CarState.WAITING_FOR_VEHICLE) //
-						.output(EvseGoe.ChannelId.IS_EV_CONNECTED, true) //
 						.output(EvseChargePoint.ChannelId.IS_READY_FOR_CHARGING, true));
+		assertTrue(sut.getChargePointAbilities().isEvConnected());
 
 		// 4 = Charging finished, EV connected - connected, but not ready for charging
 		test.next(new TestCase("Change to 4 = Charging finished, EV connected") //
@@ -246,8 +244,8 @@ public class EvseGoeImplTest {
 		test.next(new TestCase(), 10) //
 				.next(new TestCase() //
 						.output(EvseGoe.ChannelId.CAR_STATE, CarState.FINISHED_EV_CONNECTED) //
-						.output(EvseGoe.ChannelId.IS_EV_CONNECTED, true) //
 						.output(EvseChargePoint.ChannelId.IS_READY_FOR_CHARGING, false));
+		assertTrue(sut.getChargePointAbilities().isEvConnected());
 
 		// unknown values are not guessed
 		test.next(new TestCase("Change to an unknown value") //
@@ -255,8 +253,8 @@ public class EvseGoeImplTest {
 		test.next(new TestCase(), 10) //
 				.next(new TestCase() //
 						.output(EvseGoe.ChannelId.CAR_STATE, CarState.UNDEFINED) //
-						.output(EvseGoe.ChannelId.IS_EV_CONNECTED, false) //
 						.output(EvseChargePoint.ChannelId.IS_READY_FOR_CHARGING, false));
+		assertFalse(sut.getChargePointAbilities().isEvConnected());
 
 		test.deactivate();
 	}
@@ -275,7 +273,6 @@ public class EvseGoeImplTest {
 				.next(new TestCase() //
 						.output(EvseGoe.ChannelId.ERROR, ErrorCode.NO_GROUND));
 
-		// Unknown values map to INTERNAL per go-e Modbus API v2
 		test.next(new TestCase("Change to an unknown value") //
 				.onBeforeProcessImage(() -> bridge.withInputRegisters(107, 4711)));
 		test.next(new TestCase(), 10) //
@@ -291,7 +288,7 @@ public class EvseGoeImplTest {
 		final var test = prepareGoeTest(sut, false) //
 				.next(new TestCase(), 20);
 
-		// all three phases carry current and AMPERE_MAX (211) reads 32 A
+		// three phases carry current, AMPERE_MAX reads 32 A
 		var abilities = sut.getChargePointAbilities();
 		var applySetPoint = (ApplySetPoint.Ability.MilliAmpere) abilities.applySetPoint();
 		assertEquals(SingleOrThreePhase.THREE_PHASE, applySetPoint.phase());
@@ -302,8 +299,7 @@ public class EvseGoeImplTest {
 		// phase switching is not supported
 		assertNull(abilities.phaseSwitch());
 
-		// the configured maximum current limits the ability, here below the
-		// hardware maximum of 32 A
+		// configured maximum below the hardware maximum
 		final var sut2 = new EvseGoeImpl();
 		final var test2 = prepareGoeTest(sut2, false, SingleOrThreePhase.THREE_PHASE, 32, 16000) //
 				.next(new TestCase(), 20);
@@ -311,8 +307,7 @@ public class EvseGoeImplTest {
 		applySetPoint = (ApplySetPoint.Ability.MilliAmpere) abilities.applySetPoint();
 		assertEquals(16000, applySetPoint.max());
 
-		// the hardware maximum current limits the configured value: AMPERE_MAX
-		// (211) reads 16 A, like the 11 kW variant of the go-e Gemini
+		// hardware maximum of the 11 kW variant (16 A) below the configured maximum
 		final var sut4 = new EvseGoeImpl();
 		final var test4 = prepareGoeTest(sut4, false, SingleOrThreePhase.THREE_PHASE, 16, 32_000) //
 				.next(new TestCase(), 20);
@@ -369,15 +364,13 @@ public class EvseGoeImplTest {
 		sut.apply(actions(sut, 16000));
 		assertEquals(true, sut.getSetAllowChargingChannel().getNextWriteValueAndReset().get());
 
-		// a changed Set-Point while charging does not re-write ALLOW; consume
-		// the queued current write to simulate the executed Modbus write
+		// a changed Set-Point while charging does not re-write ALLOW
 		sut.apply(actions(sut, 20000));
 		assertEquals(20000, sut.getSetChargingCurrentChannel().getNextWriteValueAndReset().get());
 		assertFalse(sut.getSetAllowChargingChannel().getNextWriteValue().isPresent(),
 				"ALLOW must not be re-written while the charging session continues");
 
-		// returning to 0 writes ALLOW=0; the current register is not written at
-		// all, because it accepts only 6..32 A
+		// returning to 0 writes ALLOW=0 only; register 299 accepts only 6..32 A
 		sut.apply(actions(sut, 0));
 		assertEquals(false, sut.getSetAllowChargingChannel().getNextWriteValueAndReset().get());
 		assertFalse(sut.getSetChargingCurrentChannel().getNextWriteValue().isPresent(),

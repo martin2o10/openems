@@ -37,9 +37,6 @@ public interface EvseGoe extends EvseChargePoint, ElectricityMeter, OpenemsCompo
 		ERROR(Doc.of(ErrorCode.values())//
 				.persistencePriority(PersistencePriority.LOW)//
 				.text("Error")), //
-		IS_EV_CONNECTED(Doc.of(BOOLEAN)//
-				.persistencePriority(PersistencePriority.MEDIUM)//
-				.text("Is an EV connected")), //
 		VOLTAGE_N(Doc.of(FLOAT)//
 				.unit(Unit.VOLT)//
 				.persistencePriority(PersistencePriority.LOW)//
@@ -60,31 +57,27 @@ public interface EvseGoe extends EvseChargePoint, ElectricityMeter, OpenemsCompo
 				.text("Firmware version")), //
 		SERIAL_NUMBER(Doc.of(STRING)//
 				.text("Serial number")), //
-		// Phase states before/after the contactor; binary flags 0b00ABCDEF per
-		// go-e Modbus API v2 (verification on hardware pending)
 		PHASES(Doc.of(INTEGER)//
 				.text("Phase states before/after contactor")), //
 		HARDWARE_MAX_CURRENT(Doc.of(FLOAT)//
 				.unit(Unit.AMPERE)//
-				.text("Maximum hardware current (register 211 AMPERE_MAX)")), //
+				.text("Maximum hardware current")), //
 		PHASE_SWITCH_MODE(Doc.of(INTEGER)//
 				.persistencePriority(PersistencePriority.LOW)//
-				.text("Phase switch mode (register 332 PHASE_SWITCH_MODE; accepts only 0, 1, 2)")), //
+				.text("Phase switch mode")), //
 		DEBUG_SET_CHARGING_CURRENT(Doc.of(INTEGER)), //
-		// READ_WRITE: written via FC16 to register 299 (AMPERE_VOLATILE) and read
-		// back as the source of truth for the currently applied current
 		SET_CHARGING_CURRENT(Doc.of(INTEGER)//
 				.accessMode(READ_WRITE)//
 				.unit(Unit.MILLIAMPERE)//
 				.persistencePriority(PersistencePriority.MEDIUM)//
 				.onChannelSetNextWriteMirrorToDebugChannel(DEBUG_SET_CHARGING_CURRENT)//
-				.text("Charging current (register 299 AMPERE_VOLATILE)")), //
+				.text("Charging current")), //
 		DEBUG_SET_ALLOW_CHARGING(Doc.of(BOOLEAN)), //
 		SET_ALLOW_CHARGING(Doc.of(BOOLEAN)//
 				.accessMode(READ_WRITE)//
 				.persistencePriority(PersistencePriority.MEDIUM)//
 				.onChannelSetNextWriteMirrorToDebugChannel(DEBUG_SET_ALLOW_CHARGING)//
-				.text("Allow charging (register 200 ALLOW)")) //
+				.text("Allow charging")) //
 		;
 
 		private final Doc doc;
