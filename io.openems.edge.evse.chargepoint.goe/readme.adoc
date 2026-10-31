@@ -1,0 +1,74 @@
+= EVSE Charge-Point go-e
+
+Implementation for the go-e Gemini charging station series.
+
+== Supported devices
+
+- go-e Gemini
+- go-e Gemini flex
+
+== Communication
+
+This component communicates via Modbus/TCP (go-e Modbus TCP API v2). The Modbus interface has to be enabled in the go-e App or via the HTTP API key `men`. Writes use function code 16 only, because function code 6 is not supported by go-e.
+
+== Configuration
+
+[cols="1,1,1,1"]
+|===
+|Property |Type |Default |Description
+
+|id
+|String
+|evseChargePoint0
+|Unique ID of this Component
+
+|alias
+|String
+|
+|Human-readable name of this Component
+
+|enabled
+|Boolean
+|true
+|Is this Component enabled?
+
+|readOnly
+|Boolean
+|false
+|Defines that this charge point is read only
+
+|modbus_id
+|String
+|modbus0
+|ID of Modbus bridge
+
+|modbusUnitId
+|Integer
+|1
+|The Unit-ID of the Modbus device
+
+|phaseRotation
+|PhaseRotation
+|L1_L2_L3
+|Apply standard or rotated wiring
+
+|wiring
+|SingleOrThreePhase
+|THREE_PHASE
+|Physical wiring of the charge point. `SINGLE_PHASE` disables phase switching
+
+|maxCurrent
+|Integer
+|32000
+|Maximum charging current in [mA]; internally limited by the charge point hardware (register 211 AMPERE_MAX)
+|===
+
+== Features
+
+- Supports reading of meter values (voltage, current, power, energy)
+- Supports setting charging current
+- Supports enabling and disabling charging
+- Supports switching between 1-phase and 3-phase charging
+- Maximum charging current is limited by the hardware maximum of the charge point
+
+https://github.com/OpenEMS/openems/tree/develop/io.openems.edge.evse.chargepoint.goe[Source Code icon:github[]]
