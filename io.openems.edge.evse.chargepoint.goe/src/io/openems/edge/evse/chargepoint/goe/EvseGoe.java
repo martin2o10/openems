@@ -62,9 +62,12 @@ public interface EvseGoe extends EvseChargePoint, ElectricityMeter, OpenemsCompo
 		HARDWARE_MAX_CURRENT(Doc.of(FLOAT)//
 				.unit(Unit.AMPERE)//
 				.text("Maximum hardware current")), //
-		PHASE_SWITCH_MODE(Doc.of(INTEGER)//
-				.persistencePriority(PersistencePriority.LOW)//
-				.text("Phase switch mode")), //
+		DEBUG_SET_PHASE_SWITCH_MODE(Doc.of(INTEGER)), //
+		SET_PHASE_SWITCH_MODE(Doc.of(INTEGER)//
+				.accessMode(READ_WRITE)//
+				.persistencePriority(PersistencePriority.MEDIUM)//
+				.onChannelSetNextWriteMirrorToDebugChannel(DEBUG_SET_PHASE_SWITCH_MODE)//
+				.text("Phase switch mode: 1 = single-phase, 2 = three-phase")), //
 		DEBUG_SET_CHARGING_CURRENT(Doc.of(INTEGER)), //
 		SET_CHARGING_CURRENT(Doc.of(INTEGER)//
 				.accessMode(READ_WRITE)//
@@ -155,5 +158,24 @@ public interface EvseGoe extends EvseChargePoint, ElectricityMeter, OpenemsCompo
 	 */
 	public default void setSetAllowCharging(boolean value) throws OpenemsNamedException {
 		this.getSetAllowChargingChannel().setNextWriteValue(value);
+	}
+
+	/**
+	 * Gets the Channel for {@link ChannelId#SET_PHASE_SWITCH_MODE}.
+	 *
+	 * @return the Channel
+	 */
+	public default IntegerWriteChannel getSetPhaseSwitchModeChannel() {
+		return this.channel(ChannelId.SET_PHASE_SWITCH_MODE);
+	}
+
+	/**
+	 * Sets the next Write Value for {@link ChannelId#SET_PHASE_SWITCH_MODE}.
+	 *
+	 * @param value 1 for single-phase, 2 for three-phase
+	 * @throws OpenemsNamedException on error
+	 */
+	public default void setSetPhaseSwitchMode(int value) throws OpenemsNamedException {
+		this.getSetPhaseSwitchModeChannel().setNextWriteValue(value);
 	}
 }

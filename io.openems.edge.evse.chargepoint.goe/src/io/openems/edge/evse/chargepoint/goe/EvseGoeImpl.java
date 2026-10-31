@@ -12,12 +12,15 @@ import static io.openems.edge.common.type.Phase.SingleOrThreePhase.SINGLE_PHASE;
 import static io.openems.edge.common.type.Phase.SingleOrThreePhase.THREE_PHASE;
 import static io.openems.edge.evcs.api.Evcs.evaluatePhaseCountFromCurrent;
 import static io.openems.edge.evse.api.common.ApplySetPoint.MIN_CURRENT;
+import static io.openems.edge.evse.api.common.ApplySetPoint.convertMilliAmpereToWatt;
 import static org.osgi.service.component.annotations.ConfigurationPolicy.REQUIRE;
 import static org.osgi.service.component.annotations.ReferenceCardinality.MANDATORY;
 import static org.osgi.service.component.annotations.ReferenceCardinality.OPTIONAL;
 import static org.osgi.service.component.annotations.ReferencePolicy.DYNAMIC;
 import static org.osgi.service.component.annotations.ReferencePolicy.STATIC;
 import static org.osgi.service.component.annotations.ReferencePolicyOption.GREEDY;
+
+import java.util.Objects;
 
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
@@ -53,6 +56,7 @@ import io.openems.edge.common.type.Phase.SingleOrThreePhase;
 import io.openems.edge.evse.api.chargepoint.EvseChargePoint;
 import io.openems.edge.evse.api.chargepoint.Profile.ChargePointAbilities;
 import io.openems.edge.evse.api.chargepoint.Profile.ChargePointActions;
+import io.openems.edge.evse.api.common.ApplyPhaseSwitch.PhaseSwitchDirection;
 import io.openems.edge.evse.api.common.ApplySetPoint;
 import io.openems.edge.meter.api.ElectricityMeter;
 import io.openems.edge.meter.api.PhaseRotation;
@@ -71,6 +75,9 @@ import io.openems.edge.timedata.api.TimedataProvider;
 @GenerateTargetsFromReferences("Modbus")
 public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseGoe, EvseChargePoint,
 		ElectricityMeter, OpenemsComponent, TimedataProvider, EventHandler, ModbusComponent {
+
+	private static final int PHASE_SWITCH_MODE_SINGLE_PHASE = 1;
+	private static final int PHASE_SWITCH_MODE_THREE_PHASE = 2;
 
 	/** Maps unknown values of register 107 to INTERNAL, as documented by go-e. */
 	private static final ElementToChannelConverter TO_ERROR_CODE = new ElementToChannelConverter(//
@@ -93,8 +100,8 @@ public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseG
 	/** Last Set-Point in [mA] that was queued for writing; null if none yet. */
 	private Integer lastSetPoint = null;
 
-	/** Mirrors the last written state of the ALLOW register (200). */
-	private boolean chargingEnabled = false;
+	/** Last state of ALLOW that was queued for writing; null if none yet. */
+	private Boolean lastAllowCharging = null;
 
 	public EvseGoeImpl() {
 		super(//
@@ -174,7 +181,7 @@ public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseG
 				new FC3ReadRegistersTask(299, Priority.HIGH, //
 						m(EvseGoe.ChannelId.SET_CHARGING_CURRENT, new UnsignedWordElement(299), SCALE_FACTOR_3)), //
 				new FC3ReadRegistersTask(332, Priority.LOW, //
-						m(EvseGoe.ChannelId.PHASE_SWITCH_MODE, new UnsignedWordElement(332))));
+						m(EvseGoe.ChannelId.SET_PHASE_SWITCH_MODE, new UnsignedWordElement(332))));
 
 		if (!this.config.readOnly()) {
 			// FC6 is not supported by go-e. Register 299 is volatile; the EEPROM register
@@ -184,7 +191,9 @@ public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseG
 							m(EvseGoe.ChannelId.SET_CHARGING_CURRENT, new UnsignedWordElement(299),
 									SCALE_FACTOR_3)), //
 					new FC16WriteRegistersTask(200, //
-							m(EvseGoe.ChannelId.SET_ALLOW_CHARGING, new UnsignedWordElement(200))));
+							m(EvseGoe.ChannelId.SET_ALLOW_CHARGING, new UnsignedWordElement(200))), //
+					new FC16WriteRegistersTask(332, //
+							m(EvseGoe.ChannelId.SET_PHASE_SWITCH_MODE, new UnsignedWordElement(332))));
 		}
 		return modbusProtocol;
 	}
@@ -206,6 +215,14 @@ public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseG
 		// A single-phase wired charge point can never charge three-phased
 		if (this.config.wiring() == SINGLE_PHASE) {
 			return SINGLE_PHASE;
+		}
+		final var configuredPhases = switch (this.getSetPhaseSwitchModeChannel().value().orElse(0)) {
+		case PHASE_SWITCH_MODE_SINGLE_PHASE -> SINGLE_PHASE;
+		case PHASE_SWITCH_MODE_THREE_PHASE -> THREE_PHASE;
+		default -> null; // register not available or automatic mode of the charge point
+		};
+		if (configuredPhases != null) {
+			return configuredPhases;
 		}
 		// Fall back to the phases that actually carry current
 		final var phaseCount = evaluatePhaseCountFromCurrent(//
@@ -239,13 +256,45 @@ public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseG
 		}
 
 		final var phases = this.getPhases();
+		final var maxCurrent = this.getMaxCurrentInMilliAmpere();
+		final var phaseSwitchDirection = this.getPhaseSwitchAbility(phases);
 
 		return ChargePointAbilities.create() //
-				.setApplySetPoint(new ApplySetPoint.Ability.MilliAmpere(phases, MIN_CURRENT, //
-						this.getMaxCurrentInMilliAmpere())) //
+				.setApplySetPoint(new ApplySetPoint.Ability.MilliAmpere(phases, MIN_CURRENT, maxCurrent)) //
+				.setPhaseSwitchManual(phaseSwitchDirection,
+						getOppositePhaseApplySetPointAbility(phaseSwitchDirection, maxCurrent)) //
 				.setIsEvConnected(this.getCarState().isEvConnected) //
 				.setIsReadyForCharging(this.getIsReadyForCharging()) //
 				.build();
+	}
+
+	/**
+	 * Advertises the possible phase-switch direction, i.e. the opposite of the
+	 * currently active phase mode. Returns null if phase switching is not possible
+	 * at all.
+	 *
+	 * @param phases the currently active {@link SingleOrThreePhase}
+	 * @return the {@link PhaseSwitchDirection} or null
+	 */
+	private PhaseSwitchDirection getPhaseSwitchAbility(SingleOrThreePhase phases) {
+		if (this.config.wiring() == SINGLE_PHASE //
+				|| this.getSetPhaseSwitchModeChannel().value().get() == null) {
+			return null;
+		}
+		return phases == THREE_PHASE //
+				? PhaseSwitchDirection.TO_SINGLE_PHASE //
+				: PhaseSwitchDirection.TO_THREE_PHASE;
+	}
+
+	private static ApplySetPoint.Ability.Watt getOppositePhaseApplySetPointAbility(
+			PhaseSwitchDirection phaseSwitchDirection, int maxCurrent) {
+		if (phaseSwitchDirection == null) {
+			return null;
+		}
+		final var oppositePhase = phaseSwitchDirection.getTargetPhase();
+		return new ApplySetPoint.Ability.Watt(oppositePhase, //
+				convertMilliAmpereToWatt(oppositePhase, MIN_CURRENT), //
+				convertMilliAmpereToWatt(oppositePhase, maxCurrent));
 	}
 
 	@Override
@@ -254,6 +303,25 @@ public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseG
 			return;
 		}
 		this.applySetPoint(actions.getApplySetPointInMilliAmpere().value());
+
+		final var phaseSwitch = actions.phaseSwitch();
+		if (phaseSwitch != null && phaseSwitch.direction() != null) {
+			this.applyPhaseSwitch(phaseSwitch.direction());
+		}
+	}
+
+	private void applyPhaseSwitch(PhaseSwitchDirection direction) {
+		final var phaseSwitchMode = direction == PhaseSwitchDirection.TO_SINGLE_PHASE //
+				? PHASE_SWITCH_MODE_SINGLE_PHASE //
+				: PHASE_SWITCH_MODE_THREE_PHASE;
+		if (this.getSetPhaseSwitchModeChannel().value().orElse(0) == phaseSwitchMode) {
+			return;
+		}
+		try {
+			this.setSetPhaseSwitchMode(phaseSwitchMode);
+		} catch (OpenemsNamedException e) {
+			this.log.error("Failed to apply phase switch: " + e.getMessage());
+		}
 	}
 
 	/**
@@ -261,43 +329,39 @@ public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseG
 	 *
 	 * <p>
 	 * Charging is started and stopped via ALLOW, because register 299 accepts
-	 * only 6..32 A. The current is written on change only.
+	 * only 6..32 A. Registers are written on change, and again if the readback
+	 * differs, e.g. after a restart of the charge point.
 	 *
 	 * @param setPointInMilliAmpere the Set-Point in [mA]
 	 */
 	private void applySetPoint(int setPointInMilliAmpere) {
 		try {
-			this.applyAllowCharging(setPointInMilliAmpere);
-
-			// Write-on-change: skip identical Set-Points
-			if (this.lastSetPoint != null && this.lastSetPoint == setPointInMilliAmpere) {
+			this.applyAllowCharging(setPointInMilliAmpere > 0);
+			if (setPointInMilliAmpere == 0) {
+				this.lastSetPoint = 0;
+				return;
+			}
+			final var setPointInWholeAmpere = Math.round(setPointInMilliAmpere / 1000f) * 1000;
+			final var readback = this.getSetChargingCurrentChannel().value().get();
+			if (Objects.equals(this.lastSetPoint, setPointInMilliAmpere) //
+					&& (readback == null || readback == setPointInWholeAmpere)) {
 				return;
 			}
 			this.lastSetPoint = setPointInMilliAmpere;
-
-			if (setPointInMilliAmpere == 0) {
-				return;
-			}
 			this.setSetChargingCurrent(setPointInMilliAmpere);
 		} catch (OpenemsNamedException e) {
 			this.log.error("Failed to apply set-point: " + e.getMessage());
 		}
 	}
 
-	/**
-	 * Writes the ALLOW register (200) on the enable/disable transitions of a
-	 * charging session.
-	 *
-	 * @param setPointInMilliAmpere the Set-Point in [mA]
-	 * @throws OpenemsNamedException on error
-	 */
-	private void applyAllowCharging(int setPointInMilliAmpere) throws OpenemsNamedException {
-		final var isCharging = setPointInMilliAmpere > 0;
-		if (this.chargingEnabled == isCharging) {
+	private void applyAllowCharging(boolean allowCharging) throws OpenemsNamedException {
+		final var readback = this.getSetAllowChargingChannel().value().get();
+		if (Objects.equals(this.lastAllowCharging, allowCharging) //
+				&& (readback == null || readback == allowCharging)) {
 			return;
 		}
-		this.chargingEnabled = isCharging;
-		this.setSetAllowCharging(isCharging);
+		this.lastAllowCharging = allowCharging;
+		this.setSetAllowCharging(allowCharging);
 	}
 
 	@Override

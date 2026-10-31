@@ -1,5 +1,6 @@
 package io.openems.edge.evse.chargepoint.goe;
 
+import static io.openems.edge.evse.api.common.ApplySetPoint.convertMilliAmpereToWatt;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -14,6 +15,7 @@ import io.openems.edge.common.test.ComponentTest;
 import io.openems.edge.common.type.Phase.SingleOrThreePhase;
 import io.openems.edge.evse.api.chargepoint.EvseChargePoint;
 import io.openems.edge.evse.api.chargepoint.Profile.ChargePointActions;
+import io.openems.edge.evse.api.common.ApplyPhaseSwitch.PhaseSwitchDirection;
 import io.openems.edge.evse.api.common.ApplySetPoint;
 import io.openems.edge.meter.api.ElectricityMeter;
 
@@ -138,6 +140,21 @@ public class EvseGoeImplTest {
 				.build();
 	}
 
+	/**
+	 * Builds {@link ChargePointActions} applying a Set-Point of 16 A and the
+	 * given phase switch.
+	 *
+	 * @param sut       the system under test
+	 * @param direction the {@link PhaseSwitchDirection}
+	 * @return the {@link ChargePointActions}
+	 */
+	private static ChargePointActions phaseSwitchActions(EvseGoeImpl sut, PhaseSwitchDirection direction) {
+		return ChargePointActions.from(sut.getChargePointAbilities()) //
+				.setApplySetPointInMilliAmpere(16000) //
+				.setPhaseSwitchManual(direction) //
+				.build();
+	}
+
 	@Test
 	public void testActivation() throws Exception {
 		final var sut = new EvseGoeImpl();
@@ -190,7 +207,7 @@ public class EvseGoeImplTest {
 						.output(EvseGoe.ChannelId.POWER_FACTOR_L2, 97) //
 						.output(EvseGoe.ChannelId.POWER_FACTOR_L3, 99) //
 						.output(EvseGoe.ChannelId.PHASES, 0b00111000) //
-						.output(EvseGoe.ChannelId.PHASE_SWITCH_MODE, 2))
+						.output(EvseGoe.ChannelId.SET_PHASE_SWITCH_MODE, 2))
 
 				.deactivate();
 
@@ -296,8 +313,13 @@ public class EvseGoeImplTest {
 		assertEquals(32000, applySetPoint.max());
 		assertTrue(abilities.isEvConnected());
 		assertTrue(abilities.isReadyForCharging());
-		// phase switching is not supported
-		assertNull(abilities.phaseSwitch());
+		// three-phase active: possible switch is TO_SINGLE_PHASE within single-phase limits
+		assertEquals(PhaseSwitchDirection.TO_SINGLE_PHASE, abilities.phaseSwitch().direction());
+		assertEquals(SingleOrThreePhase.SINGLE_PHASE, abilities.phaseSwitch().oppositePhaseApplySetPoint().phase());
+		assertEquals(convertMilliAmpereToWatt(SingleOrThreePhase.SINGLE_PHASE, ApplySetPoint.MIN_CURRENT),
+				abilities.phaseSwitch().oppositePhaseApplySetPoint().min());
+		assertEquals(convertMilliAmpereToWatt(SingleOrThreePhase.SINGLE_PHASE, 32000),
+				abilities.phaseSwitch().oppositePhaseApplySetPoint().max());
 
 		// configured maximum below the hardware maximum
 		final var sut2 = new EvseGoeImpl();
@@ -322,6 +344,7 @@ public class EvseGoeImplTest {
 		abilities = sut3.getChargePointAbilities();
 		applySetPoint = (ApplySetPoint.Ability.MilliAmpere) abilities.applySetPoint();
 		assertEquals(SingleOrThreePhase.SINGLE_PHASE, applySetPoint.phase());
+		assertNull(abilities.phaseSwitch(), "Single-phase wiring must not offer phase switching");
 
 		test2.deactivate();
 		test3.deactivate();
@@ -385,6 +408,77 @@ public class EvseGoeImplTest {
 	}
 
 	@Test
+	public void testPhaseSwitchAbility() throws Exception {
+		final var sut = new EvseGoeImpl();
+		final var test = prepareGoeTest(sut, false);
+		final var bridge = (DummyModbusBridge) sut.getBridgeModbus();
+
+		// register 332 reads 1 -> single-phase, even while three phases carry current
+		test.next(new TestCase().onBeforeProcessImage(() -> bridge.withRegisters(332, 1)));
+		test.next(new TestCase(), 20);
+		var abilities = sut.getChargePointAbilities();
+		assertEquals(SingleOrThreePhase.SINGLE_PHASE, abilities.applySetPoint().phase());
+		assertEquals(PhaseSwitchDirection.TO_THREE_PHASE, abilities.phaseSwitch().direction());
+
+		// register 332 reads 0 (automatic mode of the charge point) -> fall back to
+		// the current heuristic; here only L1 carries current
+		test.next(new TestCase().onBeforeProcessImage(() -> bridge //
+				.withRegisters(332, 0) //
+				.withInputRegisters(116, 0, 0) //
+				.withInputRegisters(118, 0, 0)));
+		test.next(new TestCase(), 20);
+		abilities = sut.getChargePointAbilities();
+		assertEquals(SingleOrThreePhase.SINGLE_PHASE, abilities.applySetPoint().phase());
+		assertEquals(PhaseSwitchDirection.TO_THREE_PHASE, abilities.phaseSwitch().direction());
+
+		test.deactivate();
+	}
+
+	@Test
+	public void testApplyPhaseSwitch() throws Exception {
+		final var sut = new EvseGoeImpl();
+		final var test = prepareGoeTest(sut, false);
+		final var bridge = (DummyModbusBridge) sut.getBridgeModbus();
+		test.next(new TestCase(), 20);
+
+		// register 332 reads 2: switching to single-phase writes 1
+		sut.apply(phaseSwitchActions(sut, PhaseSwitchDirection.TO_SINGLE_PHASE));
+		assertEquals(1, sut.getSetPhaseSwitchModeChannel().getNextWriteValueAndReset().get());
+
+		// register 332 reads 1: switching to three-phase writes 2
+		test.next(new TestCase().onBeforeProcessImage(() -> bridge.withRegisters(332, 1)));
+		test.next(new TestCase(), 20);
+		sut.apply(phaseSwitchActions(sut, PhaseSwitchDirection.TO_THREE_PHASE));
+		assertEquals(2, sut.getSetPhaseSwitchModeChannel().getNextWriteValueAndReset().get());
+
+		test.deactivate();
+	}
+
+	@Test
+	public void testRewriteAfterChargePointRestart() throws Exception {
+		final var sut = new EvseGoeImpl();
+		final var test = prepareGoeTest(sut, false);
+		final var bridge = (DummyModbusBridge) sut.getBridgeModbus();
+		test.next(new TestCase(), 20);
+
+		// ALLOW reads 1 after an OpenEMS restart: a first zero Set-Point writes ALLOW=0
+		sut.apply(actions(sut, 0));
+		assertEquals(false, sut.getSetAllowChargingChannel().getNextWriteValueAndReset().get());
+
+		sut.apply(actions(sut, 16000));
+		assertEquals(16000, sut.getSetChargingCurrentChannel().getNextWriteValueAndReset().get());
+		sut.getSetAllowChargingChannel().getNextWriteValueAndReset();
+
+		// the charge point restarts and register 299 reads 10 A: the Set-Point is written again
+		test.next(new TestCase().onBeforeProcessImage(() -> bridge.withRegisters(299, 10)));
+		test.next(new TestCase(), 20);
+		sut.apply(actions(sut, 16000));
+		assertEquals(16000, sut.getSetChargingCurrentChannel().getNextWriteValueAndReset().get());
+
+		test.deactivate();
+	}
+
+	@Test
 	public void testReadOnly() throws Exception {
 		final var sut = new EvseGoeImpl();
 		final var test = prepareGoeTest(sut, true) //
@@ -407,6 +501,7 @@ public class EvseGoeImplTest {
 				"Read-only mode must not write the current register");
 		assertFalse(sut.getSetAllowChargingChannel().getNextWriteValue().isPresent(),
 				"Read-only mode must not write the ALLOW register");
+		assertNull(abilities.phaseSwitch());
 
 		// reads still work
 		test.next(new TestCase() //
