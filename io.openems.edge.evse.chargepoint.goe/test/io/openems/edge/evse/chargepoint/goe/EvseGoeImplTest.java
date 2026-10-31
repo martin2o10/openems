@@ -206,13 +206,13 @@ public class EvseGoeImplTest {
 						.output(EvseGoe.ChannelId.POWER_FACTOR_L1, 98) //
 						.output(EvseGoe.ChannelId.POWER_FACTOR_L2, 97) //
 						.output(EvseGoe.ChannelId.POWER_FACTOR_L3, 99) //
-						.output(EvseGoe.ChannelId.PHASES, 0b00111000) //
-						.output(EvseGoe.ChannelId.SET_PHASE_SWITCH_MODE, 2))
+						.output(EvseGoe.ChannelId.PHASES, 0b00111000))
 
 				.deactivate();
 
 		assertEquals(16000, sut.getSetChargingCurrentChannel().value().get());
 		assertEquals(true, sut.getSetAllowChargingChannel().value().get());
+		assertEquals(2, sut.getSetPhaseSwitchModeChannel().value().get());
 	}
 
 	@Test
