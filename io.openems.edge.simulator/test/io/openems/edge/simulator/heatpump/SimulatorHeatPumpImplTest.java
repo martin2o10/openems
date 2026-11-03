@@ -38,7 +38,6 @@ class SimulatorHeatPumpImplTest {
 						.output(Heat.ChannelId.TARGET_TEMPERATURE, 400) //
 						.output(Heat.ChannelId.TEMPERATURE, 380) //
 						.output(ElectricityMeter.ChannelId.ACTIVE_POWER, 0) //
-						.output(ManagedHeatPump.ChannelId.TARGET_ACTIVE_POWER, 3000) //
 						.output(ManagedHeatPump.ChannelId.DEBUG_TARGET_ACTIVE_POWER, 3000)) //
 				.next(new TestCase("Follows the target active power") //
 						.timeleap(clock, 1, MINUTES) //
