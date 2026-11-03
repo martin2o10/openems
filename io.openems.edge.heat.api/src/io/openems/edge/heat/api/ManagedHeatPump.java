@@ -11,6 +11,7 @@ import io.openems.edge.common.channel.Channel;
 import io.openems.edge.common.channel.Doc;
 import io.openems.edge.common.channel.IntegerReadChannel;
 import io.openems.edge.common.channel.IntegerWriteChannel;
+import io.openems.edge.common.channel.LongReadChannel;
 import io.openems.edge.common.channel.value.Value;
 import io.openems.edge.common.component.OpenemsComponent;
 
@@ -201,6 +202,52 @@ public interface ManagedHeatPump extends OpenemsComponent {
 		 */
 		FLOW_TEMPERATURE(Doc.of(OpenemsType.INTEGER)//
 				.unit(Unit.DEZIDEGREE_CELSIUS)//
+				.persistencePriority(PersistencePriority.HIGH)//
+				.accessMode(AccessMode.READ_ONLY)), //
+
+		/**
+		 * Current return temperature. Optional.
+		 *
+		 * <ul>
+		 * <li>Interface: ManagedHeatPump
+		 * <li>Type: Integer
+		 * <li>Unit: dezidegree Celsius
+		 * </ul>
+		 */
+		RETURN_TEMPERATURE(Doc.of(OpenemsType.INTEGER)//
+				.unit(Unit.DEZIDEGREE_CELSIUS)//
+				.persistencePriority(PersistencePriority.HIGH)//
+				.accessMode(AccessMode.READ_ONLY)), //
+
+		/**
+		 * Current thermal output power. Optional.
+		 *
+		 * <p>
+		 * Together with the electric power consumption this allows calculating the
+		 * coefficient of performance.
+		 *
+		 * <ul>
+		 * <li>Interface: ManagedHeatPump
+		 * <li>Type: Integer
+		 * <li>Unit: W
+		 * </ul>
+		 */
+		THERMAL_POWER(Doc.of(OpenemsType.INTEGER)//
+				.unit(Unit.WATT)//
+				.persistencePriority(PersistencePriority.HIGH)//
+				.accessMode(AccessMode.READ_ONLY)), //
+
+		/**
+		 * Cumulated thermal output energy. Optional.
+		 *
+		 * <ul>
+		 * <li>Interface: ManagedHeatPump
+		 * <li>Type: Long
+		 * <li>Unit: cumulated Wh
+		 * </ul>
+		 */
+		THERMAL_ENERGY(Doc.of(OpenemsType.LONG)//
+				.unit(Unit.CUMULATED_WATT_HOURS)//
 				.persistencePriority(PersistencePriority.HIGH)//
 				.accessMode(AccessMode.READ_ONLY)), //
 
@@ -541,6 +588,91 @@ public interface ManagedHeatPump extends OpenemsComponent {
 	 */
 	public default void _setFlowTemperature(Integer value) {
 		this.getFlowTemperatureChannel().setNextValue(value);
+	}
+
+	/**
+	 * Gets the Channel for {@link ChannelId#RETURN_TEMPERATURE}.
+	 *
+	 * @return the Channel
+	 */
+	public default IntegerReadChannel getReturnTemperatureChannel() {
+		return this.channel(ChannelId.RETURN_TEMPERATURE);
+	}
+
+	/**
+	 * Gets the Return Temperature in [dezidegree Celsius]. See
+	 * {@link ChannelId#RETURN_TEMPERATURE}.
+	 *
+	 * @return the Channel {@link Value}
+	 */
+	public default Value<Integer> getReturnTemperature() {
+		return this.getReturnTemperatureChannel().value();
+	}
+
+	/**
+	 * Internal method to set the 'nextValue' on
+	 * {@link ChannelId#RETURN_TEMPERATURE} Channel.
+	 *
+	 * @param value the next value
+	 */
+	public default void _setReturnTemperature(Integer value) {
+		this.getReturnTemperatureChannel().setNextValue(value);
+	}
+
+	/**
+	 * Gets the Channel for {@link ChannelId#THERMAL_POWER}.
+	 *
+	 * @return the Channel
+	 */
+	public default IntegerReadChannel getThermalPowerChannel() {
+		return this.channel(ChannelId.THERMAL_POWER);
+	}
+
+	/**
+	 * Gets the Thermal Power in [W]. See {@link ChannelId#THERMAL_POWER}.
+	 *
+	 * @return the Channel {@link Value}
+	 */
+	public default Value<Integer> getThermalPower() {
+		return this.getThermalPowerChannel().value();
+	}
+
+	/**
+	 * Internal method to set the 'nextValue' on {@link ChannelId#THERMAL_POWER}
+	 * Channel.
+	 *
+	 * @param value the next value
+	 */
+	public default void _setThermalPower(Integer value) {
+		this.getThermalPowerChannel().setNextValue(value);
+	}
+
+	/**
+	 * Gets the Channel for {@link ChannelId#THERMAL_ENERGY}.
+	 *
+	 * @return the Channel
+	 */
+	public default LongReadChannel getThermalEnergyChannel() {
+		return this.channel(ChannelId.THERMAL_ENERGY);
+	}
+
+	/**
+	 * Gets the Thermal Energy in [Wh_Σ]. See {@link ChannelId#THERMAL_ENERGY}.
+	 *
+	 * @return the Channel {@link Value}
+	 */
+	public default Value<Long> getThermalEnergy() {
+		return this.getThermalEnergyChannel().value();
+	}
+
+	/**
+	 * Internal method to set the 'nextValue' on {@link ChannelId#THERMAL_ENERGY}
+	 * Channel.
+	 *
+	 * @param value the next value
+	 */
+	public default void _setThermalEnergy(Long value) {
+		this.getThermalEnergyChannel().setNextValue(value);
 	}
 
 	/**

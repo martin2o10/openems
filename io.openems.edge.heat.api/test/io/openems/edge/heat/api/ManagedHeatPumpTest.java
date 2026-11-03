@@ -62,7 +62,9 @@ class ManagedHeatPumpTest {
 				.withMinTimes(1200, 600) //
 				.withControlCapability(HeatPumpControlCapability.CONTINUOUS) //
 				.withOperatingState(HeatPumpOperatingState.SPACE_HEATING) //
-				.withFlowTemperature(352);
+				.withFlowTemperature(352) //
+				.withReturnTemperature(301) //
+				.withThermal(12_600, 1_234_567L);
 
 		assertEquals(1200, sut.getMinActivePower().get());
 		assertEquals(4500, sut.getMaxActivePower().get());
@@ -71,6 +73,9 @@ class ManagedHeatPumpTest {
 		assertEquals(HeatPumpControlCapability.CONTINUOUS, sut.getControlCapability());
 		assertEquals(HeatPumpOperatingState.SPACE_HEATING, sut.getOperatingState());
 		assertEquals(352, sut.getFlowTemperature().get());
+		assertEquals(301, sut.getReturnTemperature().get());
+		assertEquals(12_600, sut.getThermalPower().get());
+		assertEquals(1_234_567L, sut.getThermalEnergy().get());
 	}
 
 	@Test
