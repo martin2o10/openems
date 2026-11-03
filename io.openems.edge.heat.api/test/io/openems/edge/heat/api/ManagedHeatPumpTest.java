@@ -42,29 +42,13 @@ class ManagedHeatPumpTest {
 	}
 
 	@Test
-	void setTargetTemperatureOffsetMirrorsToDebugChannel() throws OpenemsNamedException {
-		var sut = new DummyManagedHeatPump("heatPump0") //
-				.withControlCapability(HeatPumpControlCapability.TEMPERATURE_OFFSET) //
-				.withMaxTemperatureOffset(50);
-
-		sut.setTargetTemperatureOffset(30);
-
-		assertEquals(30, sut.getTargetTemperatureOffsetChannel().getNextWriteValue().get());
-		assertEquals(30, sut.getDebugTargetTemperatureOffsetChannel().getNextValue().get());
-		assertEquals(50, sut.getMaxTemperatureOffset().get());
-		assertEquals(HeatPumpControlCapability.TEMPERATURE_OFFSET, sut.getControlCapability());
-	}
-
-	@Test
 	void dummyProvidesDeviceProperties() {
 		var sut = new DummyManagedHeatPump("heatPump0") //
 				.withModulationRange(1200, 4500) //
 				.withMinTimes(1200, 600) //
 				.withControlCapability(HeatPumpControlCapability.CONTINUOUS) //
 				.withOperatingState(HeatPumpOperatingState.SPACE_HEATING) //
-				.withFlowTemperature(352) //
-				.withReturnTemperature(301) //
-				.withThermal(12_600, 1_234_567L);
+				.withThermalPower(12_600);
 
 		assertEquals(1200, sut.getMinActivePower().get());
 		assertEquals(4500, sut.getMaxActivePower().get());
@@ -72,10 +56,7 @@ class ManagedHeatPumpTest {
 		assertEquals(600, sut.getMinOffTime().get());
 		assertEquals(HeatPumpControlCapability.CONTINUOUS, sut.getControlCapability());
 		assertEquals(HeatPumpOperatingState.SPACE_HEATING, sut.getOperatingState());
-		assertEquals(352, sut.getFlowTemperature().get());
-		assertEquals(301, sut.getReturnTemperature().get());
 		assertEquals(12_600, sut.getThermalPower().get());
-		assertEquals(1_234_567L, sut.getThermalEnergy().get());
 	}
 
 	@Test

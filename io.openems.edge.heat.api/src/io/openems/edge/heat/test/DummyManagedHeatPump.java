@@ -81,53 +81,14 @@ public class DummyManagedHeatPump extends AbstractDummyOpenemsComponent<DummyMan
 	}
 
 	/**
-	 * Set {@link ManagedHeatPump.ChannelId#FLOW_TEMPERATURE} of this
+	 * Set {@link ManagedHeatPump.ChannelId#THERMAL_POWER} of this
 	 * {@link DummyManagedHeatPump}.
 	 *
-	 * @param value the flow temperature [dezidegree Celsius]
+	 * @param value the thermal power [W]
 	 * @return myself
 	 */
-	public DummyManagedHeatPump withFlowTemperature(Integer value) {
-		withValue(this, ManagedHeatPump.ChannelId.FLOW_TEMPERATURE, value);
-		return this.self();
-	}
-
-	/**
-	 * Set {@link ManagedHeatPump.ChannelId#RETURN_TEMPERATURE} of this
-	 * {@link DummyManagedHeatPump}.
-	 *
-	 * @param value the return temperature [dezidegree Celsius]
-	 * @return myself
-	 */
-	public DummyManagedHeatPump withReturnTemperature(Integer value) {
-		withValue(this, ManagedHeatPump.ChannelId.RETURN_TEMPERATURE, value);
-		return this.self();
-	}
-
-	/**
-	 * Set {@link ManagedHeatPump.ChannelId#THERMAL_POWER} and
-	 * {@link ManagedHeatPump.ChannelId#THERMAL_ENERGY} of this
-	 * {@link DummyManagedHeatPump}.
-	 *
-	 * @param power  the thermal power [W]
-	 * @param energy the cumulated thermal energy [Wh_Σ]
-	 * @return myself
-	 */
-	public DummyManagedHeatPump withThermal(Integer power, Long energy) {
-		withValue(this, ManagedHeatPump.ChannelId.THERMAL_POWER, power);
-		withValue(this, ManagedHeatPump.ChannelId.THERMAL_ENERGY, energy);
-		return this.self();
-	}
-
-	/**
-	 * Set {@link ManagedHeatPump.ChannelId#MAX_TEMPERATURE_OFFSET} of this
-	 * {@link DummyManagedHeatPump}.
-	 *
-	 * @param value the maximum temperature offset [dezidegree Celsius]
-	 * @return myself
-	 */
-	public DummyManagedHeatPump withMaxTemperatureOffset(Integer value) {
-		withValue(this, ManagedHeatPump.ChannelId.MAX_TEMPERATURE_OFFSET, value);
+	public DummyManagedHeatPump withThermalPower(Integer value) {
+		withValue(this, ManagedHeatPump.ChannelId.THERMAL_POWER, value);
 		return this.self();
 	}
 }

@@ -11,7 +11,6 @@ import io.openems.edge.common.channel.Channel;
 import io.openems.edge.common.channel.Doc;
 import io.openems.edge.common.channel.IntegerReadChannel;
 import io.openems.edge.common.channel.IntegerWriteChannel;
-import io.openems.edge.common.channel.LongReadChannel;
 import io.openems.edge.common.channel.value.Value;
 import io.openems.edge.common.component.OpenemsComponent;
 
@@ -192,34 +191,6 @@ public interface ManagedHeatPump extends OpenemsComponent {
 				.accessMode(AccessMode.READ_ONLY)), //
 
 		/**
-		 * Current flow temperature. Optional.
-		 *
-		 * <ul>
-		 * <li>Interface: ManagedHeatPump
-		 * <li>Type: Integer
-		 * <li>Unit: dezidegree Celsius
-		 * </ul>
-		 */
-		FLOW_TEMPERATURE(Doc.of(OpenemsType.INTEGER)//
-				.unit(Unit.DEZIDEGREE_CELSIUS)//
-				.persistencePriority(PersistencePriority.HIGH)//
-				.accessMode(AccessMode.READ_ONLY)), //
-
-		/**
-		 * Current return temperature. Optional.
-		 *
-		 * <ul>
-		 * <li>Interface: ManagedHeatPump
-		 * <li>Type: Integer
-		 * <li>Unit: dezidegree Celsius
-		 * </ul>
-		 */
-		RETURN_TEMPERATURE(Doc.of(OpenemsType.INTEGER)//
-				.unit(Unit.DEZIDEGREE_CELSIUS)//
-				.persistencePriority(PersistencePriority.HIGH)//
-				.accessMode(AccessMode.READ_ONLY)), //
-
-		/**
 		 * Current thermal output power. Optional.
 		 *
 		 * <p>
@@ -235,72 +206,6 @@ public interface ManagedHeatPump extends OpenemsComponent {
 		THERMAL_POWER(Doc.of(OpenemsType.INTEGER)//
 				.unit(Unit.WATT)//
 				.persistencePriority(PersistencePriority.HIGH)//
-				.accessMode(AccessMode.READ_ONLY)), //
-
-		/**
-		 * Cumulated thermal output energy. Optional.
-		 *
-		 * <ul>
-		 * <li>Interface: ManagedHeatPump
-		 * <li>Type: Long
-		 * <li>Unit: cumulated Wh
-		 * </ul>
-		 */
-		THERMAL_ENERGY(Doc.of(OpenemsType.LONG)//
-				.unit(Unit.CUMULATED_WATT_HOURS)//
-				.persistencePriority(PersistencePriority.HIGH)//
-				.accessMode(AccessMode.READ_ONLY)), //
-
-		/**
-		 * Debug value of the last written
-		 * {@link ChannelId#TARGET_TEMPERATURE_OFFSET}.
-		 *
-		 * <ul>
-		 * <li>Interface: ManagedHeatPump
-		 * <li>Type: Integer
-		 * <li>Unit: dezidegree Celsius (temperature difference)
-		 * </ul>
-		 */
-		DEBUG_TARGET_TEMPERATURE_OFFSET(Doc.of(OpenemsType.INTEGER)//
-				.unit(Unit.DEZIDEGREE_CELSIUS)), //
-
-		/**
-		 * Requested increase of the storage target temperature, e.g. to store heat
-		 * from PV surplus or cheap energy. Optional.
-		 *
-		 * <p>
-		 * The offset is added by the heat pump to its own target temperature. It
-		 * never replaces the comfort setpoints of the heat pump. It is limited by
-		 * {@link ChannelId#MAX_TEMPERATURE_OFFSET}. 'null' or '0' means no
-		 * increase.
-		 *
-		 * <ul>
-		 * <li>Interface: ManagedHeatPump
-		 * <li>Type: Integer
-		 * <li>Unit: dezidegree Celsius (temperature difference)
-		 * <li>Range: zero or positive value
-		 * </ul>
-		 */
-		TARGET_TEMPERATURE_OFFSET(Doc.of(OpenemsType.INTEGER)//
-				.unit(Unit.DEZIDEGREE_CELSIUS)//
-				.accessMode(AccessMode.READ_WRITE)//
-				.onChannelSetNextWriteMirrorToDebugChannel(ChannelId.DEBUG_TARGET_TEMPERATURE_OFFSET)//
-				.persistencePriority(PersistencePriority.HIGH)), //
-
-		/**
-		 * Maximum allowed {@link ChannelId#TARGET_TEMPERATURE_OFFSET}. Typically
-		 * configured by the user to protect efficiency and comfort. 'null' means
-		 * that the heat pump does not support a temperature offset.
-		 *
-		 * <ul>
-		 * <li>Interface: ManagedHeatPump
-		 * <li>Type: Integer
-		 * <li>Unit: dezidegree Celsius (temperature difference)
-		 * </ul>
-		 */
-		MAX_TEMPERATURE_OFFSET(Doc.of(OpenemsType.INTEGER)//
-				.unit(Unit.DEZIDEGREE_CELSIUS)//
-				.persistencePriority(PersistencePriority.LOW)//
 				.accessMode(AccessMode.READ_ONLY)), //
 
 		;
@@ -562,64 +467,6 @@ public interface ManagedHeatPump extends OpenemsComponent {
 	}
 
 	/**
-	 * Gets the Channel for {@link ChannelId#FLOW_TEMPERATURE}.
-	 *
-	 * @return the Channel
-	 */
-	public default IntegerReadChannel getFlowTemperatureChannel() {
-		return this.channel(ChannelId.FLOW_TEMPERATURE);
-	}
-
-	/**
-	 * Gets the Flow Temperature in [dezidegree Celsius]. See
-	 * {@link ChannelId#FLOW_TEMPERATURE}.
-	 *
-	 * @return the Channel {@link Value}
-	 */
-	public default Value<Integer> getFlowTemperature() {
-		return this.getFlowTemperatureChannel().value();
-	}
-
-	/**
-	 * Internal method to set the 'nextValue' on {@link ChannelId#FLOW_TEMPERATURE}
-	 * Channel.
-	 *
-	 * @param value the next value
-	 */
-	public default void _setFlowTemperature(Integer value) {
-		this.getFlowTemperatureChannel().setNextValue(value);
-	}
-
-	/**
-	 * Gets the Channel for {@link ChannelId#RETURN_TEMPERATURE}.
-	 *
-	 * @return the Channel
-	 */
-	public default IntegerReadChannel getReturnTemperatureChannel() {
-		return this.channel(ChannelId.RETURN_TEMPERATURE);
-	}
-
-	/**
-	 * Gets the Return Temperature in [dezidegree Celsius]. See
-	 * {@link ChannelId#RETURN_TEMPERATURE}.
-	 *
-	 * @return the Channel {@link Value}
-	 */
-	public default Value<Integer> getReturnTemperature() {
-		return this.getReturnTemperatureChannel().value();
-	}
-
-	/**
-	 * Internal method to set the 'nextValue' on
-	 * {@link ChannelId#RETURN_TEMPERATURE} Channel.
-	 *
-	 * @param value the next value
-	 */
-	public default void _setReturnTemperature(Integer value) {
-		this.getReturnTemperatureChannel().setNextValue(value);
-	}
-
-	/**
 	 * Gets the Channel for {@link ChannelId#THERMAL_POWER}.
 	 *
 	 * @return the Channel
@@ -645,101 +492,5 @@ public interface ManagedHeatPump extends OpenemsComponent {
 	 */
 	public default void _setThermalPower(Integer value) {
 		this.getThermalPowerChannel().setNextValue(value);
-	}
-
-	/**
-	 * Gets the Channel for {@link ChannelId#THERMAL_ENERGY}.
-	 *
-	 * @return the Channel
-	 */
-	public default LongReadChannel getThermalEnergyChannel() {
-		return this.channel(ChannelId.THERMAL_ENERGY);
-	}
-
-	/**
-	 * Gets the Thermal Energy in [Wh_Σ]. See {@link ChannelId#THERMAL_ENERGY}.
-	 *
-	 * @return the Channel {@link Value}
-	 */
-	public default Value<Long> getThermalEnergy() {
-		return this.getThermalEnergyChannel().value();
-	}
-
-	/**
-	 * Internal method to set the 'nextValue' on {@link ChannelId#THERMAL_ENERGY}
-	 * Channel.
-	 *
-	 * @param value the next value
-	 */
-	public default void _setThermalEnergy(Long value) {
-		this.getThermalEnergyChannel().setNextValue(value);
-	}
-
-	/**
-	 * Gets the Channel for {@link ChannelId#TARGET_TEMPERATURE_OFFSET}.
-	 *
-	 * @return the Channel
-	 */
-	public default IntegerWriteChannel getTargetTemperatureOffsetChannel() {
-		return this.channel(ChannelId.TARGET_TEMPERATURE_OFFSET);
-	}
-
-	/**
-	 * Gets the Target Temperature Offset in [dezidegree Celsius]. See
-	 * {@link ChannelId#TARGET_TEMPERATURE_OFFSET}.
-	 *
-	 * @return the Channel {@link Value}
-	 */
-	public default Value<Integer> getTargetTemperatureOffset() {
-		return this.getTargetTemperatureOffsetChannel().value();
-	}
-
-	/**
-	 * Sets the Target Temperature Offset in [dezidegree Celsius]. See
-	 * {@link ChannelId#TARGET_TEMPERATURE_OFFSET}.
-	 *
-	 * @param value the Integer value; 'null' for no increase
-	 * @throws OpenemsNamedException on error
-	 */
-	public default void setTargetTemperatureOffset(Integer value) throws OpenemsNamedException {
-		this.getTargetTemperatureOffsetChannel().setNextWriteValue(value);
-	}
-
-	/**
-	 * Gets the Channel for {@link ChannelId#DEBUG_TARGET_TEMPERATURE_OFFSET}.
-	 *
-	 * @return the Channel
-	 */
-	public default IntegerReadChannel getDebugTargetTemperatureOffsetChannel() {
-		return this.channel(ChannelId.DEBUG_TARGET_TEMPERATURE_OFFSET);
-	}
-
-	/**
-	 * Gets the Channel for {@link ChannelId#MAX_TEMPERATURE_OFFSET}.
-	 *
-	 * @return the Channel
-	 */
-	public default IntegerReadChannel getMaxTemperatureOffsetChannel() {
-		return this.channel(ChannelId.MAX_TEMPERATURE_OFFSET);
-	}
-
-	/**
-	 * Gets the Maximum Temperature Offset in [dezidegree Celsius]. See
-	 * {@link ChannelId#MAX_TEMPERATURE_OFFSET}.
-	 *
-	 * @return the Channel {@link Value}
-	 */
-	public default Value<Integer> getMaxTemperatureOffset() {
-		return this.getMaxTemperatureOffsetChannel().value();
-	}
-
-	/**
-	 * Internal method to set the 'nextValue' on
-	 * {@link ChannelId#MAX_TEMPERATURE_OFFSET} Channel.
-	 *
-	 * @param value the next value
-	 */
-	public default void _setMaxTemperatureOffset(Integer value) {
-		this.getMaxTemperatureOffsetChannel().setNextValue(value);
 	}
 }

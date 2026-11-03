@@ -17,14 +17,9 @@ It offers two separate setpoints:
 * `TargetActivePower`: preferred electric power consumption ("should consume"), e.g. to use PV surplus
 +
 Both setpoints are optional; without setpoints the heat pump runs autonomously.
-+
-Heat pumps that can only be influenced via temperatures offer `TargetTemperatureOffset`: a requested increase of the storage target temperature, limited by `MaxTemperatureOffset`.
-It never replaces the comfort setpoints of the heat pump.
-+
-Thermal values such as the storage temperature are provided by additionally implementing `Heat`.
 The internal control of the heat pump (frost protection, minimum run and off times, comfort) always has precedence.
 An implementation maps the setpoints to the capabilities of its interface, see `HeatPumpControlCapability`.
-Device properties are provided as Channels: modulation range (`MinActivePower`, `MaxActivePower`), `MinRunTime`, `MinOffTime`, `OperatingState` and optionally `FlowTemperature`, `ReturnTemperature`, `ThermalPower` and `ThermalEnergy` (allows calculating the coefficient of performance).
-The measured power consumption is provided by implementing `ElectricityMeter`.
+Device properties are provided as Channels: modulation range (`MinActivePower`, `MaxActivePower`), `MinRunTime`, `MinOffTime`, `OperatingState` and optionally `ThermalPower`.
+The measured power consumption is provided by implementing `ElectricityMeter`; thermal values such as the storage temperature by implementing `Heat`.
 
 https://github.com/OpenEMS/openems/tree/develop/io.openems.edge.heat.api[Source Code icon:github[]]
