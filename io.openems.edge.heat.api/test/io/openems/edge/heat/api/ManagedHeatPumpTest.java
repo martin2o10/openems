@@ -43,6 +43,20 @@ class ManagedHeatPumpTest {
 	}
 
 	@Test
+	void setTargetTemperatureOffsetMirrorsToDebugChannel() throws OpenemsNamedException {
+		var sut = new DummyManagedHeatPump("heatPump0") //
+				.withControlCapability(HeatPumpControlCapability.TEMPERATURE_OFFSET) //
+				.withMaxTemperatureOffset(50);
+
+		sut.setTargetTemperatureOffset(30);
+
+		assertEquals(30, sut.getTargetTemperatureOffsetChannel().getNextWriteValue().get());
+		assertEquals(30, sut.getDebugTargetTemperatureOffsetChannel().getNextValue().get());
+		assertEquals(50, sut.getMaxTemperatureOffset().get());
+		assertEquals(HeatPumpControlCapability.TEMPERATURE_OFFSET, sut.getControlCapability());
+	}
+
+	@Test
 	void dummyProvidesDeviceProperties() {
 		var sut = new DummyManagedHeatPump("heatPump0") //
 				.withModulationRange(1200, 4500) //

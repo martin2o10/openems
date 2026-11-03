@@ -91,4 +91,16 @@ public class DummyManagedHeatPump extends AbstractDummyOpenemsComponent<DummyMan
 		withValue(this, ManagedHeatPump.ChannelId.FLOW_TEMPERATURE, value);
 		return this.self();
 	}
+
+	/**
+	 * Set {@link ManagedHeatPump.ChannelId#MAX_TEMPERATURE_OFFSET} of this
+	 * {@link DummyManagedHeatPump}.
+	 *
+	 * @param value the maximum temperature offset [dezidegree Celsius]
+	 * @return myself
+	 */
+	public DummyManagedHeatPump withMaxTemperatureOffset(Integer value) {
+		withValue(this, ManagedHeatPump.ChannelId.MAX_TEMPERATURE_OFFSET, value);
+		return this.self();
+	}
 }

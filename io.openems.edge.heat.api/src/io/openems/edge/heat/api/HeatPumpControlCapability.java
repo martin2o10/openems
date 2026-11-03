@@ -32,7 +32,14 @@ public enum HeatPumpControlCapability implements OptionsEnum {
 	/**
 	 * The heat pump can only be released or blocked.
 	 */
-	ON_OFF(2, "On/Off");
+	ON_OFF(2, "On/Off"),
+
+	/**
+	 * The power consumption can only be influenced indirectly by increasing the
+	 * storage target temperature, see
+	 * {@link ManagedHeatPump.ChannelId#TARGET_TEMPERATURE_OFFSET}.
+	 */
+	TEMPERATURE_OFFSET(3, "Temperature offset");
 
 	private final int value;
 	private final String name;

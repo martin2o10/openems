@@ -204,6 +204,58 @@ public interface ManagedHeatPump extends OpenemsComponent {
 				.persistencePriority(PersistencePriority.HIGH)//
 				.accessMode(AccessMode.READ_ONLY)), //
 
+		/**
+		 * Debug value of the last written
+		 * {@link ChannelId#TARGET_TEMPERATURE_OFFSET}.
+		 *
+		 * <ul>
+		 * <li>Interface: ManagedHeatPump
+		 * <li>Type: Integer
+		 * <li>Unit: dezidegree Celsius (temperature difference)
+		 * </ul>
+		 */
+		DEBUG_TARGET_TEMPERATURE_OFFSET(Doc.of(OpenemsType.INTEGER)//
+				.unit(Unit.DEZIDEGREE_CELSIUS)), //
+
+		/**
+		 * Requested increase of the storage target temperature, e.g. to store heat
+		 * from PV surplus or cheap energy. Optional.
+		 *
+		 * <p>
+		 * The offset is added by the heat pump to its own target temperature. It
+		 * never replaces the comfort setpoints of the heat pump. It is limited by
+		 * {@link ChannelId#MAX_TEMPERATURE_OFFSET}. 'null' or '0' means no
+		 * increase.
+		 *
+		 * <ul>
+		 * <li>Interface: ManagedHeatPump
+		 * <li>Type: Integer
+		 * <li>Unit: dezidegree Celsius (temperature difference)
+		 * <li>Range: zero or positive value
+		 * </ul>
+		 */
+		TARGET_TEMPERATURE_OFFSET(Doc.of(OpenemsType.INTEGER)//
+				.unit(Unit.DEZIDEGREE_CELSIUS)//
+				.accessMode(AccessMode.READ_WRITE)//
+				.onChannelSetNextWriteMirrorToDebugChannel(ChannelId.DEBUG_TARGET_TEMPERATURE_OFFSET)//
+				.persistencePriority(PersistencePriority.HIGH)), //
+
+		/**
+		 * Maximum allowed {@link ChannelId#TARGET_TEMPERATURE_OFFSET}. Typically
+		 * configured by the user to protect efficiency and comfort. 'null' means
+		 * that the heat pump does not support a temperature offset.
+		 *
+		 * <ul>
+		 * <li>Interface: ManagedHeatPump
+		 * <li>Type: Integer
+		 * <li>Unit: dezidegree Celsius (temperature difference)
+		 * </ul>
+		 */
+		MAX_TEMPERATURE_OFFSET(Doc.of(OpenemsType.INTEGER)//
+				.unit(Unit.DEZIDEGREE_CELSIUS)//
+				.persistencePriority(PersistencePriority.LOW)//
+				.accessMode(AccessMode.READ_ONLY)), //
+
 		;
 
 		private final Doc doc;
@@ -489,5 +541,73 @@ public interface ManagedHeatPump extends OpenemsComponent {
 	 */
 	public default void _setFlowTemperature(Integer value) {
 		this.getFlowTemperatureChannel().setNextValue(value);
+	}
+
+	/**
+	 * Gets the Channel for {@link ChannelId#TARGET_TEMPERATURE_OFFSET}.
+	 *
+	 * @return the Channel
+	 */
+	public default IntegerWriteChannel getTargetTemperatureOffsetChannel() {
+		return this.channel(ChannelId.TARGET_TEMPERATURE_OFFSET);
+	}
+
+	/**
+	 * Gets the Target Temperature Offset in [dezidegree Celsius]. See
+	 * {@link ChannelId#TARGET_TEMPERATURE_OFFSET}.
+	 *
+	 * @return the Channel {@link Value}
+	 */
+	public default Value<Integer> getTargetTemperatureOffset() {
+		return this.getTargetTemperatureOffsetChannel().value();
+	}
+
+	/**
+	 * Sets the Target Temperature Offset in [dezidegree Celsius]. See
+	 * {@link ChannelId#TARGET_TEMPERATURE_OFFSET}.
+	 *
+	 * @param value the Integer value; 'null' for no increase
+	 * @throws OpenemsNamedException on error
+	 */
+	public default void setTargetTemperatureOffset(Integer value) throws OpenemsNamedException {
+		this.getTargetTemperatureOffsetChannel().setNextWriteValue(value);
+	}
+
+	/**
+	 * Gets the Channel for {@link ChannelId#DEBUG_TARGET_TEMPERATURE_OFFSET}.
+	 *
+	 * @return the Channel
+	 */
+	public default IntegerReadChannel getDebugTargetTemperatureOffsetChannel() {
+		return this.channel(ChannelId.DEBUG_TARGET_TEMPERATURE_OFFSET);
+	}
+
+	/**
+	 * Gets the Channel for {@link ChannelId#MAX_TEMPERATURE_OFFSET}.
+	 *
+	 * @return the Channel
+	 */
+	public default IntegerReadChannel getMaxTemperatureOffsetChannel() {
+		return this.channel(ChannelId.MAX_TEMPERATURE_OFFSET);
+	}
+
+	/**
+	 * Gets the Maximum Temperature Offset in [dezidegree Celsius]. See
+	 * {@link ChannelId#MAX_TEMPERATURE_OFFSET}.
+	 *
+	 * @return the Channel {@link Value}
+	 */
+	public default Value<Integer> getMaxTemperatureOffset() {
+		return this.getMaxTemperatureOffsetChannel().value();
+	}
+
+	/**
+	 * Internal method to set the 'nextValue' on
+	 * {@link ChannelId#MAX_TEMPERATURE_OFFSET} Channel.
+	 *
+	 * @param value the next value
+	 */
+	public default void _setMaxTemperatureOffset(Integer value) {
+		this.getMaxTemperatureOffsetChannel().setNextValue(value);
 	}
 }
