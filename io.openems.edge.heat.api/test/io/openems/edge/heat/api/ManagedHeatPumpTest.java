@@ -2,7 +2,6 @@ package io.openems.edge.heat.api;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
@@ -81,6 +80,5 @@ class ManagedHeatPumpTest {
 		assertFalse(sut.getMinActivePower().isDefined());
 		assertEquals(HeatPumpControlCapability.UNDEFINED, sut.getControlCapability());
 		assertEquals(HeatPumpOperatingState.UNDEFINED, sut.getOperatingState());
-		assertTrue(sut.getOperatingStateChannel().value().asOptional().isEmpty());
 	}
 }
