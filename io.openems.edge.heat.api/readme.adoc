@@ -1,3 +1,25 @@
 = OpenEMS Edge Heat Api
 
-https://github.com/OpenEMS/openems/tree/develop/io.openems.edge.heat.Api[Source Code icon:github[]]
+Natures for devices that produce heat.
+
+`Heat`::
+Thermal state of a heat device: temperature, target temperature, remaining heat energy and status.
+
+`ManagedHeatElement`::
+Controllable electric heating element, e.g. a heating rod.
+
+`ManagedHeatPump`::
+Heat pump whose electric power consumption can be controlled, independent of the device interface (SG-Ready, Modbus, EEBUS, ...).
++
+It offers two separate setpoints:
++
+* `ActivePowerLimit`: hard upper limit of the electric power consumption ("must not consume more than"), e.g. for §14a EnWG
+* `TargetActivePower`: preferred electric power consumption ("should consume"), e.g. to use PV surplus
++
+Both setpoints are optional; without setpoints the heat pump runs autonomously.
+The internal control of the heat pump (frost protection, minimum run and off times, comfort) always has precedence.
+An implementation maps the setpoints to the capabilities of its interface, see `HeatPumpControlCapability`.
+Device properties are provided as Channels: modulation range (`MinActivePower`, `MaxActivePower`), `MinRunTime`, `MinOffTime`, `OperatingState` and optionally `ThermalPower`.
+The measured power consumption is provided by implementing `ElectricityMeter`; thermal values such as the storage temperature by implementing `Heat`.
+
+https://github.com/OpenEMS/openems/tree/develop/io.openems.edge.heat.api[Source Code icon:github[]]
