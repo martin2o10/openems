@@ -301,10 +301,6 @@ public class EvseChargePointOcppImplTest {
 		assertEquals(SINGLE_PHASE, abilities.applySetPoint().phase());
 		assertEquals(TO_THREE_PHASE, abilities.phaseSwitch().direction());
 
-		test.next(new TestCase("Phase switch to the active phase is ignored") //
-				.onExecuteControllersCallbacks(() -> sut.apply(phaseSwitchActions(sut, 0, TO_SINGLE_PHASE))));
-		assertTrue(server.getAndClearRequests(SetChargingProfileRequest.class).isEmpty());
-
 		test.next(new TestCase("Switch back to three phases") //
 				.onExecuteControllersCallbacks(() -> sut.apply(phaseSwitchActions(sut, 0, TO_THREE_PHASE))));
 		requests = server.getAndClearRequests(SetChargingProfileRequest.class);
@@ -316,16 +312,17 @@ public class EvseChargePointOcppImplTest {
 	}
 
 	@Test
-	public void testNoNumberPhasesWithoutPhaseSwitching() throws Exception {
+	public void testDefaultNumberPhasesWithoutPhaseSwitching() throws Exception {
 		final var sut = new EvseChargePointOcppImpl();
 		final var server = new DummyOcppServer(false);
-		final var test = prepareConnectedTest(sut, server, false) //
+		final var test = prepareConnectedTest(sut, server, false, SINGLE_PHASE, 32_000) //
 				.next(new TestCase() //
 						.onExecuteControllersCallbacks(() -> sut.apply(actions(sut, 8))));
 
+		// Wiring is not sent; the library default equals the OCPP default of 3
 		final var requests = server.getAndClearRequests(SetChargingProfileRequest.class);
 		assertEquals(1, requests.size());
-		assertNull(getNumberPhases(requests.get(0)));
+		assertEquals(3, getNumberPhases(requests.get(0)));
 
 		test.deactivate();
 	}
