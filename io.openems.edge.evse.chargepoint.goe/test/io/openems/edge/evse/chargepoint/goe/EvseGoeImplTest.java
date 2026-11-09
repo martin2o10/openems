@@ -1,14 +1,19 @@
 package io.openems.edge.evse.chargepoint.goe;
 
+import static io.openems.common.utils.ReflectionUtils.getValueViaReflection;
 import static io.openems.edge.evse.api.common.ApplySetPoint.convertMilliAmpereToWatt;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
 import io.openems.edge.bridge.modbus.api.ModbusComponent;
+import io.openems.edge.bridge.modbus.api.ModbusProtocol;
+import io.openems.edge.bridge.modbus.api.element.UnsignedWordElement;
+import io.openems.edge.bridge.modbus.api.task.FC16WriteRegistersTask;
 import io.openems.edge.bridge.modbus.test.DummyModbusBridge;
 import io.openems.edge.common.test.AbstractComponentTest.TestCase;
 import io.openems.edge.common.test.ComponentTest;
@@ -20,140 +25,6 @@ import io.openems.edge.evse.api.common.ApplySetPoint;
 import io.openems.edge.meter.api.ElectricityMeter;
 
 public class EvseGoeImplTest {
-
-	/**
-	 * Prepares a {@link ComponentTest} with {@link EvseGoe} and realistic Modbus
-	 * register values of a go-e Gemini charging a three-phased EV.
-	 *
-	 * @param sut      the system under test
-	 * @param readOnly true if the charge point is configured read-only
-	 * @return the prepared ComponentTest
-	 * @throws Exception on error
-	 */
-	private static ComponentTest prepareGoeTest(EvseGoeImpl sut, boolean readOnly) throws Exception {
-		return prepareGoeTest(sut, readOnly, SingleOrThreePhase.THREE_PHASE);
-	}
-
-	/**
-	 * Prepares a {@link ComponentTest} with {@link EvseGoe} and realistic Modbus
-	 * register values of a go-e Gemini charging a three-phased EV.
-	 *
-	 * @param sut      the system under test
-	 * @param readOnly true if the charge point is configured read-only
-	 * @param wiring   the configured {@link SingleOrThreePhase} wiring
-	 * @return the prepared ComponentTest
-	 * @throws Exception on error
-	 */
-	private static ComponentTest prepareGoeTest(EvseGoeImpl sut, boolean readOnly, SingleOrThreePhase wiring)
-			throws Exception {
-		return prepareGoeTest(sut, readOnly, wiring, 32, 32_000);
-	}
-
-	/**
-	 * Prepares a {@link ComponentTest} with {@link EvseGoe} and realistic Modbus
-	 * register values of a go-e Gemini charging a three-phased EV.
-	 *
-	 * @param sut        the system under test
-	 * @param readOnly   true if the charge point is configured read-only
-	 * @param wiring     the configured {@link SingleOrThreePhase} wiring
-	 * @param ampereMax  the hardware maximum current in [A] (register 211)
-	 * @param maxCurrent the configured maximum current in [mA]
-	 * @return the prepared ComponentTest
-	 * @throws Exception on error
-	 */
-	private static ComponentTest prepareGoeTest(EvseGoeImpl sut, boolean readOnly, SingleOrThreePhase wiring,
-			int ampereMax, int maxCurrent) throws Exception {
-		return new ComponentTest(sut) //
-				.addReference("setModbus", createFixtureBridge(ampereMax)) //
-				.activate(MyConfig.create() //
-						.setId("evseChargePoint0") //
-						.setModbusId("modbus0") //
-						.setWiring(wiring) //
-						.setMaxCurrent(maxCurrent) //
-						.setReadOnly(readOnly) //
-						.build());
-	}
-
-	/**
-	 * Creates a {@link DummyModbusBridge} with realistic register values of a
-	 * go-e Gemini charging a three-phased EV.
-	 *
-	 * @param ampereMax the hardware maximum current in [A] (register 211)
-	 * @return the DummyModbusBridge
-	 */
-	private static DummyModbusBridge createFixtureBridge(int ampereMax) {
-		return new DummyModbusBridge("modbus0") //
-				// CAR_STATE (100): 2 = Charging
-				.withInputRegisters(100, 2)
-				// 101-104 are read as part of the block but not mapped
-				.withInputRegisters(101, 0, 0, 0, 0)
-				// FWV (105/106): "506" as ASCII, null-padded
-				.withInputRegisters(105, 0x3530, 0x3600)
-				// ERROR (107): 0 = no error
-				.withInputRegisters(107, 0)
-				// VOLT_L1/L2/L3 (108-113): 230, 231, 229 V
-				.withInputRegisters(108, 230, 0)
-				.withInputRegisters(110, 231, 0)
-				.withInputRegisters(112, 229, 0)
-				// AMP_L1/L2/L3 (114-119): 10.5, 10.3, 10.7 A in 0.1 A units
-				.withInputRegisters(114, 105, 0)
-				.withInputRegisters(116, 103, 0)
-				.withInputRegisters(118, 107, 0)
-				// POWER_TOTAL (120/121): 360000 in 0.01 W units = 3600 W
-				.withInputRegisters(120, 360000 & 0xFFFF, 360000 >>> 16)
-				// ENERGY_TOTAL (128/129): 360 in 0.1 kWh units = 36 kWh
-				.withInputRegisters(128, 360, 0)
-				// VOLT_N (144/145): 0 V
-				.withInputRegisters(144, 0, 0)
-				// POWER_L1/L2/L3 (146-151): 1200 W each in 0.1 kW units
-				.withInputRegisters(146, 12, 0)
-				.withInputRegisters(148, 12, 0)
-				.withInputRegisters(150, 12, 0)
-				// POWER_FACTOR_L1/L2/L3 (152-157): 98, 97, 99 %
-				.withInputRegisters(152, 98, 0)
-				.withInputRegisters(154, 97, 0)
-				.withInputRegisters(156, 99, 0)
-				// PHASES (205): all three phases present before/after contactor
-				.withInputRegisters(205, 0b00111000)
-				// SNR (304-309): "0123456789AB" as ASCII
-				.withInputRegisters(304, 0x3031, 0x3233, 0x3435, 0x3637, 0x3839, 0x4142)
-				// ALLOW (200): 1 = charging allowed
-				.withRegisters(200, 1)
-				// AMPERE_MAX (211)
-				.withRegisters(211, ampereMax)
-				// AMPERE_VOLATILE (299): 16 A
-				.withRegisters(299, 16)
-				// PHASE_SWITCH_MODE (332): 2 = three-phased
-				.withRegisters(332, 2);
-	}
-
-	/**
-	 * Builds {@link ChargePointActions} applying the given Set-Point in [mA].
-	 *
-	 * @param sut               the system under test
-	 * @param setPointInMilliAmpere the Set-Point in [mA]
-	 * @return the {@link ChargePointActions}
-	 */
-	private static ChargePointActions actions(EvseGoeImpl sut, int setPointInMilliAmpere) {
-		return ChargePointActions.from(sut.getChargePointAbilities()) //
-				.setApplySetPointInMilliAmpere(setPointInMilliAmpere) //
-				.build();
-	}
-
-	/**
-	 * Builds {@link ChargePointActions} applying a Set-Point of 16 A and the
-	 * given phase switch.
-	 *
-	 * @param sut       the system under test
-	 * @param direction the {@link PhaseSwitchDirection}
-	 * @return the {@link ChargePointActions}
-	 */
-	private static ChargePointActions phaseSwitchActions(EvseGoeImpl sut, PhaseSwitchDirection direction) {
-		return ChargePointActions.from(sut.getChargePointAbilities()) //
-				.setApplySetPointInMilliAmpere(16000) //
-				.setPhaseSwitchManual(direction) //
-				.build();
-	}
 
 	@Test
 	public void testActivation() throws Exception {
@@ -360,6 +231,7 @@ public class EvseGoeImplTest {
 		// first Set-Point is queued for writing
 		sut.apply(actions(sut, 16000));
 		assertEquals(16000, sut.getSetChargingCurrentChannel().getNextWriteValueAndReset().get());
+		assertEquals(16, getWriteRegisterValue(sut, 299));
 
 		// the identical Set-Point is not queued again (write-on-change)
 		sut.apply(actions(sut, 16000));
@@ -369,10 +241,12 @@ public class EvseGoeImplTest {
 		// a changed Set-Point is queued again
 		sut.apply(actions(sut, 20000));
 		assertEquals(20000, sut.getSetChargingCurrentChannel().getNextWriteValueAndReset().get());
+		assertEquals(20, getWriteRegisterValue(sut, 299));
 
 		// the Set-Point is written in whole Amperes: 16500 mA -> 17 A register value
 		sut.apply(actions(sut, 16500));
 		assertEquals(16500, sut.getSetChargingCurrentChannel().getNextWriteValueAndReset().get());
+		assertEquals(17, getWriteRegisterValue(sut, 299));
 
 		test.deactivate();
 	}
@@ -386,6 +260,7 @@ public class EvseGoeImplTest {
 		// transition 0 -> >0 writes ALLOW=1 exactly once
 		sut.apply(actions(sut, 16000));
 		assertEquals(true, sut.getSetAllowChargingChannel().getNextWriteValueAndReset().get());
+		assertEquals(1, getWriteRegisterValue(sut, 200));
 
 		// a changed Set-Point while charging does not re-write ALLOW
 		sut.apply(actions(sut, 20000));
@@ -396,6 +271,7 @@ public class EvseGoeImplTest {
 		// returning to 0 writes ALLOW=0 only; register 299 accepts only 6..32 A
 		sut.apply(actions(sut, 0));
 		assertEquals(false, sut.getSetAllowChargingChannel().getNextWriteValueAndReset().get());
+		assertEquals(0, getWriteRegisterValue(sut, 200));
 		assertFalse(sut.getSetChargingCurrentChannel().getNextWriteValue().isPresent(),
 				"A zero Set-Point must not write the current register");
 
@@ -444,6 +320,7 @@ public class EvseGoeImplTest {
 		// register 332 reads 2: switching to single-phase writes 1
 		sut.apply(phaseSwitchActions(sut, PhaseSwitchDirection.TO_SINGLE_PHASE));
 		assertEquals(1, sut.getSetPhaseSwitchModeChannel().getNextWriteValueAndReset().get());
+		assertEquals(1, getWriteRegisterValue(sut, 332));
 
 		// register 332 reads 1: switching to three-phase writes 2
 		test.next(new TestCase().onBeforeProcessImage(() -> bridge.withRegisters(332, 1)));
@@ -509,5 +386,97 @@ public class EvseGoeImplTest {
 				.output(EvseGoe.ChannelId.CAR_STATE, CarState.CHARGING));
 
 		test.deactivate();
+	}
+
+	private static ComponentTest prepareGoeTest(EvseGoeImpl sut, boolean readOnly) throws Exception {
+		return prepareGoeTest(sut, readOnly, SingleOrThreePhase.THREE_PHASE);
+	}
+
+	private static ComponentTest prepareGoeTest(EvseGoeImpl sut, boolean readOnly, SingleOrThreePhase wiring)
+			throws Exception {
+		return prepareGoeTest(sut, readOnly, wiring, 32, 32_000);
+	}
+
+	private static ComponentTest prepareGoeTest(EvseGoeImpl sut, boolean readOnly, SingleOrThreePhase wiring,
+			int ampereMax, int maxCurrent) throws Exception {
+		return new ComponentTest(sut) //
+				.addReference("setModbus", createFixtureBridge(ampereMax)) //
+				.activate(MyConfig.create() //
+						.setId("evseChargePoint0") //
+						.setModbusId("modbus0") //
+						.setWiring(wiring) //
+						.setMaxCurrent(maxCurrent) //
+						.setReadOnly(readOnly) //
+						.build());
+	}
+
+	private static DummyModbusBridge createFixtureBridge(int ampereMax) {
+		return new DummyModbusBridge("modbus0") //
+				// CAR_STATE (100): 2 = Charging
+				.withInputRegisters(100, 2)
+				// 101-104 are read as part of the block but not mapped
+				.withInputRegisters(101, 0, 0, 0, 0)
+				// FWV (105/106): "506" as ASCII, null-padded
+				.withInputRegisters(105, 0x3530, 0x3600)
+				// ERROR (107): 0 = no error
+				.withInputRegisters(107, 0)
+				// VOLT_L1/L2/L3 (108-113): 230, 231, 229 V
+				.withInputRegisters(108, 230, 0)
+				.withInputRegisters(110, 231, 0)
+				.withInputRegisters(112, 229, 0)
+				// AMP_L1/L2/L3 (114-119): 10.5, 10.3, 10.7 A in 0.1 A units
+				.withInputRegisters(114, 105, 0)
+				.withInputRegisters(116, 103, 0)
+				.withInputRegisters(118, 107, 0)
+				// POWER_TOTAL (120/121): 360000 in 0.01 W units = 3600 W
+				.withInputRegisters(120, 360000 & 0xFFFF, 360000 >>> 16)
+				// ENERGY_TOTAL (128/129): 360 in 0.1 kWh units = 36 kWh
+				.withInputRegisters(128, 360, 0)
+				// VOLT_N (144/145): 0 V
+				.withInputRegisters(144, 0, 0)
+				// POWER_L1/L2/L3 (146-151): 1200 W each in 0.1 kW units
+				.withInputRegisters(146, 12, 0)
+				.withInputRegisters(148, 12, 0)
+				.withInputRegisters(150, 12, 0)
+				// POWER_FACTOR_L1/L2/L3 (152-157): 98, 97, 99 %
+				.withInputRegisters(152, 98, 0)
+				.withInputRegisters(154, 97, 0)
+				.withInputRegisters(156, 99, 0)
+				// PHASES (205): all three phases present before/after contactor
+				.withInputRegisters(205, 0b00111000)
+				// SNR (304-309): "0123456789AB" as ASCII
+				.withInputRegisters(304, 0x3031, 0x3233, 0x3435, 0x3637, 0x3839, 0x4142)
+				// ALLOW (200): 1 = charging allowed
+				.withRegisters(200, 1)
+				// AMPERE_MAX (211)
+				.withRegisters(211, ampereMax)
+				// AMPERE_VOLATILE (299): 16 A
+				.withRegisters(299, 16)
+				// PHASE_SWITCH_MODE (332): 2 = three-phased
+				.withRegisters(332, 2);
+	}
+
+	private static ChargePointActions actions(EvseGoeImpl sut, int setPointInMilliAmpere) {
+		return ChargePointActions.from(sut.getChargePointAbilities()) //
+				.setApplySetPointInMilliAmpere(setPointInMilliAmpere) //
+				.build();
+	}
+
+	private static ChargePointActions phaseSwitchActions(EvseGoeImpl sut, PhaseSwitchDirection direction) {
+		return ChargePointActions.from(sut.getChargePointAbilities()) //
+				.setApplySetPointInMilliAmpere(16000) //
+				.setPhaseSwitchManual(direction) //
+				.build();
+	}
+
+	private static int getWriteRegisterValue(EvseGoeImpl sut, int address) throws Exception {
+		ModbusProtocol protocol = getValueViaReflection(sut, "protocol");
+		var task = protocol.getTaskManager().getTasks().stream() //
+				.filter(t -> t instanceof FC16WriteRegistersTask && t.getStartAddress() == address) //
+				.findFirst() //
+				.orElseThrow();
+		var registers = ((UnsignedWordElement) task.getElements()[0]).getNextWriteValueAndReset();
+		assertNotNull(registers);
+		return registers[0].getValue();
 	}
 }

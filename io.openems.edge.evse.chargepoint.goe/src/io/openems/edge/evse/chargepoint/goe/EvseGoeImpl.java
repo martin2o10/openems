@@ -211,6 +211,65 @@ public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseG
 		}
 	}
 
+	@Override
+	public ChargePointAbilities getChargePointAbilities() {
+		if (this.config.readOnly()) {
+			return ChargePointAbilities.create().build();
+		}
+
+		final var phases = this.getPhases();
+		final var maxCurrent = this.getMaxCurrentInMilliAmpere();
+		final var phaseSwitchDirection = this.getPhaseSwitchAbility(phases);
+
+		return ChargePointAbilities.create() //
+				.setApplySetPoint(new ApplySetPoint.Ability.MilliAmpere(phases, MIN_CURRENT, maxCurrent)) //
+				.setPhaseSwitchManual(phaseSwitchDirection,
+						getOppositePhaseApplySetPointAbility(phaseSwitchDirection, maxCurrent)) //
+				.setIsEvConnected(this.getCarState().isEvConnected) //
+				.setIsReadyForCharging(this.getIsReadyForCharging()) //
+				.build();
+	}
+
+	@Override
+	public void apply(ChargePointActions actions) {
+		if (this.config.readOnly()) {
+			return;
+		}
+		this.applySetPoint(actions.getApplySetPointInMilliAmpere().value());
+
+		final var phaseSwitch = actions.phaseSwitch();
+		if (phaseSwitch != null && phaseSwitch.direction() != null) {
+			this.applyPhaseSwitch(phaseSwitch.direction());
+		}
+	}
+
+	@Override
+	public PhaseRotation getPhaseRotation() {
+		return this.config.phaseRotation();
+	}
+
+	@Override
+	public boolean isReadOnly() {
+		return this.config.readOnly();
+	}
+
+	@Override
+	public Timedata getTimedata() {
+		return this.timedata;
+	}
+
+	@Override
+	public String debugLog() {
+		var b = new StringBuilder() //
+				.append("L:").append(this.getActivePower().asString());
+		if (!this.config.readOnly()) {
+			b //
+					.append("|SetCurrent:") //
+					.append(this.channel(EvseGoe.ChannelId.DEBUG_SET_CHARGING_CURRENT).value().asString());
+		}
+		return b.toString();
+	}
+
 	private SingleOrThreePhase getPhases() {
 		// A single-phase wired charge point can never charge three-phased
 		if (this.config.wiring() == SINGLE_PHASE) {
@@ -234,12 +293,6 @@ public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseG
 				: SINGLE_PHASE;
 	}
 
-	/**
-	 * Gets the configured maximum charging current, limited by the hardware
-	 * maximum of the charge point.
-	 *
-	 * @return the maximum charging current in [mA]
-	 */
 	private int getMaxCurrentInMilliAmpere() {
 		var result = this.config.maxCurrent();
 		var hardwareMax = this.getHardwareMaxCurrentChannel().value().get();
@@ -249,33 +302,6 @@ public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseG
 		return result;
 	}
 
-	@Override
-	public ChargePointAbilities getChargePointAbilities() {
-		if (this.config.readOnly()) {
-			return ChargePointAbilities.create().build();
-		}
-
-		final var phases = this.getPhases();
-		final var maxCurrent = this.getMaxCurrentInMilliAmpere();
-		final var phaseSwitchDirection = this.getPhaseSwitchAbility(phases);
-
-		return ChargePointAbilities.create() //
-				.setApplySetPoint(new ApplySetPoint.Ability.MilliAmpere(phases, MIN_CURRENT, maxCurrent)) //
-				.setPhaseSwitchManual(phaseSwitchDirection,
-						getOppositePhaseApplySetPointAbility(phaseSwitchDirection, maxCurrent)) //
-				.setIsEvConnected(this.getCarState().isEvConnected) //
-				.setIsReadyForCharging(this.getIsReadyForCharging()) //
-				.build();
-	}
-
-	/**
-	 * Advertises the possible phase-switch direction, i.e. the opposite of the
-	 * currently active phase mode. Returns null if phase switching is not possible
-	 * at all.
-	 *
-	 * @param phases the currently active {@link SingleOrThreePhase}
-	 * @return the {@link PhaseSwitchDirection} or null
-	 */
 	private PhaseSwitchDirection getPhaseSwitchAbility(SingleOrThreePhase phases) {
 		if (this.config.wiring() == SINGLE_PHASE //
 				|| this.getSetPhaseSwitchModeChannel().value().get() == null) {
@@ -297,44 +323,8 @@ public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseG
 				convertMilliAmpereToWatt(oppositePhase, maxCurrent));
 	}
 
-	@Override
-	public void apply(ChargePointActions actions) {
-		if (this.config.readOnly()) {
-			return;
-		}
-		this.applySetPoint(actions.getApplySetPointInMilliAmpere().value());
-
-		final var phaseSwitch = actions.phaseSwitch();
-		if (phaseSwitch != null && phaseSwitch.direction() != null) {
-			this.applyPhaseSwitch(phaseSwitch.direction());
-		}
-	}
-
-	private void applyPhaseSwitch(PhaseSwitchDirection direction) {
-		final var phaseSwitchMode = direction == PhaseSwitchDirection.TO_SINGLE_PHASE //
-				? PHASE_SWITCH_MODE_SINGLE_PHASE //
-				: PHASE_SWITCH_MODE_THREE_PHASE;
-		if (this.getSetPhaseSwitchModeChannel().value().orElse(0) == phaseSwitchMode) {
-			return;
-		}
-		try {
-			this.setSetPhaseSwitchMode(phaseSwitchMode);
-		} catch (OpenemsNamedException e) {
-			this.log.error("Failed to apply phase switch: " + e.getMessage());
-		}
-	}
-
-	/**
-	 * Applies the Set-Point in [mA].
-	 *
-	 * <p>
-	 * Charging is started and stopped via ALLOW, because register 299 accepts
-	 * only 6..32 A. Registers are written on change, and again if the readback
-	 * differs, e.g. after a restart of the charge point.
-	 *
-	 * @param setPointInMilliAmpere the Set-Point in [mA]
-	 */
 	private void applySetPoint(int setPointInMilliAmpere) {
+		// register 299 accepts only 6..32 A, so charging is started and stopped via ALLOW
 		try {
 			this.applyAllowCharging(setPointInMilliAmpere > 0);
 			if (setPointInMilliAmpere == 0) {
@@ -364,30 +354,17 @@ public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseG
 		this.setSetAllowCharging(allowCharging);
 	}
 
-	@Override
-	public PhaseRotation getPhaseRotation() {
-		return this.config.phaseRotation();
-	}
-
-	@Override
-	public boolean isReadOnly() {
-		return this.config.readOnly();
-	}
-
-	@Override
-	public Timedata getTimedata() {
-		return this.timedata;
-	}
-
-	@Override
-	public String debugLog() {
-		var b = new StringBuilder() //
-				.append("L:").append(this.getActivePower().asString());
-		if (!this.config.readOnly()) {
-			b //
-					.append("|SetCurrent:") //
-					.append(this.channel(EvseGoe.ChannelId.DEBUG_SET_CHARGING_CURRENT).value().asString());
+	private void applyPhaseSwitch(PhaseSwitchDirection direction) {
+		final var phaseSwitchMode = direction == PhaseSwitchDirection.TO_SINGLE_PHASE //
+				? PHASE_SWITCH_MODE_SINGLE_PHASE //
+				: PHASE_SWITCH_MODE_THREE_PHASE;
+		if (this.getSetPhaseSwitchModeChannel().value().orElse(0) == phaseSwitchMode) {
+			return;
 		}
-		return b.toString();
+		try {
+			this.setSetPhaseSwitchMode(phaseSwitchMode);
+		} catch (OpenemsNamedException e) {
+			this.log.error("Failed to apply phase switch: " + e.getMessage());
+		}
 	}
 }

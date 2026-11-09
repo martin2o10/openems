@@ -47,21 +47,4 @@ public enum CarState implements OptionsEnum {
 	public OptionsEnum getUndefined() {
 		return UNDEFINED;
 	}
-
-	/**
-	 * Parses the raw value of Modbus input register 100.
-	 *
-	 * @param value the raw register value
-	 * @return the {@link CarState}; {@link #UNDEFINED} for unknown values
-	 */
-	public static CarState fromValue(int value) {
-		return switch (value) {
-		case 0 -> DEFECT;
-		case 1 -> READY_NO_EV;
-		case 2 -> CHARGING;
-		case 3 -> WAITING_FOR_VEHICLE;
-		case 4 -> FINISHED_EV_CONNECTED;
-		default -> UNDEFINED;
-		};
-	}
 }

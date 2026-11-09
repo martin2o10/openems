@@ -65,20 +65,20 @@ public interface EvseGoe extends EvseChargePoint, ElectricityMeter, OpenemsCompo
 		DEBUG_SET_PHASE_SWITCH_MODE(Doc.of(INTEGER)), //
 		SET_PHASE_SWITCH_MODE(Doc.of(INTEGER)//
 				.accessMode(READ_WRITE)//
-				.persistencePriority(PersistencePriority.MEDIUM)//
+				.persistencePriority(PersistencePriority.LOW)//
 				.onChannelSetNextWriteMirrorToDebugChannel(DEBUG_SET_PHASE_SWITCH_MODE)//
 				.text("Phase switch mode: 1 = single-phase, 2 = three-phase")), //
 		DEBUG_SET_CHARGING_CURRENT(Doc.of(INTEGER)), //
 		SET_CHARGING_CURRENT(Doc.of(INTEGER)//
 				.accessMode(READ_WRITE)//
 				.unit(Unit.MILLIAMPERE)//
-				.persistencePriority(PersistencePriority.MEDIUM)//
+				.persistencePriority(PersistencePriority.LOW)//
 				.onChannelSetNextWriteMirrorToDebugChannel(DEBUG_SET_CHARGING_CURRENT)//
 				.text("Charging current")), //
 		DEBUG_SET_ALLOW_CHARGING(Doc.of(BOOLEAN)), //
 		SET_ALLOW_CHARGING(Doc.of(BOOLEAN)//
 				.accessMode(READ_WRITE)//
-				.persistencePriority(PersistencePriority.MEDIUM)//
+				.persistencePriority(PersistencePriority.LOW)//
 				.onChannelSetNextWriteMirrorToDebugChannel(DEBUG_SET_ALLOW_CHARGING)//
 				.text("Allow charging")) //
 		;
