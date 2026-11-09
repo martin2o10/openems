@@ -1,0 +1,17 @@
+= EVSE Charge-Point OCPP
+
+Generic implementation for a charging station that connects via OCPP 1.6J to the `Evcs.Ocpp.Server` component of OpenEMS. OpenEMS acts as the only, local OCPP backend (CSMS).
+
+== Communication
+
+- The charging station connects to `ws://<OpenEMS-IP>:<port>/<OCPP-ID>` (default port 8887). The OCPP-ID has to match the configuration of this component.
+- Charging current and phase switching are applied via `SetChargingProfile` (`TxDefaultProfile`, unit `A`). Phase switching is only offered if the charging station reports `ConnectorSwitch3to1PhaseSupported`.
+- Meter values are requested via `MeterValuesSampledData` every 10 seconds.
+- Authorization is not handled by OpenEMS: configure the charging station for free charging or local authorization.
+- Configure a fallback current at the charging station for the case that the connection to OpenEMS is lost.
+
+== Device notes
+
+- go-e Gemini / Gemini flex: enable OCPP in the go-e App (Internet -> OCPP), set the fallback current (e.g. 6 A) and allow charging without authorization.
+
+https://github.com/OpenEMS/openems/tree/develop/io.openems.edge.evse.chargepoint.ocpp[Source Code icon:github[]]

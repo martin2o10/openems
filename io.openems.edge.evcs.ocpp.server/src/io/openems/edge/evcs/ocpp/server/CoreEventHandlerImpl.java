@@ -92,6 +92,9 @@ public class CoreEventHandlerImpl implements ServerCoreEventHandler {
 	public MeterValuesConfirmation handleMeterValuesRequest(UUID sessionIndex, MeterValuesRequest request) {
 		this.logDebug("Handle MeterValuesRequest: " + request);
 
+		this.parent.getOcppChargePoints(sessionIndex, request.getConnectorId()) //
+				.forEach(chargePoint -> chargePoint.onMeterValues(request));
+
 		var evcs = this.getEvcsBySessionIndexAndConnector(sessionIndex, request.getConnectorId());
 		if (evcs == null) {
 			return new MeterValuesConfirmation();
@@ -254,6 +257,9 @@ public class CoreEventHandlerImpl implements ServerCoreEventHandler {
 			StatusNotificationRequest request) {
 
 		this.logDebug("Handle StatusNotificationRequest: " + request);
+		this.parent.getOcppChargePoints(sessionIndex, request.getConnectorId()) //
+				.forEach(chargePoint -> chargePoint.onStatusNotification(request));
+
 		var evcs = this.getEvcsBySessionIndexAndConnector(sessionIndex, request.getConnectorId());
 		if (evcs == null) {
 			return new StatusNotificationConfirmation();

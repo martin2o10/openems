@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
@@ -36,6 +38,7 @@ import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.common.event.EdgeEventConstants;
 import io.openems.edge.evcs.api.Evcs;
 import io.openems.edge.evcs.ocpp.common.AbstractManagedOcppEvcsComponent;
+import io.openems.edge.evcs.ocpp.common.OcppChargePoint;
 import io.openems.edge.evcs.ocpp.common.OcppServer;
 
 @Designate(ocd = Config.class, factory = true)
@@ -67,6 +70,8 @@ public class EvcsOcppServer extends AbstractOpenemsComponent implements OpenemsC
 	protected Map<String, List<AbstractManagedOcppEvcsComponent>> ocppEvcss = new HashMap<>();
 	/** Current sessions (Existing connections between server and evcs hardware). */
 	protected Map<String, UUID> ocppSessions = new HashMap<>();
+	/** Currently configured {@link OcppChargePoint}s by OCPP-ID. */
+	private final Map<String, List<OcppChargePoint>> ocppChargePoints = new ConcurrentHashMap<>();
 
 	/**
 	 * Adds each Evcs component to a list and checks whether there is a matching
@@ -118,6 +123,61 @@ public class EvcsOcppServer extends AbstractOpenemsComponent implements OpenemsC
 		}
 		this.ocppEvcss.remove(ocppEvcs.getConfiguredOcppId());
 		ocppEvcs.lostSession();
+	}
+
+	/**
+	 * Adds an {@link OcppChargePoint} and notifies it if its Charge-Point is
+	 * already connected.
+	 *
+	 * @param chargePoint the {@link OcppChargePoint}
+	 */
+	@Reference(policy = ReferencePolicy.DYNAMIC, policyOption = ReferencePolicyOption.GREEDY, cardinality = ReferenceCardinality.MULTIPLE)
+	protected void addOcppChargePoint(OcppChargePoint chargePoint) {
+		this.ocppChargePoints //
+				.computeIfAbsent(chargePoint.getConfiguredOcppId(), id -> new CopyOnWriteArrayList<>()) //
+				.add(chargePoint);
+		var sessionId = this.ocppSessions.get(chargePoint.getConfiguredOcppId());
+		if (sessionId != null) {
+			chargePoint.onConnect(this, sessionId);
+		}
+	}
+
+	/**
+	 * Removes an {@link OcppChargePoint}.
+	 *
+	 * @param chargePoint the {@link OcppChargePoint}
+	 */
+	protected void removeOcppChargePoint(OcppChargePoint chargePoint) {
+		var chargePoints = this.ocppChargePoints.get(chargePoint.getConfiguredOcppId());
+		if (chargePoints != null) {
+			chargePoints.remove(chargePoint);
+		}
+		chargePoint.onDisconnect();
+	}
+
+	/**
+	 * Gets the {@link OcppChargePoint}s with the given OCPP-ID.
+	 *
+	 * @param ocppId the OCPP-ID
+	 * @return a list of {@link OcppChargePoint}s; empty if there is none
+	 */
+	protected List<OcppChargePoint> getOcppChargePoints(String ocppId) {
+		return this.ocppChargePoints.getOrDefault(ocppId, List.of());
+	}
+
+	/**
+	 * Gets the {@link OcppChargePoint}s of the given session and Connector-ID.
+	 *
+	 * @param sessionId   the session {@link UUID}
+	 * @param connectorId the Connector-ID
+	 * @return a list of {@link OcppChargePoint}s; empty if there is none
+	 */
+	protected List<OcppChargePoint> getOcppChargePoints(UUID sessionId, Integer connectorId) {
+		return this.ocppSessions.entrySet().stream() //
+				.filter(session -> session.getValue().equals(sessionId)) //
+				.flatMap(session -> this.getOcppChargePoints(session.getKey()).stream()) //
+				.filter(chargePoint -> connectorId != null && chargePoint.getConfiguredConnectorId() == connectorId) //
+				.toList();
 	}
 
 	public EvcsOcppServer() {
