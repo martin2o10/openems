@@ -14,7 +14,7 @@ class AntiCyclingTest {
 
 	private static final Instant T0 = Instant.parse("2026-11-09T12:00:00Z");
 	private static final HeatPumpAbilities ABILITIES = new HeatPumpAbilities(new ApplyPower.Continuous(800, 3500),
-			1200, 600, true);
+			1200, 600);
 	private static final HeatPumpAction POWER = new HeatPumpAction.Power(2000, false);
 
 	private static AntiCycling.Result apply(AntiCycling sut, long seconds, HeatPumpAction action, boolean running) {

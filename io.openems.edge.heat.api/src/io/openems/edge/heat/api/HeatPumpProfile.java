@@ -86,30 +86,6 @@ public final class HeatPumpProfile {
 				return availablePower < this.recommendationPower ? 0 : this.recommendationPower;
 			}
 		}
-
-		/**
-		 * The heat pump can only be switched on (e.g. via a relay); the electric
-		 * power is then fixed.
-		 *
-		 * @param power the electric power [W] when switched on
-		 */
-		public static record OnOff(int power) implements ApplyPower {
-
-			@Override
-			public int minPower() {
-				return this.power;
-			}
-
-			@Override
-			public int maxPower() {
-				return this.power;
-			}
-
-			@Override
-			public int fit(int availablePower) {
-				return availablePower < this.power ? 0 : this.power;
-			}
-		}
 	}
 
 	/**
@@ -119,10 +95,8 @@ public final class HeatPumpProfile {
 	 *                   influenced
 	 * @param minRunTime the minimum compressor run time [s] after a start
 	 * @param minOffTime the minimum compressor off time [s] before a restart
-	 * @param canLock    true if the heat pump can be locked (e.g. grid operator
-	 *                   lock, SG-Ready state 1)
 	 */
-	public static record HeatPumpAbilities(ApplyPower applyPower, int minRunTime, int minOffTime, boolean canLock) {
+	public static record HeatPumpAbilities(ApplyPower applyPower, int minRunTime, int minOffTime) {
 
 		/**
 		 * Can the electric power of the heat pump be increased?.

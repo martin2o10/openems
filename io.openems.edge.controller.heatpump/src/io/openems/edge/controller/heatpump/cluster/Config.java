@@ -20,8 +20,5 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 	@AttributeDefinition(name = "Heat-Pump-Controller-IDs", description = "IDs of Controller.HeatPump.Single, in order of priority", required = true)
 	String[] ctrl_ids() default { "ctrlHeatPumpSingle0" };
 
-	@AttributeDefinition(name = "Max. grid buy power [W]", description = "Reduce controller-increased heat pump power above this grid buy power; 0 to disable")
-	int maxGridBuyPower() default 0;
-
 	String webconsole_configurationFactory_nameHint() default "Controller Heat Pump Cluster [{id}]";
 }

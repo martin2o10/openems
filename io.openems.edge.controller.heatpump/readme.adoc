@@ -1,36 +1,12 @@
 = Heat Pump Controllers
 
-Controls heat pumps that implement the `ManagedHeatPump` nature. The structure follows the EVSE Controllers:
+Controls heat pumps that implement the `ManagedHeatPump` nature, following the structure of the EVSE Controllers:
 
-- `Controller.HeatPump.Single` — one Controller per heat pump: Mode, anti-cycling protection and Energy Scheduler.
-- `Controller.HeatPump.Cluster` — distributes power to all single Controllers.
+- `Controller.HeatPump.Single`: one Controller per heat pump with Mode (`OWN_CONTROL`, `SURPLUS`, `FORCE`, `SMART`), anti-cycling protection and Energy Scheduler
+- `Controller.HeatPump.Cluster`: distributes surplus power to all single Controllers in the configured order
 
-The Controllers never override the own control of the heat pump; they only add consumption (or lock the heat pump). A `ManagedHeatPump` in read-only mode is not controlled, but all decisions are visible in the Channels of the Controllers.
+The Controllers never override the own control of the heat pump; they only request additional consumption. Heat pumps in read-only mode are not controlled, but all decisions are visible in the Channels.
 
-== Controller.HeatPump.Single
-
-.Modes
-* `OWN_CONTROL`: no intervention (default)
-* `SURPLUS`: use surplus power, e.g. from PV
-* `FORCE`: heat with maximum power (up to the maximum storage temperature of the heat pump)
-* `SMART`: the Energy Scheduler chooses per period between `SURPLUS` and `FORCE`, e.g. to pre-heat in cheap periods of a dynamic tariff
-
-.Anti-cycling protection (`AntiCycling`)
-* A requested power is only applied after a start delay of 60 seconds (except for `FORCE`) and after the minimum off time of the compressor
-* Once applied, the power is held at least at minimum power for the minimum run time
-* A lock is always applied immediately
-
-.Energy Scheduler (`EnergyScheduler`)
-The heat storage is simulated with a simple model: storage volume between minimum and maximum temperature, a constant average heat demand and an estimated COP. If the storage is empty, the own control of the heat pump covers the demand.
-
-== Controller.HeatPump.Cluster
-
-The cluster runs in every Cycle:
-
-1. Base action per Mode: `OWN_CONTROL`, or maximum power for `FORCE`
-2. `SurplusDistribution`: surplus = power of heat pumps in `SURPLUS` mode - grid buy - storage discharge (like the EVSE Cluster); distributed in the configured order of the Controllers
-3. `GridLimit` (optional): if the grid buy power exceeds the configured maximum, controller-increased power is reduced in reverse order. The own control of the heat pumps is never restricted.
-
-Each goal is implemented in its own class without dependencies on the others, so it can be removed or replaced separately.
+In `SMART` mode the Energy Scheduler chooses per period between `SURPLUS` and `FORCE`, based on a simple storage model (volume between minimum and maximum temperature, constant average heat demand, estimated COP).
 
 https://github.com/OpenEMS/openems/tree/develop/io.openems.edge.controller.heatpump[Source Code icon:github[]]

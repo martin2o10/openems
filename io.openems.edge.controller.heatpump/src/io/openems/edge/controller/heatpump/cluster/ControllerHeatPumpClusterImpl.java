@@ -94,11 +94,9 @@ public class ControllerHeatPumpClusterImpl extends AbstractOpenemsComponent
 
 		var distribution = PowerDistribution.calculate(params, //
 				this.sum.getGridActivePower().orElse(0), //
-				this.sum.getEssDischargePower().orElse(0), //
-				this.config.maxGridBuyPower());
+				this.sum.getEssDischargePower().orElse(0));
 
 		setValue(this, ControllerHeatPumpCluster.ChannelId.SURPLUS_POWER, distribution.surplus());
-		setValue(this, ControllerHeatPumpCluster.ChannelId.GRID_LIMIT_ACTIVE, distribution.gridLimitActive());
 
 		for (var p : params) {
 			var ctrl = ctrls.stream().filter(c -> c.id().equals(p.ctrlSingleId())).findFirst().orElse(null);

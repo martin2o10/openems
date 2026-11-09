@@ -28,7 +28,7 @@ class ControllerHeatPumpClusterImplTest {
 	void surplusWithAntiCycling() throws Exception {
 		final var clock = TestUtils.createDummyClock();
 		final var heatPump = new DummyManagedHeatPump("heatPump0") //
-				.withAbilities(new HeatPumpAbilities(new ApplyPower.Continuous(800, 3500), 1200, 600, true)) //
+				.withAbilities(new HeatPumpAbilities(new ApplyPower.Continuous(800, 3500), 1200, 600)) //
 				.withOperatingState(HeatPumpOperatingState.OFF) //
 				.withActivePower(0);
 		final var single = new ControllerHeatPumpSingleImpl();
@@ -51,7 +51,6 @@ class ControllerHeatPumpClusterImplTest {
 						.build()) //
 				.next(new TestCase("Surplus is detected, start delay") //
 						.output(ControllerHeatPumpCluster.ChannelId.SURPLUS_POWER, 3000) //
-						.output(ControllerHeatPumpCluster.ChannelId.GRID_LIMIT_ACTIVE, false) //
 						.onAfterControllersCallbacks(() -> {
 							assertEquals(HeatPumpAction.OWN_CONTROL, heatPump.getLastAction());
 							assertEquals(AntiCyclingState.START_DELAY, single
@@ -71,7 +70,7 @@ class ControllerHeatPumpClusterImplTest {
 		final var clock = TestUtils.createDummyClock();
 		final var heatPump = new DummyManagedHeatPump("heatPump0") //
 				.withReadOnly(true) //
-				.withAbilities(new HeatPumpAbilities(new ApplyPower.Continuous(800, 3500), 1200, 600, true)) //
+				.withAbilities(new HeatPumpAbilities(new ApplyPower.Continuous(800, 3500), 1200, 600)) //
 				.withOperatingState(HeatPumpOperatingState.OFF) //
 				.withActivePower(0);
 		final var single = new ControllerHeatPumpSingleImpl();

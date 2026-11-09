@@ -96,7 +96,7 @@ public class SimulatorHeatPumpImpl extends AbstractOpenemsComponent implements S
 		this.lastStep = Instant.now(this.componentManager.getClock());
 
 		this.abilities = new HeatPumpAbilities(new ApplyPower.Continuous(config.minPower(), config.maxPower()),
-				config.minRunTime(), config.minOffTime(), true);
+				config.minRunTime(), config.minOffTime());
 		setValue(this, Heat.ChannelId.TARGET_TEMPERATURE, config.targetTemperature());
 		this.updateChannels();
 	}

@@ -15,14 +15,12 @@ import io.openems.edge.heat.api.HeatPumpProfile.HeatPumpAction;
  * <li>Base action per Mode: {@code OWN_CONTROL} → own control, {@code FORCE} →
  * maximum power
  * <li>{@link SurplusDistribution}: heat pumps in {@code SURPLUS} mode
- * <li>{@link GridLimit}: limit the grid buy power
  * </ol>
  *
- * @param actions         the {@link HeatPumpAction} per Controller-ID
- * @param surplus         the calculated surplus power [W]
- * @param gridLimitActive true if the grid limit reduced actions
+ * @param actions the {@link HeatPumpAction} per Controller-ID
+ * @param surplus the calculated surplus power [W]
  */
-public record PowerDistribution(Map<String, HeatPumpAction> actions, int surplus, boolean gridLimitActive) {
+public record PowerDistribution(Map<String, HeatPumpAction> actions, int surplus) {
 
 	/**
 	 * Calculates the {@link PowerDistribution}.
@@ -32,11 +30,9 @@ public record PowerDistribution(Map<String, HeatPumpAction> actions, int surplus
 	 * @param gridActivePower   the grid power [W]; positive for buy from grid
 	 * @param essDischargePower the storage discharge power [W]; positive for
 	 *                          discharge
-	 * @param maxGridBuyPower   the maximum grid buy power [W]; 0 to disable
 	 * @return the {@link PowerDistribution}
 	 */
-	public static PowerDistribution calculate(List<Params> params, int gridActivePower, int essDischargePower,
-			int maxGridBuyPower) {
+	public static PowerDistribution calculate(List<Params> params, int gridActivePower, int essDischargePower) {
 		var actions = new LinkedHashMap<String, HeatPumpAction>();
 		for (var p : params) {
 			actions.put(p.ctrlSingleId(), switch (p.mode()) {
@@ -50,8 +46,6 @@ public record PowerDistribution(Map<String, HeatPumpAction> actions, int surplus
 		var surplus = SurplusDistribution.calculateSurplus(params, gridActivePower, essDischargePower);
 		SurplusDistribution.distribute(params, surplus, actions);
 
-		var gridLimitActive = GridLimit.apply(params, gridActivePower, maxGridBuyPower, actions);
-
-		return new PowerDistribution(actions, surplus, gridLimitActive);
+		return new PowerDistribution(actions, surplus);
 	}
 }

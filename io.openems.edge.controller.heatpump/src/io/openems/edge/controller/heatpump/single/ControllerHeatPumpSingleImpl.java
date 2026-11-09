@@ -91,8 +91,7 @@ public class ControllerHeatPumpSingleImpl extends AbstractOpenemsComponent
 		if (abilities == null) {
 			return null;
 		}
-		return new Params(this.id(), this.heatPump.id(), this.getActualMode(),
-				this.heatPump.getActivePower().get(), this.heatPump.getOperatingState().isRunning(), abilities);
+		return new Params(this.id(), this.getActualMode(), this.heatPump.getActivePower().get(), abilities);
 	}
 
 	/**
@@ -133,6 +132,11 @@ public class ControllerHeatPumpSingleImpl extends AbstractOpenemsComponent
 		this.heatPump.apply(result.action());
 	}
 
+	@Override
+	public EnergyScheduleHandler getEnergyScheduleHandler() {
+		return this.energyScheduleHandler;
+	}
+
 	private EnergyScheduler.Config createEnergySchedulerConfig() {
 		if (this.config == null || this.heatPump == null) {
 			return null;
@@ -152,10 +156,5 @@ public class ControllerHeatPumpSingleImpl extends AbstractOpenemsComponent
 			return heat.getTemperatureChannel().value().get();
 		}
 		return null;
-	}
-
-	@Override
-	public EnergyScheduleHandler getEnergyScheduleHandler() {
-		return this.energyScheduleHandler;
 	}
 }

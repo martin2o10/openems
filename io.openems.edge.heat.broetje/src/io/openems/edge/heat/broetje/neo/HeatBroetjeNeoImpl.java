@@ -125,7 +125,7 @@ public class HeatBroetjeNeoImpl extends AbstractOpenemsModbusComponent implement
 		this.setpointHandler = new SetpointHandler(config.minPower(), config.maxPower(),
 				Duration.ofSeconds(config.writeInterval()));
 		this.abilities = new HeatPumpAbilities(new ApplyPower.Continuous(config.minPower(), config.maxPower()),
-				config.minRunTime(), config.minOffTime(), true);
+				config.minRunTime(), config.minOffTime());
 	}
 
 	@Override

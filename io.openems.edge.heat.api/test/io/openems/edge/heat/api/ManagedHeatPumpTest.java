@@ -37,9 +37,9 @@ class ManagedHeatPumpTest {
 
 	@Test
 	void abilities() {
-		var sut = new HeatPumpAbilities(new ApplyPower.Continuous(800, 3500), 1200, 600, true);
+		var sut = new HeatPumpAbilities(new ApplyPower.Continuous(800, 3500), 1200, 600);
 		assertTrue(sut.canApplyPower());
-		assertFalse(new HeatPumpAbilities(null, 0, 0, false).canApplyPower());
+		assertFalse(new HeatPumpAbilities(null, 0, 0).canApplyPower());
 	}
 
 	@Test
@@ -58,13 +58,6 @@ class ManagedHeatPumpTest {
 		assertEquals(3000, sut.maxPower());
 		assertEquals(0, sut.fit(1000));
 		assertEquals(1500, sut.fit(5000));
-	}
-
-	@Test
-	void onOffFit() {
-		var sut = new ApplyPower.OnOff(2000);
-		assertEquals(0, sut.fit(1999));
-		assertEquals(2000, sut.fit(2000));
 	}
 
 	@Test

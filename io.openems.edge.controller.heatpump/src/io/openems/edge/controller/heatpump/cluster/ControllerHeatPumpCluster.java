@@ -13,9 +13,6 @@ public interface ControllerHeatPumpCluster extends OpenemsComponent {
 				.unit(Unit.WATT) //
 				.text("Surplus power available for heat pumps") //
 				.persistencePriority(PersistencePriority.HIGH)), //
-		GRID_LIMIT_ACTIVE(Doc.of(OpenemsType.BOOLEAN) //
-				.text("Heat pump power is reduced to limit the grid buy power") //
-				.persistencePriority(PersistencePriority.HIGH)), //
 		;
 
 		private final Doc doc;

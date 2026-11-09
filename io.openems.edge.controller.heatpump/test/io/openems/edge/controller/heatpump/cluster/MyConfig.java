@@ -8,7 +8,6 @@ public class MyConfig extends AbstractComponentConfig implements Config {
 	protected static class Builder {
 		private String id;
 		private String[] ctrlIds = { "ctrlHeatPumpSingle0" };
-		private int maxGridBuyPower = 0;
 
 		private Builder() {
 		}
@@ -20,11 +19,6 @@ public class MyConfig extends AbstractComponentConfig implements Config {
 
 		public Builder setCtrlIds(String... ctrlIds) {
 			this.ctrlIds = ctrlIds;
-			return this;
-		}
-
-		public Builder setMaxGridBuyPower(int maxGridBuyPower) {
-			this.maxGridBuyPower = maxGridBuyPower;
 			return this;
 		}
 
@@ -52,10 +46,5 @@ public class MyConfig extends AbstractComponentConfig implements Config {
 	@Override
 	public String[] ctrl_ids() {
 		return this.builder.ctrlIds;
-	}
-
-	@Override
-	public int maxGridBuyPower() {
-		return this.builder.maxGridBuyPower;
 	}
 }

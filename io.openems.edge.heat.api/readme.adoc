@@ -13,7 +13,7 @@ Heat pump whose electric power consumption can be influenced, independent of the
 +
 The structure follows the EVSE Charge-Point: the device only declares its `HeatPumpAbilities` and applies `HeatPumpAction`s; all decisions are taken by Controllers (see `Controller.HeatPump.Single` and `Controller.HeatPump.Cluster`).
 +
-* `HeatPumpAbilities`: how the power can be increased (`ApplyPower.Continuous`, `ApplyPower.SgReady` or `ApplyPower.OnOff`), minimum run and off time, and whether the heat pump can be locked
+* `HeatPumpAbilities`: how the power can be increased (`ApplyPower.Continuous` or `ApplyPower.SgReady`) and the minimum run and off time
 * `HeatPumpAction`: `OwnControl` (no intervention, SG-Ready state 2), `Lock` (e.g. grid operator lock, SG-Ready state 1) or `Power` (requested electric power; SG-Ready state 3, or 4 if forced)
 +
 An action is only valid for the current Cycle. The internal control of the heat pump (frost protection, comfort) always has precedence.
