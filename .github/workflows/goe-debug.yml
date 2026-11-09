@@ -11,11 +11,11 @@ jobs:
       - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '25'
           cache: gradle
       - name: Test go-e bundle
-        run: (./gradlew :io.openems.edge.evse.chargepoint.goe:checkstyleMain :io.openems.edge.evse.chargepoint.goe:checkstyleTest --console=plain; ./gradlew :io.openems.edge.evse.chargepoint.goe:test --console=plain) > build-output.txt 2>&1 || true
+        run: (./gradlew :io.openems.edge.evse.chargepoint.goe:checkstyleMain :io.openems.edge.evse.chargepoint.goe:checkstyleTest :io.openems.edge.evse.chargepoint.goe:test --console=plain; ./gradlew resolve --console=plain; git diff io.openems.edge.application/EdgeApp.bndrun | sed 's/^/BNDRUN /') > build-output.txt 2>&1 || true
       - name: Report errors as annotations
         run: |
-          grep -nE "\[ant:checkstyle\]|WARN|error:|FAILED|Exception|expected|AssertionFailed|What went wrong" build-output.txt | head -40 | while IFS= read -r line; do echo "::error::${line//%/%25}"; done
+          grep -nE "BNDRUN|\[ant:checkstyle\]|WARN|error:|FAILED|Exception|expected|AssertionFailed|What went wrong" build-output.txt | head -40 | while IFS= read -r line; do echo "::error::${line//%/%25}"; done
           for f in $(find . -path "*test-results*" -name "*.xml"); do grep -oE '<failure message="[^"]{0,600}' "$f" | head -10 | while IFS= read -r l; do echo "::error file=$f::${l//%/%25}"; done; done
