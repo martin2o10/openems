@@ -1,3 +1,23 @@
 = OpenEMS Edge Heat Api
 
-https://github.com/OpenEMS/openems/tree/develop/io.openems.edge.heat.Api[Source Code icon:github[]]
+Natures for devices that produce heat.
+
+`Heat`::
+Thermal state of a heat device: temperature, target temperature, remaining heat energy and status.
+
+`ManagedHeatElement`::
+Controllable electric heating element, e.g. a heating rod.
+
+`ManagedHeatPump`::
+Heat pump whose electric power consumption can be influenced, independent of the device interface (SG-Ready, Modbus, EEBUS, ...).
++
+The structure follows the EVSE Charge-Point: the device only declares its `HeatPumpAbilities` and applies `HeatPumpAction`s; all decisions are taken by Controllers (see `Controller.HeatPump.Single` and `Controller.HeatPump.Cluster`).
++
+* `HeatPumpAbilities`: how the power can be increased (`ApplyPower.Continuous` or `ApplyPower.SgReady`) and the minimum run and off time
+* `HeatPumpAction`: `OwnControl` (no intervention, SG-Ready state 2), `Lock` (e.g. grid operator lock, SG-Ready state 1) or `Power` (requested electric power; SG-Ready state 3, or 4 if forced)
++
+An action is only valid for the current Cycle. The internal control of the heat pump (frost protection, comfort) always has precedence.
+`ManagedHeatPump` extends `ElectricityMeter`; thermal values such as the storage temperature are provided by implementing `Heat`.
+Channels: `OperatingState`, optionally `ThermalPower`, and `Action`/`ActionPower` for monitoring the applied action.
+
+https://github.com/OpenEMS/openems/tree/develop/io.openems.edge.heat.api[Source Code icon:github[]]
