@@ -7,4 +7,6 @@ The server maintains connections to the EVCS's, i.e.
 * distributes their information to each EVCS component 
 * send commands to the charging stations
 
+Besides EVCS components, the server also serves EVSE Charge-Points that implement `OcppChargePoint` (e.g. `Evse.ChargePoint.Ocpp`).
+
 https://github.com/OpenEMS/openems/tree/develop/io.openems.edge.evcs.ocpp.server[Source Code icon:github[]]

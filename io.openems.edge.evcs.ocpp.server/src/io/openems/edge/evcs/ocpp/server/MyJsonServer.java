@@ -92,6 +92,10 @@ public class MyJsonServer {
 
 				MyJsonServer.this.parent.ocppSessions.put(ocppIdentifier, sessionIndex);
 
+				for (var chargePoint : MyJsonServer.this.parent.getOcppChargePoints(ocppIdentifier)) {
+					chargePoint.onConnect(MyJsonServer.this.parent, sessionIndex);
+				}
+
 				var presentEvcss = MyJsonServer.this.parent.ocppEvcss.get(ocppIdentifier);
 
 				if (presentEvcss == null) {
@@ -123,6 +127,10 @@ public class MyJsonServer {
 					if (session.getValue().equals(sessionIndex)) {
 						ocppId = session.getKey();
 					}
+				}
+
+				for (var chargePoint : MyJsonServer.this.parent.getOcppChargePoints(ocppId)) {
+					chargePoint.onDisconnect();
 				}
 
 				MyJsonServer.this.parent.ocppSessions.remove(ocppId);
