@@ -4,20 +4,27 @@ import static io.openems.edge.common.test.TestUtils.withValue;
 
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.common.test.AbstractDummyOpenemsComponent;
-import io.openems.edge.heat.api.HeatPumpControlCapability;
 import io.openems.edge.heat.api.HeatPumpOperatingState;
+import io.openems.edge.heat.api.HeatPumpProfile.HeatPumpAbilities;
+import io.openems.edge.heat.api.HeatPumpProfile.HeatPumpAction;
 import io.openems.edge.heat.api.ManagedHeatPump;
+import io.openems.edge.meter.api.ElectricityMeter;
 
 /**
  * Provides a simple, simulated {@link ManagedHeatPump} Component that can be
  * used together with the OpenEMS Component test framework.
  */
 public class DummyManagedHeatPump extends AbstractDummyOpenemsComponent<DummyManagedHeatPump>
-		implements ManagedHeatPump, OpenemsComponent {
+		implements ManagedHeatPump, ElectricityMeter, OpenemsComponent {
+
+	private HeatPumpAbilities abilities = null;
+	private boolean readOnly = false;
+	private HeatPumpAction lastAction = null;
 
 	public DummyManagedHeatPump(String id) {
 		super(id, //
 				OpenemsComponent.ChannelId.values(), //
+				ElectricityMeter.ChannelId.values(), //
 				ManagedHeatPump.ChannelId.values());
 	}
 
@@ -27,44 +34,24 @@ public class DummyManagedHeatPump extends AbstractDummyOpenemsComponent<DummyMan
 	}
 
 	/**
-	 * Set {@link ManagedHeatPump.ChannelId#MIN_ACTIVE_POWER} and
-	 * {@link ManagedHeatPump.ChannelId#MAX_ACTIVE_POWER} of this
-	 * {@link DummyManagedHeatPump}.
+	 * Set the {@link HeatPumpAbilities} of this {@link DummyManagedHeatPump}.
 	 *
-	 * @param min the minimum active power [W]
-	 * @param max the maximum active power [W]
+	 * @param abilities the {@link HeatPumpAbilities}
 	 * @return myself
 	 */
-	public DummyManagedHeatPump withModulationRange(Integer min, Integer max) {
-		withValue(this, ManagedHeatPump.ChannelId.MIN_ACTIVE_POWER, min);
-		withValue(this, ManagedHeatPump.ChannelId.MAX_ACTIVE_POWER, max);
+	public DummyManagedHeatPump withAbilities(HeatPumpAbilities abilities) {
+		this.abilities = abilities;
 		return this.self();
 	}
 
 	/**
-	 * Set {@link ManagedHeatPump.ChannelId#MIN_RUN_TIME} and
-	 * {@link ManagedHeatPump.ChannelId#MIN_OFF_TIME} of this
-	 * {@link DummyManagedHeatPump}.
+	 * Set read-only mode of this {@link DummyManagedHeatPump}.
 	 *
-	 * @param minRunTime the minimum run time [s]
-	 * @param minOffTime the minimum off time [s]
+	 * @param readOnly true for read-only
 	 * @return myself
 	 */
-	public DummyManagedHeatPump withMinTimes(Integer minRunTime, Integer minOffTime) {
-		withValue(this, ManagedHeatPump.ChannelId.MIN_RUN_TIME, minRunTime);
-		withValue(this, ManagedHeatPump.ChannelId.MIN_OFF_TIME, minOffTime);
-		return this.self();
-	}
-
-	/**
-	 * Set {@link ManagedHeatPump.ChannelId#CONTROL_CAPABILITY} of this
-	 * {@link DummyManagedHeatPump}.
-	 *
-	 * @param value the {@link HeatPumpControlCapability}
-	 * @return myself
-	 */
-	public DummyManagedHeatPump withControlCapability(HeatPumpControlCapability value) {
-		withValue(this, ManagedHeatPump.ChannelId.CONTROL_CAPABILITY, value);
+	public DummyManagedHeatPump withReadOnly(boolean readOnly) {
+		this.readOnly = readOnly;
 		return this.self();
 	}
 
@@ -81,14 +68,39 @@ public class DummyManagedHeatPump extends AbstractDummyOpenemsComponent<DummyMan
 	}
 
 	/**
-	 * Set {@link ManagedHeatPump.ChannelId#THERMAL_POWER} of this
+	 * Set {@link ElectricityMeter.ChannelId#ACTIVE_POWER} of this
 	 * {@link DummyManagedHeatPump}.
 	 *
-	 * @param value the thermal power [W]
+	 * @param value the active power [W]
 	 * @return myself
 	 */
-	public DummyManagedHeatPump withThermalPower(Integer value) {
-		withValue(this, ManagedHeatPump.ChannelId.THERMAL_POWER, value);
+	public DummyManagedHeatPump withActivePower(Integer value) {
+		withValue(this, ElectricityMeter.ChannelId.ACTIVE_POWER, value);
 		return this.self();
+	}
+
+	@Override
+	public HeatPumpAbilities getHeatPumpAbilities() {
+		return this.abilities;
+	}
+
+	@Override
+	public void apply(HeatPumpAction action) {
+		this.lastAction = action;
+		this._setAction(action);
+	}
+
+	@Override
+	public boolean isReadOnly() {
+		return this.readOnly;
+	}
+
+	/**
+	 * Gets the last applied {@link HeatPumpAction}.
+	 *
+	 * @return the {@link HeatPumpAction}; null if none was applied
+	 */
+	public HeatPumpAction getLastAction() {
+		return this.lastAction;
 	}
 }

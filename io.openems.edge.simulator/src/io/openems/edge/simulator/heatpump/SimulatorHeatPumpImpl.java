@@ -20,13 +20,14 @@ import org.osgi.service.event.EventHandler;
 import org.osgi.service.event.propertytypes.EventTopics;
 import org.osgi.service.metatype.annotations.Designate;
 
-import io.openems.common.types.MeterType;
 import io.openems.edge.common.component.AbstractOpenemsComponent;
 import io.openems.edge.common.component.ComponentManager;
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.common.event.EdgeEventConstants;
 import io.openems.edge.heat.api.Heat;
-import io.openems.edge.heat.api.HeatPumpControlCapability;
+import io.openems.edge.heat.api.HeatPumpProfile.ApplyPower;
+import io.openems.edge.heat.api.HeatPumpProfile.HeatPumpAbilities;
+import io.openems.edge.heat.api.HeatPumpProfile.HeatPumpAction;
 import io.openems.edge.heat.api.ManagedHeatPump;
 import io.openems.edge.heat.api.RemainingHeatEnergyCalculator;
 import io.openems.edge.meter.api.ElectricityMeter;
@@ -42,8 +43,7 @@ import io.openems.edge.timedata.api.utils.CalculateEnergyFromPower;
 )
 @EventTopics({ //
 		EdgeEventConstants.TOPIC_CYCLE_BEFORE_PROCESS_IMAGE, //
-		EdgeEventConstants.TOPIC_CYCLE_AFTER_PROCESS_IMAGE, //
-		EdgeEventConstants.TOPIC_CYCLE_EXECUTE_WRITE //
+		EdgeEventConstants.TOPIC_CYCLE_AFTER_PROCESS_IMAGE //
 })
 public class SimulatorHeatPumpImpl extends AbstractOpenemsComponent implements SimulatorHeatPump, ManagedHeatPump,
 		Heat, ElectricityMeter, OpenemsComponent, TimedataProvider, EventHandler {
@@ -60,8 +60,8 @@ public class SimulatorHeatPumpImpl extends AbstractOpenemsComponent implements S
 	private Config config;
 	private HeatPumpModel model;
 	private Instant lastStep;
-	private Integer appliedTargetActivePower;
-	private Integer appliedActivePowerLimit;
+	private HeatPumpAbilities abilities;
+	private HeatPumpAction pendingAction = HeatPumpAction.OWN_CONTROL;
 
 	public SimulatorHeatPumpImpl() {
 		super(//
@@ -95,11 +95,8 @@ public class SimulatorHeatPumpImpl extends AbstractOpenemsComponent implements S
 				config.initialStorageTemperature() / 10.0);
 		this.lastStep = Instant.now(this.componentManager.getClock());
 
-		setValue(this, ManagedHeatPump.ChannelId.MIN_ACTIVE_POWER, config.minPower());
-		setValue(this, ManagedHeatPump.ChannelId.MAX_ACTIVE_POWER, config.maxPower());
-		setValue(this, ManagedHeatPump.ChannelId.MIN_RUN_TIME, config.minRunTime());
-		setValue(this, ManagedHeatPump.ChannelId.MIN_OFF_TIME, config.minOffTime());
-		setValue(this, ManagedHeatPump.ChannelId.CONTROL_CAPABILITY, HeatPumpControlCapability.CONTINUOUS);
+		this.abilities = new HeatPumpAbilities(new ApplyPower.Continuous(config.minPower(), config.maxPower()),
+				config.minRunTime(), config.minOffTime(), true);
 		setValue(this, Heat.ChannelId.TARGET_TEMPERATURE, config.targetTemperature());
 		this.updateChannels();
 	}
@@ -119,25 +116,42 @@ public class SimulatorHeatPumpImpl extends AbstractOpenemsComponent implements S
 		case EdgeEventConstants.TOPIC_CYCLE_BEFORE_PROCESS_IMAGE -> this.simulate();
 		case EdgeEventConstants.TOPIC_CYCLE_AFTER_PROCESS_IMAGE ->
 			this.calculateConsumptionEnergy.update(this.getActivePower().get());
-		case EdgeEventConstants.TOPIC_CYCLE_EXECUTE_WRITE -> this.applySetpoints();
 		}
 	}
 
+	@Override
+	public HeatPumpAbilities getHeatPumpAbilities() {
+		return this.abilities;
+	}
+
 	/**
-	 * Takes over the setpoints written by a Controller. Like a real device, the
-	 * setpoints are only valid for the current Cycle.
+	 * Takes over the action of a Controller. Like for a real device, the action
+	 * is only valid for the next simulation step.
 	 */
-	private void applySetpoints() {
-		this.appliedActivePowerLimit = this.getActivePowerLimitChannel().getNextWriteValueAndReset().orElse(null);
-		this.appliedTargetActivePower = this.getTargetActivePowerChannel().getNextWriteValueAndReset().orElse(null);
-		setValue(this, ManagedHeatPump.ChannelId.ACTIVE_POWER_LIMIT, this.appliedActivePowerLimit);
-		setValue(this, ManagedHeatPump.ChannelId.TARGET_ACTIVE_POWER, this.appliedTargetActivePower);
+	@Override
+	public void apply(HeatPumpAction action) {
+		this.pendingAction = action == null ? HeatPumpAction.OWN_CONTROL : action;
+		this._setAction(this.pendingAction);
+	}
+
+	@Override
+	public boolean isReadOnly() {
+		return false;
 	}
 
 	private void simulate() {
 		var now = Instant.now(this.componentManager.getClock());
-		this.model.step(Duration.between(this.lastStep, now), this.appliedTargetActivePower,
-				this.appliedActivePowerLimit);
+		var action = this.pendingAction;
+		this.pendingAction = HeatPumpAction.OWN_CONTROL;
+		Integer target = null;
+		Integer limit = null;
+		switch (action) {
+		case HeatPumpAction.OwnControl o -> {
+		}
+		case HeatPumpAction.Lock l -> limit = 0;
+		case HeatPumpAction.Power p -> target = p.power();
+		}
+		this.model.step(Duration.between(this.lastStep, now), target, limit);
 		this.lastStep = now;
 		this.updateChannels();
 	}
@@ -159,11 +173,6 @@ public class SimulatorHeatPumpImpl extends AbstractOpenemsComponent implements S
 
 		setValue(this, SimulatorHeatPump.ChannelId.COEFFICIENT_OF_PERFORMANCE, this.model.getCop());
 		setValue(this, SimulatorHeatPump.ChannelId.STARTS, this.model.getStarts());
-	}
-
-	@Override
-	public MeterType getMeterType() {
-		return MeterType.MANAGED_CONSUMPTION_METERED;
 	}
 
 	@Override

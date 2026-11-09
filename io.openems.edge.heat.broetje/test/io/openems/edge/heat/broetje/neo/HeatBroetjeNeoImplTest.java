@@ -11,7 +11,8 @@ import io.openems.edge.common.test.AbstractComponentTest.TestCase;
 import io.openems.edge.common.test.ComponentTest;
 import io.openems.edge.common.test.DummyComponentManager;
 import io.openems.edge.heat.api.Heat;
-import io.openems.edge.heat.api.HeatPumpControlCapability;
+import io.openems.edge.heat.api.HeatPumpActionType;
+import io.openems.edge.heat.api.HeatPumpProfile.HeatPumpAction;
 import io.openems.edge.heat.api.HeatPumpOperatingState;
 import io.openems.edge.heat.api.ManagedHeatPump;
 import io.openems.edge.meter.api.ElectricityMeter;
@@ -66,9 +67,7 @@ class HeatBroetjeNeoImplTest {
 						.output(ElectricityMeter.ChannelId.ACTIVE_POWER, 1500) //
 						.output(ElectricityMeter.ChannelId.ACTIVE_CONSUMPTION_ENERGY, 1_234_000L) //
 						.output(ManagedHeatPump.ChannelId.THERMAL_POWER, 5200) //
-						.output(ManagedHeatPump.ChannelId.CONTROL_CAPABILITY, HeatPumpControlCapability.UNDEFINED) //
-						.output(ManagedHeatPump.ChannelId.MIN_ACTIVE_POWER, 800) //
-						.output(ManagedHeatPump.ChannelId.MAX_ACTIVE_POWER, 3500)) //
+						.output(ManagedHeatPump.ChannelId.ACTION, HeatPumpActionType.OWN_CONTROL)) //
 				.next(new TestCase("Operating state is derived") //
 						.output(ManagedHeatPump.ChannelId.OPERATING_STATE, HeatPumpOperatingState.SPACE_HEATING)) //
 				.deactivate();
@@ -77,7 +76,8 @@ class HeatBroetjeNeoImplTest {
 	@Test
 	void testWrite() throws Exception {
 		final var clock = new TimeLeapClock(Instant.parse("2026-11-06T12:00:00Z"), ZoneOffset.UTC);
-		new ComponentTest(new HeatBroetjeNeoImpl()) //
+		final var sut = new HeatBroetjeNeoImpl();
+		new ComponentTest(sut) //
 				.addReference("componentManager", new DummyComponentManager(clock)) //
 				.addReference("setModbus", createBridge().withClock(clock)) //
 				.activate(MyConfig.create() //
@@ -85,10 +85,12 @@ class HeatBroetjeNeoImplTest {
 						.setModbusId("modbus0") //
 						.setReadOnly(false) //
 						.build()) //
-				.next(new TestCase("Setpoints are taken over") //
-						.input(ManagedHeatPump.ChannelId.TARGET_ACTIVE_POWER, 2000) //
-						.output(ManagedHeatPump.ChannelId.CONTROL_CAPABILITY, HeatPumpControlCapability.CONTINUOUS) //
-						.output(ManagedHeatPump.ChannelId.DEBUG_TARGET_ACTIVE_POWER, 2000)) //
+				.next(new TestCase("Action is taken over") //
+						.onAfterControllersCallbacks(() -> sut.apply(new HeatPumpAction.Power(2000, false))) //
+						.output(ManagedHeatPump.ChannelId.ACTION, HeatPumpActionType.POWER) //
+						.output(ManagedHeatPump.ChannelId.ACTION_POWER, 2000)) //
+				.next(new TestCase("Without action the heat pump returns to own control") //
+						.output(ManagedHeatPump.ChannelId.ACTION, HeatPumpActionType.OWN_CONTROL)) //
 				.deactivate();
 	}
 }

@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
 import io.openems.common.referencetarget.GenerateTargetsFromReferences;
-import io.openems.common.types.MeterType;
 import io.openems.edge.bridge.modbus.api.AbstractOpenemsModbusComponent;
 import io.openems.edge.bridge.modbus.api.BridgeModbus;
 import io.openems.edge.bridge.modbus.api.ElementToChannelConverter;
@@ -49,7 +48,9 @@ import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.common.event.EdgeEventConstants;
 import io.openems.edge.common.taskmanager.Priority;
 import io.openems.edge.heat.api.Heat;
-import io.openems.edge.heat.api.HeatPumpControlCapability;
+import io.openems.edge.heat.api.HeatPumpProfile.ApplyPower;
+import io.openems.edge.heat.api.HeatPumpProfile.HeatPumpAbilities;
+import io.openems.edge.heat.api.HeatPumpProfile.HeatPumpAction;
 import io.openems.edge.heat.api.ManagedHeatPump;
 import io.openems.edge.meter.api.ElectricityMeter;
 import io.openems.edge.timedata.api.Timedata;
@@ -92,6 +93,8 @@ public class HeatBroetjeNeoImpl extends AbstractOpenemsModbusComponent implement
 
 	private Config config;
 	private SetpointHandler setpointHandler;
+	private HeatPumpAbilities abilities;
+	private HeatPumpAction pendingAction = HeatPumpAction.OWN_CONTROL;
 
 	public HeatBroetjeNeoImpl() {
 		super(//
@@ -121,12 +124,8 @@ public class HeatBroetjeNeoImpl extends AbstractOpenemsModbusComponent implement
 		this.config = config;
 		this.setpointHandler = new SetpointHandler(config.minPower(), config.maxPower(),
 				Duration.ofSeconds(config.writeInterval()));
-		setValue(this, ManagedHeatPump.ChannelId.MIN_ACTIVE_POWER, config.minPower());
-		setValue(this, ManagedHeatPump.ChannelId.MAX_ACTIVE_POWER, config.maxPower());
-		setValue(this, ManagedHeatPump.ChannelId.MIN_RUN_TIME, config.minRunTime());
-		setValue(this, ManagedHeatPump.ChannelId.MIN_OFF_TIME, config.minOffTime());
-		setValue(this, ManagedHeatPump.ChannelId.CONTROL_CAPABILITY,
-				config.readOnly() ? HeatPumpControlCapability.UNDEFINED : HeatPumpControlCapability.CONTINUOUS);
+		this.abilities = new HeatPumpAbilities(new ApplyPower.Continuous(config.minPower(), config.maxPower()),
+				config.minRunTime(), config.minOffTime(), true);
 	}
 
 	@Override
@@ -188,7 +187,7 @@ public class HeatBroetjeNeoImpl extends AbstractOpenemsModbusComponent implement
 		}
 		switch (event.getTopic()) {
 		case EdgeEventConstants.TOPIC_CYCLE_AFTER_PROCESS_IMAGE -> this.updateOperatingState();
-		case EdgeEventConstants.TOPIC_CYCLE_BEFORE_WRITE -> this.applySetpoints();
+		case EdgeEventConstants.TOPIC_CYCLE_BEFORE_WRITE -> this.applyAction();
 		}
 	}
 
@@ -207,28 +206,41 @@ public class HeatBroetjeNeoImpl extends AbstractOpenemsModbusComponent implement
 		return (T) this.channel(channelId).value().get();
 	}
 
+	@Override
+	public HeatPumpAbilities getHeatPumpAbilities() {
+		return this.abilities;
+	}
+
+	@Override
+	public void apply(HeatPumpAction action) {
+		this.pendingAction = action == null ? HeatPumpAction.OWN_CONTROL : action;
+	}
+
+	@Override
+	public boolean isReadOnly() {
+		return this.config.readOnly();
+	}
+
 	/**
-	 * Takes over the setpoints of a Controller. Like for the simulator, the
-	 * setpoints are only valid for the current Cycle.
+	 * Takes over the action of a Controller. Like for the simulator, the action is
+	 * only valid for the current Cycle; without an action the heat pump returns to
+	 * its own control.
 	 */
-	private void applySetpoints() {
-		var limit = this.getActivePowerLimitChannel().getNextWriteValueAndReset().orElse(null);
-		var target = this.getTargetActivePowerChannel().getNextWriteValueAndReset().orElse(null);
-		setValue(this, ManagedHeatPump.ChannelId.ACTIVE_POWER_LIMIT, limit);
-		setValue(this, ManagedHeatPump.ChannelId.TARGET_ACTIVE_POWER, target);
+	private void applyAction() {
+		var action = this.pendingAction;
+		this.pendingAction = HeatPumpAction.OWN_CONTROL;
+		this._setAction(action);
 
 		if (this.config.readOnly()) {
 			return;
 		}
-		var result = this.setpointHandler.apply(Instant.now(this.componentManager.getClock()), target, limit);
+		var result = this.setpointHandler.apply(Instant.now(this.componentManager.getClock()), action);
 		if (result == null) {
 			return;
 		}
 		try {
-			if (result.powerSetpoint() != null) {
-				this.<IntegerWriteChannel>channel(HeatBroetjeNeo.ChannelId.POWER_SETPOINT)
-						.setNextWriteValue(result.powerSetpoint());
-			}
+			this.<IntegerWriteChannel>channel(HeatBroetjeNeo.ChannelId.POWER_SETPOINT)
+					.setNextWriteValue(result.powerSetpoint());
 			this.<IntegerWriteChannel>channel(HeatBroetjeNeo.ChannelId.GRID_OPERATOR_RELEASE_VALUE)
 					.setNextWriteValue(result.gridOperatorReleaseValue());
 			this.<IntegerWriteChannel>channel(HeatBroetjeNeo.ChannelId.GRID_OPERATOR_RELEASE_ACTIVATE)
@@ -236,11 +248,6 @@ public class HeatBroetjeNeoImpl extends AbstractOpenemsModbusComponent implement
 		} catch (OpenemsNamedException e) {
 			this.logError(this.log, "Unable to write setpoints: " + e.getMessage());
 		}
-	}
-
-	@Override
-	public MeterType getMeterType() {
-		return MeterType.MANAGED_CONSUMPTION_METERED;
 	}
 
 	@Override

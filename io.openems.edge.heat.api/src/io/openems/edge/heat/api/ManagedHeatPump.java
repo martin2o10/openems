@@ -2,181 +2,38 @@ package io.openems.edge.heat.api;
 
 import org.osgi.annotation.versioning.ProviderType;
 
-import io.openems.common.channel.AccessMode;
 import io.openems.common.channel.PersistencePriority;
 import io.openems.common.channel.Unit;
-import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
+import io.openems.common.types.MeterType;
 import io.openems.common.types.OpenemsType;
 import io.openems.edge.common.channel.Channel;
 import io.openems.edge.common.channel.Doc;
 import io.openems.edge.common.channel.IntegerReadChannel;
-import io.openems.edge.common.channel.IntegerWriteChannel;
 import io.openems.edge.common.channel.value.Value;
 import io.openems.edge.common.component.OpenemsComponent;
+import io.openems.edge.heat.api.HeatPumpProfile.HeatPumpAbilities;
+import io.openems.edge.heat.api.HeatPumpProfile.HeatPumpAction;
+import io.openems.edge.meter.api.ElectricityMeter;
 
 /**
- * Represents a heat pump whose electric power consumption can be controlled.
+ * Represents a heat pump whose electric power consumption can be influenced.
  *
  * <p>
  * The nature is independent of the device interface (SG-Ready, Modbus, EEBUS,
- * ...). It offers two separate setpoints, because real interfaces distinguish
- * between them:
- *
- * <ul>
- * <li>{@link ChannelId#ACTIVE_POWER_LIMIT}: a hard upper limit ("must not
- * consume more than"), e.g. for §14a EnWG or EEBUS LPC
- * <li>{@link ChannelId#TARGET_ACTIVE_POWER}: a preferred consumption ("should
- * consume"), e.g. to use PV surplus
- * </ul>
+ * ...). Like an EVSE Charge-Point, the device only declares its
+ * {@link HeatPumpAbilities} and applies {@link HeatPumpAction}s; all decisions
+ * are taken by Controllers. The internal control of the heat pump (frost
+ * protection, comfort) always has precedence.
  *
  * <p>
- * Both setpoints are optional. If no setpoint is given, the heat pump runs
- * autonomously. The internal control of the heat pump (frost protection,
- * minimum run and off times, comfort) always has precedence.
- *
- * <p>
- * The measured electric power consumption is provided by implementing
- * {@code ElectricityMeter}; thermal values can be provided by implementing
+ * The measured electric power consumption is provided via
+ * {@link ElectricityMeter}; thermal values can be provided by implementing
  * {@link Heat}.
  */
 @ProviderType
-public interface ManagedHeatPump extends OpenemsComponent {
+public interface ManagedHeatPump extends ElectricityMeter, OpenemsComponent {
 
 	public enum ChannelId implements io.openems.edge.common.channel.ChannelId {
-
-		/**
-		 * Debug value of the last written {@link ChannelId#ACTIVE_POWER_LIMIT}.
-		 *
-		 * <ul>
-		 * <li>Interface: ManagedHeatPump
-		 * <li>Type: Integer
-		 * <li>Unit: W
-		 * </ul>
-		 */
-		DEBUG_ACTIVE_POWER_LIMIT(Doc.of(OpenemsType.INTEGER)//
-				.unit(Unit.WATT)), //
-
-		/**
-		 * Hard upper limit for the electric power consumption.
-		 *
-		 * <p>
-		 * The heat pump must not consume more than this value. 'null' means no
-		 * limit.
-		 *
-		 * <ul>
-		 * <li>Interface: ManagedHeatPump
-		 * <li>Type: Integer
-		 * <li>Unit: W
-		 * <li>Range: zero or positive value
-		 * </ul>
-		 */
-		ACTIVE_POWER_LIMIT(Doc.of(OpenemsType.INTEGER)//
-				.unit(Unit.WATT)//
-				.accessMode(AccessMode.READ_WRITE)//
-				.onChannelSetNextWriteMirrorToDebugChannel(ChannelId.DEBUG_ACTIVE_POWER_LIMIT)//
-				.persistencePriority(PersistencePriority.HIGH)), //
-
-		/**
-		 * Debug value of the last written {@link ChannelId#TARGET_ACTIVE_POWER}.
-		 *
-		 * <ul>
-		 * <li>Interface: ManagedHeatPump
-		 * <li>Type: Integer
-		 * <li>Unit: W
-		 * </ul>
-		 */
-		DEBUG_TARGET_ACTIVE_POWER(Doc.of(OpenemsType.INTEGER)//
-				.unit(Unit.WATT)), //
-
-		/**
-		 * Preferred electric power consumption.
-		 *
-		 * <p>
-		 * The heat pump should consume this value, as far as its internal control
-		 * allows. The value is always limited by {@link ChannelId#ACTIVE_POWER_LIMIT}.
-		 * 'null' means no preference.
-		 *
-		 * <ul>
-		 * <li>Interface: ManagedHeatPump
-		 * <li>Type: Integer
-		 * <li>Unit: W
-		 * <li>Range: zero or positive value
-		 * </ul>
-		 */
-		TARGET_ACTIVE_POWER(Doc.of(OpenemsType.INTEGER)//
-				.unit(Unit.WATT)//
-				.accessMode(AccessMode.READ_WRITE)//
-				.onChannelSetNextWriteMirrorToDebugChannel(ChannelId.DEBUG_TARGET_ACTIVE_POWER)//
-				.persistencePriority(PersistencePriority.HIGH)), //
-
-		/**
-		 * Minimum electric power consumption while the compressor is running (lower
-		 * end of the modulation range).
-		 *
-		 * <ul>
-		 * <li>Interface: ManagedHeatPump
-		 * <li>Type: Integer
-		 * <li>Unit: W
-		 * </ul>
-		 */
-		MIN_ACTIVE_POWER(Doc.of(OpenemsType.INTEGER)//
-				.unit(Unit.WATT)//
-				.persistencePriority(PersistencePriority.LOW)//
-				.accessMode(AccessMode.READ_ONLY)), //
-
-		/**
-		 * Maximum electric power consumption (upper end of the modulation range).
-		 *
-		 * <ul>
-		 * <li>Interface: ManagedHeatPump
-		 * <li>Type: Integer
-		 * <li>Unit: W
-		 * </ul>
-		 */
-		MAX_ACTIVE_POWER(Doc.of(OpenemsType.INTEGER)//
-				.unit(Unit.WATT)//
-				.persistencePriority(PersistencePriority.LOW)//
-				.accessMode(AccessMode.READ_ONLY)), //
-
-		/**
-		 * Minimum run time of the compressor after a start.
-		 *
-		 * <ul>
-		 * <li>Interface: ManagedHeatPump
-		 * <li>Type: Integer
-		 * <li>Unit: s
-		 * </ul>
-		 */
-		MIN_RUN_TIME(Doc.of(OpenemsType.INTEGER)//
-				.unit(Unit.SECONDS)//
-				.persistencePriority(PersistencePriority.LOW)//
-				.accessMode(AccessMode.READ_ONLY)), //
-
-		/**
-		 * Minimum off time of the compressor after a stop.
-		 *
-		 * <ul>
-		 * <li>Interface: ManagedHeatPump
-		 * <li>Type: Integer
-		 * <li>Unit: s
-		 * </ul>
-		 */
-		MIN_OFF_TIME(Doc.of(OpenemsType.INTEGER)//
-				.unit(Unit.SECONDS)//
-				.persistencePriority(PersistencePriority.LOW)//
-				.accessMode(AccessMode.READ_ONLY)), //
-
-		/**
-		 * How precisely the power consumption can be controlled.
-		 *
-		 * <ul>
-		 * <li>Interface: ManagedHeatPump
-		 * <li>Type: {@link HeatPumpControlCapability}
-		 * </ul>
-		 */
-		CONTROL_CAPABILITY(Doc.of(HeatPumpControlCapability.values())//
-				.persistencePriority(PersistencePriority.LOW)//
-				.accessMode(AccessMode.READ_ONLY)), //
 
 		/**
 		 * Current operating state.
@@ -187,15 +44,10 @@ public interface ManagedHeatPump extends OpenemsComponent {
 		 * </ul>
 		 */
 		OPERATING_STATE(Doc.of(HeatPumpOperatingState.values())//
-				.persistencePriority(PersistencePriority.HIGH)//
-				.accessMode(AccessMode.READ_ONLY)), //
+				.persistencePriority(PersistencePriority.HIGH)), //
 
 		/**
-		 * Current thermal output power. Optional.
-		 *
-		 * <p>
-		 * Together with the electric power consumption this allows calculating the
-		 * coefficient of performance.
+		 * Current thermal power output; optional.
 		 *
 		 * <ul>
 		 * <li>Interface: ManagedHeatPump
@@ -205,9 +57,32 @@ public interface ManagedHeatPump extends OpenemsComponent {
 		 */
 		THERMAL_POWER(Doc.of(OpenemsType.INTEGER)//
 				.unit(Unit.WATT)//
-				.persistencePriority(PersistencePriority.HIGH)//
-				.accessMode(AccessMode.READ_ONLY)), //
+				.persistencePriority(PersistencePriority.HIGH)), //
 
+		/**
+		 * Type of the last applied {@link HeatPumpAction}.
+		 *
+		 * <ul>
+		 * <li>Interface: ManagedHeatPump
+		 * <li>Type: {@link HeatPumpActionType}
+		 * </ul>
+		 */
+		ACTION(Doc.of(HeatPumpActionType.values())//
+				.persistencePriority(PersistencePriority.HIGH)), //
+
+		/**
+		 * Electric power of the last applied
+		 * {@link HeatPumpAction.Power}; null for other actions.
+		 *
+		 * <ul>
+		 * <li>Interface: ManagedHeatPump
+		 * <li>Type: Integer
+		 * <li>Unit: W
+		 * </ul>
+		 */
+		ACTION_POWER(Doc.of(OpenemsType.INTEGER)//
+				.unit(Unit.WATT)//
+				.persistencePriority(PersistencePriority.HIGH)), //
 		;
 
 		private final Doc doc;
@@ -223,219 +98,39 @@ public interface ManagedHeatPump extends OpenemsComponent {
 	}
 
 	/**
-	 * Gets the Channel for {@link ChannelId#ACTIVE_POWER_LIMIT}.
+	 * Gets the {@link HeatPumpAbilities}.
 	 *
-	 * @return the Channel
+	 * @return the {@link HeatPumpAbilities}; null if not available (e.g. no
+	 *         communication)
 	 */
-	public default IntegerWriteChannel getActivePowerLimitChannel() {
-		return this.channel(ChannelId.ACTIVE_POWER_LIMIT);
-	}
+	public HeatPumpAbilities getHeatPumpAbilities();
 
 	/**
-	 * Gets the Active Power Limit in [W]. See {@link ChannelId#ACTIVE_POWER_LIMIT}.
+	 * Applies a {@link HeatPumpAction}. The action is only valid for the current
+	 * Cycle; Controllers have to apply it in every Cycle.
 	 *
-	 * @return the Channel {@link Value}
+	 * @param action the {@link HeatPumpAction}
 	 */
-	public default Value<Integer> getActivePowerLimit() {
-		return this.getActivePowerLimitChannel().value();
-	}
+	public void apply(HeatPumpAction action);
 
 	/**
-	 * Sets the Active Power Limit in [W]. See {@link ChannelId#ACTIVE_POWER_LIMIT}.
+	 * Is this {@link ManagedHeatPump} read-only or read-write?.
 	 *
-	 * @param value the Integer value; 'null' for no limit
-	 * @throws OpenemsNamedException on error
+	 * @return true for read-only
 	 */
-	public default void setActivePowerLimit(Integer value) throws OpenemsNamedException {
-		this.getActivePowerLimitChannel().setNextWriteValue(value);
-	}
+	public boolean isReadOnly();
 
 	/**
-	 * Gets the Channel for {@link ChannelId#DEBUG_ACTIVE_POWER_LIMIT}.
+	 * Gets the {@link MeterType} of a {@link ManagedHeatPump}
+	 * {@link ElectricityMeter}.
 	 *
-	 * @return the Channel
+	 * @return the {@link MeterType}
 	 */
-	public default IntegerReadChannel getDebugActivePowerLimitChannel() {
-		return this.channel(ChannelId.DEBUG_ACTIVE_POWER_LIMIT);
-	}
-
-	/**
-	 * Gets the Channel for {@link ChannelId#TARGET_ACTIVE_POWER}.
-	 *
-	 * @return the Channel
-	 */
-	public default IntegerWriteChannel getTargetActivePowerChannel() {
-		return this.channel(ChannelId.TARGET_ACTIVE_POWER);
-	}
-
-	/**
-	 * Gets the Target Active Power in [W]. See
-	 * {@link ChannelId#TARGET_ACTIVE_POWER}.
-	 *
-	 * @return the Channel {@link Value}
-	 */
-	public default Value<Integer> getTargetActivePower() {
-		return this.getTargetActivePowerChannel().value();
-	}
-
-	/**
-	 * Sets the Target Active Power in [W]. See
-	 * {@link ChannelId#TARGET_ACTIVE_POWER}.
-	 *
-	 * @param value the Integer value; 'null' for no preference
-	 * @throws OpenemsNamedException on error
-	 */
-	public default void setTargetActivePower(Integer value) throws OpenemsNamedException {
-		this.getTargetActivePowerChannel().setNextWriteValue(value);
-	}
-
-	/**
-	 * Gets the Channel for {@link ChannelId#DEBUG_TARGET_ACTIVE_POWER}.
-	 *
-	 * @return the Channel
-	 */
-	public default IntegerReadChannel getDebugTargetActivePowerChannel() {
-		return this.channel(ChannelId.DEBUG_TARGET_ACTIVE_POWER);
-	}
-
-	/**
-	 * Gets the Channel for {@link ChannelId#MIN_ACTIVE_POWER}.
-	 *
-	 * @return the Channel
-	 */
-	public default IntegerReadChannel getMinActivePowerChannel() {
-		return this.channel(ChannelId.MIN_ACTIVE_POWER);
-	}
-
-	/**
-	 * Gets the Minimum Active Power in [W]. See {@link ChannelId#MIN_ACTIVE_POWER}.
-	 *
-	 * @return the Channel {@link Value}
-	 */
-	public default Value<Integer> getMinActivePower() {
-		return this.getMinActivePowerChannel().value();
-	}
-
-	/**
-	 * Internal method to set the 'nextValue' on {@link ChannelId#MIN_ACTIVE_POWER}
-	 * Channel.
-	 *
-	 * @param value the next value
-	 */
-	public default void _setMinActivePower(Integer value) {
-		this.getMinActivePowerChannel().setNextValue(value);
-	}
-
-	/**
-	 * Gets the Channel for {@link ChannelId#MAX_ACTIVE_POWER}.
-	 *
-	 * @return the Channel
-	 */
-	public default IntegerReadChannel getMaxActivePowerChannel() {
-		return this.channel(ChannelId.MAX_ACTIVE_POWER);
-	}
-
-	/**
-	 * Gets the Maximum Active Power in [W]. See {@link ChannelId#MAX_ACTIVE_POWER}.
-	 *
-	 * @return the Channel {@link Value}
-	 */
-	public default Value<Integer> getMaxActivePower() {
-		return this.getMaxActivePowerChannel().value();
-	}
-
-	/**
-	 * Internal method to set the 'nextValue' on {@link ChannelId#MAX_ACTIVE_POWER}
-	 * Channel.
-	 *
-	 * @param value the next value
-	 */
-	public default void _setMaxActivePower(Integer value) {
-		this.getMaxActivePowerChannel().setNextValue(value);
-	}
-
-	/**
-	 * Gets the Channel for {@link ChannelId#MIN_RUN_TIME}.
-	 *
-	 * @return the Channel
-	 */
-	public default IntegerReadChannel getMinRunTimeChannel() {
-		return this.channel(ChannelId.MIN_RUN_TIME);
-	}
-
-	/**
-	 * Gets the Minimum Run Time in [s]. See {@link ChannelId#MIN_RUN_TIME}.
-	 *
-	 * @return the Channel {@link Value}
-	 */
-	public default Value<Integer> getMinRunTime() {
-		return this.getMinRunTimeChannel().value();
-	}
-
-	/**
-	 * Internal method to set the 'nextValue' on {@link ChannelId#MIN_RUN_TIME}
-	 * Channel.
-	 *
-	 * @param value the next value
-	 */
-	public default void _setMinRunTime(Integer value) {
-		this.getMinRunTimeChannel().setNextValue(value);
-	}
-
-	/**
-	 * Gets the Channel for {@link ChannelId#MIN_OFF_TIME}.
-	 *
-	 * @return the Channel
-	 */
-	public default IntegerReadChannel getMinOffTimeChannel() {
-		return this.channel(ChannelId.MIN_OFF_TIME);
-	}
-
-	/**
-	 * Gets the Minimum Off Time in [s]. See {@link ChannelId#MIN_OFF_TIME}.
-	 *
-	 * @return the Channel {@link Value}
-	 */
-	public default Value<Integer> getMinOffTime() {
-		return this.getMinOffTimeChannel().value();
-	}
-
-	/**
-	 * Internal method to set the 'nextValue' on {@link ChannelId#MIN_OFF_TIME}
-	 * Channel.
-	 *
-	 * @param value the next value
-	 */
-	public default void _setMinOffTime(Integer value) {
-		this.getMinOffTimeChannel().setNextValue(value);
-	}
-
-	/**
-	 * Gets the Channel for {@link ChannelId#CONTROL_CAPABILITY}.
-	 *
-	 * @return the Channel
-	 */
-	public default Channel<HeatPumpControlCapability> getControlCapabilityChannel() {
-		return this.channel(ChannelId.CONTROL_CAPABILITY);
-	}
-
-	/**
-	 * Gets the Control Capability. See {@link ChannelId#CONTROL_CAPABILITY}.
-	 *
-	 * @return the {@link HeatPumpControlCapability}
-	 */
-	public default HeatPumpControlCapability getControlCapability() {
-		return this.getControlCapabilityChannel().value().asEnum();
-	}
-
-	/**
-	 * Internal method to set the 'nextValue' on
-	 * {@link ChannelId#CONTROL_CAPABILITY} Channel.
-	 *
-	 * @param value the next value
-	 */
-	public default void _setControlCapability(HeatPumpControlCapability value) {
-		this.getControlCapabilityChannel().setNextValue(value);
+	@Override
+	public default MeterType getMeterType() {
+		return this.isReadOnly() //
+				? MeterType.CONSUMPTION_METERED //
+				: MeterType.MANAGED_CONSUMPTION_METERED;
 	}
 
 	/**
@@ -448,9 +143,10 @@ public interface ManagedHeatPump extends OpenemsComponent {
 	}
 
 	/**
-	 * Gets the Operating State. See {@link ChannelId#OPERATING_STATE}.
+	 * Gets the {@link HeatPumpOperatingState}. See
+	 * {@link ChannelId#OPERATING_STATE}.
 	 *
-	 * @return the {@link HeatPumpOperatingState}
+	 * @return the operating state
 	 */
 	public default HeatPumpOperatingState getOperatingState() {
 		return this.getOperatingStateChannel().value().asEnum();
@@ -476,7 +172,7 @@ public interface ManagedHeatPump extends OpenemsComponent {
 	}
 
 	/**
-	 * Gets the Thermal Power in [W]. See {@link ChannelId#THERMAL_POWER}.
+	 * Gets the thermal power output in [W]. See {@link ChannelId#THERMAL_POWER}.
 	 *
 	 * @return the Channel {@link Value}
 	 */
@@ -492,5 +188,17 @@ public interface ManagedHeatPump extends OpenemsComponent {
 	 */
 	public default void _setThermalPower(Integer value) {
 		this.getThermalPowerChannel().setNextValue(value);
+	}
+
+	/**
+	 * Internal method to set {@link ChannelId#ACTION} and
+	 * {@link ChannelId#ACTION_POWER} for the given {@link HeatPumpAction}.
+	 *
+	 * @param action the applied {@link HeatPumpAction}
+	 */
+	public default void _setAction(HeatPumpAction action) {
+		this.channel(ChannelId.ACTION).setNextValue(action == null ? null : action.type());
+		this.channel(ChannelId.ACTION_POWER).setNextValue(//
+				action instanceof HeatPumpAction.Power p ? p.power() : null);
 	}
 }

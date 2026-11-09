@@ -71,4 +71,16 @@ public enum HeatPumpOperatingState implements OptionsEnum {
 	public OptionsEnum getUndefined() {
 		return UNDEFINED;
 	}
+
+	/**
+	 * Is the compressor running in this state?.
+	 *
+	 * @return true for heating, domestic hot water, cooling and defrost
+	 */
+	public boolean isRunning() {
+		return switch (this) {
+		case SPACE_HEATING, DOMESTIC_HOT_WATER, COOLING, DEFROST -> true;
+		case UNDEFINED, OFF, BLOCKED, FAULT -> false;
+		};
+	}
 }

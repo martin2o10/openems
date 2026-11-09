@@ -11,6 +11,8 @@ import java.time.Instant;
 
 import org.junit.jupiter.api.Test;
 
+import io.openems.edge.heat.api.HeatPumpProfile.HeatPumpAction;
+
 class SetpointHandlerTest {
 
 	private static final Instant START = Instant.parse("2026-11-06T12:00:00Z");
@@ -19,9 +21,13 @@ class SetpointHandlerTest {
 		return new SetpointHandler(800, 3500, Duration.ofSeconds(10));
 	}
 
+	private static HeatPumpAction power(int power) {
+		return new HeatPumpAction.Power(power, false);
+	}
+
 	@Test
-	void targetIsWrittenAsPowerSetpoint() {
-		var result = createHandler().calculate(2000, null);
+	void powerIsWrittenAsPowerSetpoint() {
+		var result = createHandler().calculate(power(2000));
 
 		assertEquals(2000, result.powerSetpoint());
 		assertFalse(result.isLocked());
@@ -29,30 +35,29 @@ class SetpointHandlerTest {
 	}
 
 	@Test
-	void noTargetDoesNotWritePowerSetpoint() {
-		var result = createHandler().calculate(null, null);
+	void ownControlWritesZeroAndReleases() {
+		var result = createHandler().calculate(HeatPumpAction.OWN_CONTROL);
 
-		assertNull(result.powerSetpoint());
+		assertEquals(0, result.powerSetpoint());
 		assertFalse(result.isLocked());
+		assertEquals(0, result.gridOperatorReleaseActivate());
+		assertEquals(result, createHandler().calculate(null));
 	}
 
 	@Test
-	void targetIsCappedAtMaxPowerAndLimit() {
-		var sut = createHandler();
-
-		assertEquals(3500, sut.calculate(9000, null).powerSetpoint());
-		assertEquals(1500, sut.calculate(3000, 1500).powerSetpoint());
+	void powerIsCappedAtMaxPower() {
+		assertEquals(3500, createHandler().calculate(power(9000)).powerSetpoint());
 	}
 
 	@Test
-	void targetBelowMinPowerIsZero() {
-		assertEquals(0, createHandler().calculate(500, null).powerSetpoint());
-		assertEquals(0, createHandler().calculate(-1000, null).powerSetpoint());
+	void powerBelowMinPowerIsZero() {
+		assertEquals(0, createHandler().calculate(power(500)).powerSetpoint());
+		assertEquals(0, createHandler().calculate(power(-1000)).powerSetpoint());
 	}
 
 	@Test
-	void limitBelowMinPowerLocksHeatPump() {
-		var result = createHandler().calculate(3000, 0);
+	void lockLocksHeatPump() {
+		var result = createHandler().calculate(HeatPumpAction.LOCK);
 
 		assertTrue(result.isLocked());
 		assertEquals(0, result.powerSetpoint());
@@ -64,10 +69,10 @@ class SetpointHandlerTest {
 	void writesAreRateLimited() {
 		var sut = createHandler();
 
-		assertNotNull(sut.apply(START, 2000, null));
-		assertNull(sut.apply(START.plusSeconds(5), 3000, null));
-		assertNull(sut.apply(START.plusSeconds(9), 3000, null));
-		assertEquals(3000, sut.apply(START.plusSeconds(10), 3000, null).powerSetpoint());
+		assertNotNull(sut.apply(START, power(2000)));
+		assertNull(sut.apply(START.plusSeconds(5), power(3000)));
+		assertNull(sut.apply(START.plusSeconds(9), power(3000)));
+		assertEquals(3000, sut.apply(START.plusSeconds(10), power(3000)).powerSetpoint());
 	}
 
 	@Test

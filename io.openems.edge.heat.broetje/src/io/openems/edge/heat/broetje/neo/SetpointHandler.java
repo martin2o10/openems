@@ -3,17 +3,21 @@ package io.openems.edge.heat.broetje.neo;
 import java.time.Duration;
 import java.time.Instant;
 
+import io.openems.edge.heat.api.HeatPumpProfile.HeatPumpAction;
+
 /**
- * Translates the {@code ManagedHeatPump} setpoints into NEO-RKM register
- * values and limits the write rate, as the NEO-RKM must not be written faster
- * than every 5 seconds.
+ * Translates a {@link HeatPumpAction} into NEO-RKM register values and limits
+ * the write rate, as the NEO-RKM must not be written faster than every 5
+ * seconds.
  *
  * <ul>
- * <li>TARGET_ACTIVE_POWER is written to the electric power setpoint (register
- * 125, demand profile 3), limited by ACTIVE_POWER_LIMIT and MAX_ACTIVE_POWER.
- * <li>An ACTIVE_POWER_LIMIT below MIN_ACTIVE_POWER locks the heat pump via the
- * grid operator release (registers 149/150). Without a limit, the lock is
- * handed back to the device (register 150 = 0).
+ * <li>{@link HeatPumpAction.Power}: the power is written to the electric power
+ * setpoint (register 125, demand profile 3), limited to the configured maximum
+ * power; values below the minimum power are written as 0.
+ * <li>{@link HeatPumpAction.OwnControl}: the power setpoint is set to 0 and the
+ * grid operator release is handed back to the device (register 150 = 0).
+ * <li>{@link HeatPumpAction.Lock}: the heat pump is locked via the grid
+ * operator release (registers 149 = 0, 150 = 1).
  * </ul>
  */
 public class SetpointHandler {
@@ -21,12 +25,11 @@ public class SetpointHandler {
 	/**
 	 * Register values to write.
 	 *
-	 * @param powerSetpoint               register 125 [W]; null means "do not
-	 *                                    write"
+	 * @param powerSetpoint               register 125 [W]
 	 * @param gridOperatorReleaseValue    register 149
 	 * @param gridOperatorReleaseActivate register 150
 	 */
-	public record Result(Integer powerSetpoint, int gridOperatorReleaseValue, int gridOperatorReleaseActivate) {
+	public record Result(int powerSetpoint, int gridOperatorReleaseValue, int gridOperatorReleaseActivate) {
 
 		/**
 		 * Is the heat pump locked by this result?.
@@ -56,42 +59,37 @@ public class SetpointHandler {
 	}
 
 	/**
-	 * Calculates the register values for the given setpoints.
+	 * Calculates the register values for the given {@link HeatPumpAction}.
 	 *
-	 * @param target the TARGET_ACTIVE_POWER [W] or null
-	 * @param limit  the ACTIVE_POWER_LIMIT [W] or null
+	 * @param action the {@link HeatPumpAction}; null is handled like
+	 *               {@link HeatPumpAction.OwnControl}
 	 * @return the {@link Result}
 	 */
-	public Result calculate(Integer target, Integer limit) {
-		if (limit != null && limit < this.minPower) {
-			return new Result(0, 0, 1);
+	public Result calculate(HeatPumpAction action) {
+		return switch (action) {
+		case null -> new Result(0, 1, 0);
+		case HeatPumpAction.OwnControl o -> new Result(0, 1, 0);
+		case HeatPumpAction.Lock l -> new Result(0, 0, 1);
+		case HeatPumpAction.Power p -> {
+			var power = Math.max(0, Math.min(p.power(), this.maxPower));
+			yield new Result(power < this.minPower ? 0 : power, 1, 0);
 		}
-
-		Integer power = null;
-		if (target != null) {
-			var p = Math.max(0, Math.min(target, this.maxPower));
-			if (limit != null) {
-				p = Math.min(p, limit);
-			}
-			power = p < this.minPower ? 0 : p;
-		}
-		return new Result(power, 1, 0);
+		};
 	}
 
 	/**
 	 * Calculates the register values, but only if the write interval has passed.
 	 *
 	 * @param now    the current {@link Instant}
-	 * @param target the TARGET_ACTIVE_POWER [W] or null
-	 * @param limit  the ACTIVE_POWER_LIMIT [W] or null
+	 * @param action the {@link HeatPumpAction}
 	 * @return the {@link Result} or null if nothing should be written now
 	 */
-	public Result apply(Instant now, Integer target, Integer limit) {
+	public Result apply(Instant now, HeatPumpAction action) {
 		if (this.lastWrite != null && now.isBefore(this.lastWrite.plus(this.writeInterval))) {
 			return null;
 		}
 		this.lastWrite = now;
-		return this.calculate(target, limit);
+		return this.calculate(action);
 	}
 
 	public Duration getWriteInterval() {
