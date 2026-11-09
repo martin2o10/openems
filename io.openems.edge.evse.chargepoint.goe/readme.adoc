@@ -69,6 +69,7 @@ This component communicates via Modbus/TCP (go-e Modbus TCP API v2). The Modbus 
 - Supports setting charging current
 - Supports enabling and disabling charging
 - Supports switching between 1-phase and 3-phase charging
+- Phase switching writes register 332 (1 = single-phase, 2 = three-phase). A charge point configured for automatic phase switching (332 = 0) is set to the mode requested by OpenEMS
 - Maximum charging current is limited by the hardware maximum of the charge point
 
 https://github.com/OpenEMS/openems/tree/develop/io.openems.edge.evse.chargepoint.goe[Source Code icon:github[]]

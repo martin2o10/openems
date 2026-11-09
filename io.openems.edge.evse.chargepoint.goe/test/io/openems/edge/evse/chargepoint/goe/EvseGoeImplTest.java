@@ -1,7 +1,9 @@
 package io.openems.edge.evse.chargepoint.goe;
 
+import static io.openems.common.test.TestUtils.createDummyClock;
 import static io.openems.common.utils.ReflectionUtils.getValueViaReflection;
 import static io.openems.edge.evse.api.common.ApplySetPoint.convertMilliAmpereToWatt;
+import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -9,7 +11,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
+import io.openems.common.test.TimeLeapClock;
 import io.openems.edge.bridge.modbus.api.ModbusComponent;
 import io.openems.edge.bridge.modbus.api.ModbusProtocol;
 import io.openems.edge.bridge.modbus.api.element.UnsignedWordElement;
@@ -17,6 +22,7 @@ import io.openems.edge.bridge.modbus.api.task.FC16WriteRegistersTask;
 import io.openems.edge.bridge.modbus.test.DummyModbusBridge;
 import io.openems.edge.common.test.AbstractComponentTest.TestCase;
 import io.openems.edge.common.test.ComponentTest;
+import io.openems.edge.common.test.DummyComponentManager;
 import io.openems.edge.common.type.Phase.SingleOrThreePhase;
 import io.openems.edge.evse.api.chargepoint.EvseChargePoint;
 import io.openems.edge.evse.api.chargepoint.Profile.ChargePointActions;
@@ -29,7 +35,7 @@ public class EvseGoeImplTest {
 	@Test
 	public void testActivation() throws Exception {
 		final var sut = new EvseGoeImpl();
-		prepareGoeTest(sut, false) //
+		prepareGoeTest(sut, createFixtureBridge(32), createDummyClock(), config()) //
 				.next(new TestCase(), 20) //
 
 				.next(new TestCase("Component activates without Modbus communication failure") //
@@ -40,7 +46,7 @@ public class EvseGoeImplTest {
 				.next(new TestCase("Device information is read") //
 						.output(EvseGoe.ChannelId.FIRMWARE_VERSION, "506") //
 						.output(EvseGoe.ChannelId.SERIAL_NUMBER, "0123456789AB") //
-						.output(EvseGoe.ChannelId.HARDWARE_MAX_CURRENT, 32.f))
+						.output(EvseGoe.ChannelId.HARDWARE_MAX_CURRENT, 32000))
 
 				.deactivate();
 	}
@@ -48,14 +54,15 @@ public class EvseGoeImplTest {
 	@Test
 	public void testReadMeterValues() throws Exception {
 		final var sut = new EvseGoeImpl();
-		prepareGoeTest(sut, false) //
+		prepareGoeTest(sut, createFixtureBridge(32), createDummyClock(), config()) //
 				.next(new TestCase(), 20) //
 
 				.next(new TestCase("Voltages are read in V and scaled to mV") //
 						.output(ElectricityMeter.ChannelId.VOLTAGE_L1, 230000) //
 						.output(ElectricityMeter.ChannelId.VOLTAGE_L2, 231000) //
 						.output(ElectricityMeter.ChannelId.VOLTAGE_L3, 229000) //
-						.output(ElectricityMeter.ChannelId.VOLTAGE, 230000))
+						.output(ElectricityMeter.ChannelId.VOLTAGE, 230000) //
+						.output(EvseGoe.ChannelId.VOLTAGE_N, 0))
 
 				.next(new TestCase("Currents are read in 0.1 A and scaled to mA") //
 						.output(ElectricityMeter.ChannelId.CURRENT_L1, 10500) //
@@ -73,7 +80,6 @@ public class EvseGoeImplTest {
 						.output(ElectricityMeter.ChannelId.ACTIVE_CONSUMPTION_ENERGY, 36000L))
 
 				.next(new TestCase("go-e specific values") //
-						.output(EvseGoe.ChannelId.VOLTAGE_N, 0.f) //
 						.output(EvseGoe.ChannelId.POWER_FACTOR_L1, 98) //
 						.output(EvseGoe.ChannelId.POWER_FACTOR_L2, 97) //
 						.output(EvseGoe.ChannelId.POWER_FACTOR_L3, 99) //
@@ -81,213 +87,110 @@ public class EvseGoeImplTest {
 
 				.deactivate();
 
+		// READ_WRITE Channels: TestCase.output() checks the write value, so the
+		// readback is asserted directly
 		assertEquals(16000, sut.getSetChargingCurrentChannel().value().get());
 		assertEquals(true, sut.getSetAllowChargingChannel().value().get());
 		assertEquals(2, sut.getSetPhaseSwitchModeChannel().value().get());
 	}
 
-	@Test
-	public void testCarStateMapping() throws Exception {
+	@ParameterizedTest(name = "CAR_STATE {0} -> {1}")
+	@CsvSource({ //
+			"2, CHARGING, true, true", //
+			"1, READY_NO_EV, false, false", //
+			"0, DEFECT, false, false", //
+			"3, WAITING_FOR_VEHICLE, true, true", //
+			"4, FINISHED_EV_CONNECTED, false, true", //
+			"99, UNDEFINED, false, false" //
+	})
+	public void testCarStateMapping(int carStateRegister, CarState expectedCarState, boolean expectedReadyForCharging,
+			boolean expectedEvConnected) throws Exception {
 		final var sut = new EvseGoeImpl();
-		final var test = prepareGoeTest(sut, false);
-		final var bridge = (DummyModbusBridge) sut.getBridgeModbus();
-
-		// 2 = Charging
-		test.next(new TestCase(), 20) //
+		final var bridge = createFixtureBridge(32).withInputRegisters(100, carStateRegister);
+		final var test = prepareGoeTest(sut, bridge, createDummyClock(), config()) //
+				.next(new TestCase(), 20) //
 				.next(new TestCase() //
-						.output(EvseGoe.ChannelId.CAR_STATE, CarState.CHARGING) //
-						.output(EvseChargePoint.ChannelId.IS_READY_FOR_CHARGING, true));
-		assertTrue(sut.getChargePointAbilities().isEvConnected());
+						.output(EvseGoe.ChannelId.CAR_STATE, expectedCarState) //
+						.output(EvseChargePoint.ChannelId.IS_READY_FOR_CHARGING, expectedReadyForCharging));
 
-		// 1 = Ready, no EV connected - NOT considered as EV connected
-		test.next(new TestCase("Change to 1 = Ready, no EV connected") //
-				.onBeforeProcessImage(() -> bridge.withInputRegisters(100, 1)));
-		test.next(new TestCase(), 10) //
-				.next(new TestCase() //
-						.output(EvseGoe.ChannelId.CAR_STATE, CarState.READY_NO_EV) //
-						.output(EvseChargePoint.ChannelId.IS_READY_FOR_CHARGING, false));
-		assertFalse(sut.getChargePointAbilities().isEvConnected());
-
-		// 0 = Defective
-		test.next(new TestCase("Change to 0 = Defective") //
-				.onBeforeProcessImage(() -> bridge.withInputRegisters(100, 0)));
-		test.next(new TestCase(), 10) //
-				.next(new TestCase() //
-						.output(EvseGoe.ChannelId.CAR_STATE, CarState.DEFECT) //
-						.output(EvseChargePoint.ChannelId.IS_READY_FOR_CHARGING, false));
-		assertFalse(sut.getChargePointAbilities().isEvConnected());
-
-		// 3 = Waiting for vehicle
-		test.next(new TestCase("Change to 3 = Waiting for vehicle") //
-				.onBeforeProcessImage(() -> bridge.withInputRegisters(100, 3)));
-		test.next(new TestCase(), 10) //
-				.next(new TestCase() //
-						.output(EvseGoe.ChannelId.CAR_STATE, CarState.WAITING_FOR_VEHICLE) //
-						.output(EvseChargePoint.ChannelId.IS_READY_FOR_CHARGING, true));
-		assertTrue(sut.getChargePointAbilities().isEvConnected());
-
-		// 4 = Charging finished, EV connected - connected, but not ready for charging
-		test.next(new TestCase("Change to 4 = Charging finished, EV connected") //
-				.onBeforeProcessImage(() -> bridge.withInputRegisters(100, 4)));
-		test.next(new TestCase(), 10) //
-				.next(new TestCase() //
-						.output(EvseGoe.ChannelId.CAR_STATE, CarState.FINISHED_EV_CONNECTED) //
-						.output(EvseChargePoint.ChannelId.IS_READY_FOR_CHARGING, false));
-		assertTrue(sut.getChargePointAbilities().isEvConnected());
-
-		// unknown values are not guessed
-		test.next(new TestCase("Change to an unknown value") //
-				.onBeforeProcessImage(() -> bridge.withInputRegisters(100, 99)));
-		test.next(new TestCase(), 10) //
-				.next(new TestCase() //
-						.output(EvseGoe.ChannelId.CAR_STATE, CarState.UNDEFINED) //
-						.output(EvseChargePoint.ChannelId.IS_READY_FOR_CHARGING, false));
-		assertFalse(sut.getChargePointAbilities().isEvConnected());
-
+		assertEquals(expectedEvConnected, sut.getChargePointAbilities().isEvConnected());
 		test.deactivate();
 	}
 
-	@Test
-	public void testErrorMapping() throws Exception {
+	@ParameterizedTest(name = "ERROR {0} -> {1}")
+	@CsvSource({ //
+			"0, NO_ERROR", //
+			"8, NO_GROUND", //
+			"4711, INTERNAL" // unknown values map to INTERNAL as documented by go-e
+	})
+	public void testErrorMapping(int errorRegister, ErrorCode expectedErrorCode) throws Exception {
 		final var sut = new EvseGoeImpl();
-		final var test = prepareGoeTest(sut, false);
-		final var bridge = (DummyModbusBridge) sut.getBridgeModbus();
-
-		test.next(new TestCase(), 20);
-
-		test.next(new TestCase("Change to 8 = NO_GROUND") //
-				.onBeforeProcessImage(() -> bridge.withInputRegisters(107, 8)));
-		test.next(new TestCase(), 10) //
+		final var bridge = createFixtureBridge(32).withInputRegisters(107, errorRegister);
+		prepareGoeTest(sut, bridge, createDummyClock(), config()) //
+				.next(new TestCase(), 20) //
 				.next(new TestCase() //
-						.output(EvseGoe.ChannelId.ERROR, ErrorCode.NO_GROUND));
-
-		test.next(new TestCase("Change to an unknown value") //
-				.onBeforeProcessImage(() -> bridge.withInputRegisters(107, 4711)));
-		test.next(new TestCase(), 10) //
-				.next(new TestCase() //
-						.output(EvseGoe.ChannelId.ERROR, ErrorCode.INTERNAL));
-
-		test.deactivate();
+						.output(EvseGoe.ChannelId.ERROR, expectedErrorCode)) //
+				.deactivate();
 	}
 
 	@Test
-	public void testChargePointAbilities() throws Exception {
+	public void testErrorIsUndefinedOnCommunicationLoss() throws Exception {
 		final var sut = new EvseGoeImpl();
-		final var test = prepareGoeTest(sut, false) //
+		// no input registers: all FC4 read tasks fail
+		final var bridge = new DummyModbusBridge("modbus0") //
+				.withRegisters(200, 1) //
+				.withRegisters(211, 32) //
+				.withRegisters(299, 16) //
+				.withRegisters(332, 2);
+		final var test = prepareGoeTest(sut, bridge, createDummyClock(), config()) //
 				.next(new TestCase(), 20);
 
-		// three phases carry current, AMPERE_MAX reads 32 A
-		var abilities = sut.getChargePointAbilities();
-		var applySetPoint = (ApplySetPoint.Ability.MilliAmpere) abilities.applySetPoint();
-		assertEquals(SingleOrThreePhase.THREE_PHASE, applySetPoint.phase());
+		assertNull(sut.channel(EvseGoe.ChannelId.ERROR).value().get(),
+				"A communication loss must not be reported as INTERNAL error");
+		test.deactivate();
+	}
+
+	@ParameterizedTest(name = "wiring={0}, AMPERE_MAX={1} A, maxCurrent={2} mA -> {3}, {4} mA")
+	@CsvSource({ //
+			"THREE_PHASE, 32, 32000, THREE_PHASE, 32000", //
+			"THREE_PHASE, 32, 16000, THREE_PHASE, 16000", // configured maximum below hardware maximum
+			"THREE_PHASE, 16, 32000, THREE_PHASE, 16000", // 11 kW variant below configured maximum
+			"SINGLE_PHASE, 32, 32000, SINGLE_PHASE, 32000" //
+	})
+	public void testApplySetPointAbility(SingleOrThreePhase wiring, int ampereMax, int maxCurrent,
+			SingleOrThreePhase expectedPhase, int expectedMax) throws Exception {
+		final var sut = new EvseGoeImpl();
+		final var test = prepareGoeTest(sut, createFixtureBridge(ampereMax), createDummyClock(), config() //
+				.setWiring(wiring) //
+				.setMaxCurrent(maxCurrent)) //
+				.next(new TestCase(), 20);
+
+		final var abilities = sut.getChargePointAbilities();
+		final var applySetPoint = (ApplySetPoint.Ability.MilliAmpere) abilities.applySetPoint();
+		assertEquals(expectedPhase, applySetPoint.phase());
 		assertEquals(ApplySetPoint.MIN_CURRENT, applySetPoint.min());
-		assertEquals(32000, applySetPoint.max());
+		assertEquals(expectedMax, applySetPoint.max());
 		assertTrue(abilities.isEvConnected());
 		assertTrue(abilities.isReadyForCharging());
-		// three-phase active: possible switch is TO_SINGLE_PHASE within single-phase limits
-		assertEquals(PhaseSwitchDirection.TO_SINGLE_PHASE, abilities.phaseSwitch().direction());
-		assertEquals(SingleOrThreePhase.SINGLE_PHASE, abilities.phaseSwitch().oppositePhaseApplySetPoint().phase());
-		assertEquals(convertMilliAmpereToWatt(SingleOrThreePhase.SINGLE_PHASE, ApplySetPoint.MIN_CURRENT),
-				abilities.phaseSwitch().oppositePhaseApplySetPoint().min());
-		assertEquals(convertMilliAmpereToWatt(SingleOrThreePhase.SINGLE_PHASE, 32000),
-				abilities.phaseSwitch().oppositePhaseApplySetPoint().max());
-
-		// configured maximum below the hardware maximum
-		final var sut2 = new EvseGoeImpl();
-		final var test2 = prepareGoeTest(sut2, false, SingleOrThreePhase.THREE_PHASE, 32, 16000) //
-				.next(new TestCase(), 20);
-		abilities = sut2.getChargePointAbilities();
-		applySetPoint = (ApplySetPoint.Ability.MilliAmpere) abilities.applySetPoint();
-		assertEquals(16000, applySetPoint.max());
-
-		// hardware maximum of the 11 kW variant (16 A) below the configured maximum
-		final var sut4 = new EvseGoeImpl();
-		final var test4 = prepareGoeTest(sut4, false, SingleOrThreePhase.THREE_PHASE, 16, 32_000) //
-				.next(new TestCase(), 20);
-		abilities = sut4.getChargePointAbilities();
-		applySetPoint = (ApplySetPoint.Ability.MilliAmpere) abilities.applySetPoint();
-		assertEquals(16000, applySetPoint.max());
-
-		// single-phase wiring
-		final var sut3 = new EvseGoeImpl();
-		final var test3 = prepareGoeTest(sut3, false, SingleOrThreePhase.SINGLE_PHASE) //
-				.next(new TestCase(), 20);
-		abilities = sut3.getChargePointAbilities();
-		applySetPoint = (ApplySetPoint.Ability.MilliAmpere) abilities.applySetPoint();
-		assertEquals(SingleOrThreePhase.SINGLE_PHASE, applySetPoint.phase());
-		assertNull(abilities.phaseSwitch(), "Single-phase wiring must not offer phase switching");
-
-		test2.deactivate();
-		test3.deactivate();
-		test4.deactivate();
-	}
-
-	@Test
-	public void testWriteSetPointOnChange() throws Exception {
-		final var sut = new EvseGoeImpl();
-		final var test = prepareGoeTest(sut, false) //
-				.next(new TestCase(), 20);
-
-		// first Set-Point is queued for writing
-		sut.apply(actions(sut, 16000));
-		assertEquals(16000, sut.getSetChargingCurrentChannel().getNextWriteValueAndReset().get());
-		assertEquals(16, getWriteRegisterValue(sut, 299));
-
-		// the identical Set-Point is not queued again (write-on-change)
-		sut.apply(actions(sut, 16000));
-		assertFalse(sut.getSetChargingCurrentChannel().getNextWriteValue().isPresent(),
-				"Identical Set-Point must not be queued again");
-
-		// a changed Set-Point is queued again
-		sut.apply(actions(sut, 20000));
-		assertEquals(20000, sut.getSetChargingCurrentChannel().getNextWriteValueAndReset().get());
-		assertEquals(20, getWriteRegisterValue(sut, 299));
-
-		// the Set-Point is written in whole Amperes: 16500 mA -> 17 A register value
-		sut.apply(actions(sut, 16500));
-		assertEquals(16500, sut.getSetChargingCurrentChannel().getNextWriteValueAndReset().get());
-		assertEquals(17, getWriteRegisterValue(sut, 299));
-
-		test.deactivate();
-	}
-
-	@Test
-	public void testEnableOnCharge() throws Exception {
-		final var sut = new EvseGoeImpl();
-		final var test = prepareGoeTest(sut, false) //
-				.next(new TestCase(), 20);
-
-		// transition 0 -> >0 writes ALLOW=1 exactly once
-		sut.apply(actions(sut, 16000));
-		assertEquals(true, sut.getSetAllowChargingChannel().getNextWriteValueAndReset().get());
-		assertEquals(1, getWriteRegisterValue(sut, 200));
-
-		// a changed Set-Point while charging does not re-write ALLOW
-		sut.apply(actions(sut, 20000));
-		assertEquals(20000, sut.getSetChargingCurrentChannel().getNextWriteValueAndReset().get());
-		assertFalse(sut.getSetAllowChargingChannel().getNextWriteValue().isPresent(),
-				"ALLOW must not be re-written while the charging session continues");
-
-		// returning to 0 writes ALLOW=0 only; register 299 accepts only 6..32 A
-		sut.apply(actions(sut, 0));
-		assertEquals(false, sut.getSetAllowChargingChannel().getNextWriteValueAndReset().get());
-		assertEquals(0, getWriteRegisterValue(sut, 200));
-		assertFalse(sut.getSetChargingCurrentChannel().getNextWriteValue().isPresent(),
-				"A zero Set-Point must not write the current register");
-
-		// restarting the charging session writes ALLOW=1 and the current again
-		sut.apply(actions(sut, 16000));
-		assertEquals(true, sut.getSetAllowChargingChannel().getNextWriteValueAndReset().get());
-		assertEquals(16000, sut.getSetChargingCurrentChannel().getNextWriteValueAndReset().get());
-
 		test.deactivate();
 	}
 
 	@Test
 	public void testPhaseSwitchAbility() throws Exception {
 		final var sut = new EvseGoeImpl();
-		final var test = prepareGoeTest(sut, false);
-		final var bridge = (DummyModbusBridge) sut.getBridgeModbus();
+		final var bridge = createFixtureBridge(32);
+		final var test = prepareGoeTest(sut, bridge, createDummyClock(), config()) //
+				.next(new TestCase(), 20);
+
+		// register 332 reads 2: possible switch is TO_SINGLE_PHASE within single-phase
+		// limits
+		var phaseSwitch = sut.getChargePointAbilities().phaseSwitch();
+		assertEquals(PhaseSwitchDirection.TO_SINGLE_PHASE, phaseSwitch.direction());
+		assertEquals(SingleOrThreePhase.SINGLE_PHASE, phaseSwitch.oppositePhaseApplySetPoint().phase());
+		assertEquals(convertMilliAmpereToWatt(SingleOrThreePhase.SINGLE_PHASE, ApplySetPoint.MIN_CURRENT),
+				phaseSwitch.oppositePhaseApplySetPoint().min());
+		assertEquals(convertMilliAmpereToWatt(SingleOrThreePhase.SINGLE_PHASE, 32000),
+				phaseSwitch.oppositePhaseApplySetPoint().max());
 
 		// register 332 reads 1 -> single-phase, even while three phases carry current
 		test.next(new TestCase().onBeforeProcessImage(() -> bridge.withRegisters(332, 1)));
@@ -311,11 +214,34 @@ public class EvseGoeImplTest {
 	}
 
 	@Test
+	public void testNoPhaseSwitchAbility() throws Exception {
+		final var singlePhaseWired = new EvseGoeImpl();
+		final var singlePhaseTest = prepareGoeTest(singlePhaseWired, createFixtureBridge(32), createDummyClock(),
+				config().setWiring(SingleOrThreePhase.SINGLE_PHASE)) //
+				.next(new TestCase(), 20);
+		assertNull(singlePhaseWired.getChargePointAbilities().phaseSwitch(),
+				"Single-phase wiring must not offer phase switching");
+		singlePhaseTest.deactivate();
+
+		final var withoutPhaseSwitchMode = new EvseGoeImpl();
+		final var bridge = new DummyModbusBridge("modbus0") //
+				.withRegisters(200, 1) //
+				.withRegisters(211, 32) //
+				.withRegisters(299, 16); // register 332 is not available
+		final var withoutPhaseSwitchModeTest = prepareGoeTest(withoutPhaseSwitchMode, bridge, createDummyClock(),
+				config()) //
+				.next(new TestCase(), 20);
+		assertNull(withoutPhaseSwitchMode.getChargePointAbilities().phaseSwitch(),
+				"Phase switching must not be offered if register 332 is not readable");
+		withoutPhaseSwitchModeTest.deactivate();
+	}
+
+	@Test
 	public void testApplyPhaseSwitch() throws Exception {
 		final var sut = new EvseGoeImpl();
-		final var test = prepareGoeTest(sut, false);
-		final var bridge = (DummyModbusBridge) sut.getBridgeModbus();
-		test.next(new TestCase(), 20);
+		final var bridge = createFixtureBridge(32);
+		final var test = prepareGoeTest(sut, bridge, createDummyClock(), config()) //
+				.next(new TestCase(), 20);
 
 		// register 332 reads 2: switching to single-phase writes 1
 		sut.apply(phaseSwitchActions(sut, PhaseSwitchDirection.TO_SINGLE_PHASE));
@@ -332,24 +258,76 @@ public class EvseGoeImplTest {
 	}
 
 	@Test
-	public void testRewriteAfterChargePointRestart() throws Exception {
+	public void testSetPointWriteInterval() throws Exception {
 		final var sut = new EvseGoeImpl();
-		final var test = prepareGoeTest(sut, false);
-		final var bridge = (DummyModbusBridge) sut.getBridgeModbus();
-		test.next(new TestCase(), 20);
+		final var clock = createDummyClock();
+		final var test = prepareGoeTest(sut, createFixtureBridge(32), clock, config()) //
+				.next(new TestCase(), 20);
 
-		// ALLOW reads 1 after an OpenEMS restart: a first zero Set-Point writes ALLOW=0
-		sut.apply(actions(sut, 0));
-		assertEquals(false, sut.getSetAllowChargingChannel().getNextWriteValueAndReset().get());
-
+		// first Set-Point is written
 		sut.apply(actions(sut, 16000));
 		assertEquals(16000, sut.getSetChargingCurrentChannel().getNextWriteValueAndReset().get());
-		sut.getSetAllowChargingChannel().getNextWriteValueAndReset();
+		assertEquals(16, getWriteRegisterValue(sut, 299));
 
-		// the charge point restarts and register 299 reads 10 A: the Set-Point is written again
-		test.next(new TestCase().onBeforeProcessImage(() -> bridge.withRegisters(299, 10)));
-		test.next(new TestCase(), 20);
+		// a changed Set-Point is delayed for 5 seconds
+		sut.apply(actions(sut, 20000));
+		assertFalse(sut.getSetChargingCurrentChannel().getNextWriteValue().isPresent(),
+				"A changed Set-Point must not be written within 5 seconds");
+
+		clock.leap(6, SECONDS);
+		sut.apply(actions(sut, 20000));
+		assertEquals(20000, sut.getSetChargingCurrentChannel().getNextWriteValueAndReset().get());
+		assertEquals(20, getWriteRegisterValue(sut, 299));
+
+		// the identical Set-Point is not written again within 30 seconds
+		clock.leap(10, SECONDS);
+		sut.apply(actions(sut, 20000));
+		assertFalse(sut.getSetChargingCurrentChannel().getNextWriteValue().isPresent(),
+				"An identical Set-Point must not be written within 30 seconds");
+
+		// ... but after 30 seconds, e.g. to restore it after a restart of the charge
+		// point
+		clock.leap(21, SECONDS);
+		sut.apply(actions(sut, 20000));
+		assertEquals(20000, sut.getSetChargingCurrentChannel().getNextWriteValueAndReset().get());
+
+		// the Set-Point is written in whole Amperes: 16500 mA -> 17 A register value
+		clock.leap(6, SECONDS);
+		sut.apply(actions(sut, 16500));
+		assertEquals(16500, sut.getSetChargingCurrentChannel().getNextWriteValueAndReset().get());
+		assertEquals(17, getWriteRegisterValue(sut, 299));
+
+		test.deactivate();
+	}
+
+	@Test
+	public void testAllowCharging() throws Exception {
+		final var sut = new EvseGoeImpl();
+		final var clock = createDummyClock();
+		final var bridge = createFixtureBridge(32);
+		final var test = prepareGoeTest(sut, bridge, clock, config()) //
+				.next(new TestCase(), 20);
+
+		// ALLOW reads 1: a positive Set-Point writes only the current
 		sut.apply(actions(sut, 16000));
+		assertEquals(16000, sut.getSetChargingCurrentChannel().getNextWriteValueAndReset().get());
+		assertFalse(sut.getSetAllowChargingChannel().getNextWriteValue().isPresent(),
+				"ALLOW must not be re-written if the charge point already allows charging");
+
+		// stopping is applied immediately via ALLOW=0; register 299 accepts only 6..32 A
+		sut.apply(actions(sut, 0));
+		assertEquals(false, sut.getSetAllowChargingChannel().getNextWriteValueAndReset().get());
+		assertEquals(0, getWriteRegisterValue(sut, 200));
+		assertFalse(sut.getSetChargingCurrentChannel().getNextWriteValue().isPresent(),
+				"A zero Set-Point must not write the current register");
+
+		// ALLOW reads 0: restarting writes ALLOW=1 and the current
+		test.next(new TestCase().onBeforeProcessImage(() -> bridge.withRegisters(200, 0)));
+		test.next(new TestCase(), 20);
+		clock.leap(6, SECONDS);
+		sut.apply(actions(sut, 16000));
+		assertEquals(true, sut.getSetAllowChargingChannel().getNextWriteValueAndReset().get());
+		assertEquals(1, getWriteRegisterValue(sut, 200));
 		assertEquals(16000, sut.getSetChargingCurrentChannel().getNextWriteValueAndReset().get());
 
 		test.deactivate();
@@ -358,7 +336,7 @@ public class EvseGoeImplTest {
 	@Test
 	public void testReadOnly() throws Exception {
 		final var sut = new EvseGoeImpl();
-		final var test = prepareGoeTest(sut, true) //
+		final var test = prepareGoeTest(sut, createFixtureBridge(32), createDummyClock(), config().setReadOnly(true)) //
 				.next(new TestCase(), 20);
 
 		assertTrue(sut.isReadOnly());
@@ -369,6 +347,7 @@ public class EvseGoeImplTest {
 		assertEquals(0, abilities.applySetPoint().max());
 		assertFalse(abilities.isEvConnected());
 		assertFalse(abilities.isReadyForCharging());
+		assertNull(abilities.phaseSwitch());
 
 		// apply() is not executed in read-only mode: no writes are queued
 		sut.apply(ChargePointActions.from(abilities) //
@@ -378,7 +357,6 @@ public class EvseGoeImplTest {
 				"Read-only mode must not write the current register");
 		assertFalse(sut.getSetAllowChargingChannel().getNextWriteValue().isPresent(),
 				"Read-only mode must not write the ALLOW register");
-		assertNull(abilities.phaseSwitch());
 
 		// reads still work
 		test.next(new TestCase() //
@@ -388,26 +366,18 @@ public class EvseGoeImplTest {
 		test.deactivate();
 	}
 
-	private static ComponentTest prepareGoeTest(EvseGoeImpl sut, boolean readOnly) throws Exception {
-		return prepareGoeTest(sut, readOnly, SingleOrThreePhase.THREE_PHASE);
+	private static MyConfig.Builder config() {
+		return MyConfig.create() //
+				.setId("evseChargePoint0") //
+				.setModbusId("modbus0");
 	}
 
-	private static ComponentTest prepareGoeTest(EvseGoeImpl sut, boolean readOnly, SingleOrThreePhase wiring)
-			throws Exception {
-		return prepareGoeTest(sut, readOnly, wiring, 32, 32_000);
-	}
-
-	private static ComponentTest prepareGoeTest(EvseGoeImpl sut, boolean readOnly, SingleOrThreePhase wiring,
-			int ampereMax, int maxCurrent) throws Exception {
+	private static ComponentTest prepareGoeTest(EvseGoeImpl sut, DummyModbusBridge bridge, TimeLeapClock clock,
+			MyConfig.Builder config) throws Exception {
 		return new ComponentTest(sut) //
-				.addReference("setModbus", createFixtureBridge(ampereMax)) //
-				.activate(MyConfig.create() //
-						.setId("evseChargePoint0") //
-						.setModbusId("modbus0") //
-						.setWiring(wiring) //
-						.setMaxCurrent(maxCurrent) //
-						.setReadOnly(readOnly) //
-						.build());
+				.addReference("componentManager", new DummyComponentManager(clock)) //
+				.addReference("setModbus", bridge) //
+				.activate(config.build());
 	}
 
 	private static DummyModbusBridge createFixtureBridge(int ampereMax) {

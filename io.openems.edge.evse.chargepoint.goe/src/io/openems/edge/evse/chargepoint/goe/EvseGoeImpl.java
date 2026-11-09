@@ -20,7 +20,8 @@ import static org.osgi.service.component.annotations.ReferencePolicy.DYNAMIC;
 import static org.osgi.service.component.annotations.ReferencePolicy.STATIC;
 import static org.osgi.service.component.annotations.ReferencePolicyOption.GREEDY;
 
-import java.util.Objects;
+import java.time.Duration;
+import java.time.Instant;
 
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
@@ -37,6 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
 import io.openems.common.referencetarget.GenerateTargetsFromReferences;
+import io.openems.common.types.Tuple2;
 import io.openems.edge.bridge.modbus.api.AbstractOpenemsModbusComponent;
 import io.openems.edge.bridge.modbus.api.BridgeModbus;
 import io.openems.edge.bridge.modbus.api.ElementToChannelConverter;
@@ -50,6 +52,7 @@ import io.openems.edge.bridge.modbus.api.element.UnsignedWordElement;
 import io.openems.edge.bridge.modbus.api.task.FC16WriteRegistersTask;
 import io.openems.edge.bridge.modbus.api.task.FC3ReadRegistersTask;
 import io.openems.edge.bridge.modbus.api.task.FC4ReadInputRegistersTask;
+import io.openems.edge.common.component.ComponentManager;
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.common.taskmanager.Priority;
 import io.openems.edge.common.type.Phase.SingleOrThreePhase;
@@ -78,15 +81,20 @@ public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseG
 
 	private static final int PHASE_SWITCH_MODE_SINGLE_PHASE = 1;
 	private static final int PHASE_SWITCH_MODE_THREE_PHASE = 2;
+	private static final long SAME_SET_POINT_INTERVAL_SECONDS = 30;
+	private static final long NEW_SET_POINT_INTERVAL_SECONDS = 5;
 
 	/** Maps unknown values of register 107 to INTERNAL, as documented by go-e. */
 	private static final ElementToChannelConverter TO_ERROR_CODE = new ElementToChannelConverter(//
-			value -> ErrorCode.fromValue(value instanceof Number n ? n.intValue() : -1).getValue());
+			value -> value instanceof Number n ? ErrorCode.fromValue(n.intValue()).getValue() : null);
 
 	private final Logger log = LoggerFactory.getLogger(EvseGoeImpl.class);
 
 	@Reference(policy = DYNAMIC, policyOption = GREEDY, cardinality = OPTIONAL)
 	private volatile Timedata timedata = null;
+
+	@Reference
+	private ComponentManager componentManager;
 
 	@Override
 	@Reference(policy = STATIC, policyOption = GREEDY, cardinality = MANDATORY, //
@@ -97,11 +105,7 @@ public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseG
 
 	private Config config;
 
-	/** Last Set-Point in [mA] that was queued for writing; null if none yet. */
-	private Integer lastSetPoint = null;
-
-	/** Last state of ALLOW that was queued for writing; null if none yet. */
-	private Boolean lastAllowCharging = null;
+	private Tuple2<Instant, Integer> previousSetPoint = null;
 
 	public EvseGoeImpl() {
 		super(//
@@ -162,7 +166,8 @@ public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseG
 						m(ElectricityMeter.ChannelId.ACTIVE_CONSUMPTION_ENERGY,
 								new UnsignedDoublewordElement(128).wordOrder(LSWMSW), SCALE_FACTOR_2)), //
 				new FC4ReadInputRegistersTask(144, Priority.LOW, //
-						m(EvseGoe.ChannelId.VOLTAGE_N, new UnsignedDoublewordElement(144).wordOrder(LSWMSW)), //
+						m(EvseGoe.ChannelId.VOLTAGE_N, new UnsignedDoublewordElement(144).wordOrder(LSWMSW),
+								SCALE_FACTOR_3), //
 						m(pr.channelActivePowerL1(), new UnsignedDoublewordElement(146).wordOrder(LSWMSW),
 								SCALE_FACTOR_2), //
 						m(pr.channelActivePowerL2(), new UnsignedDoublewordElement(148).wordOrder(LSWMSW),
@@ -177,7 +182,7 @@ public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseG
 				new FC3ReadRegistersTask(200, Priority.LOW, //
 						m(EvseGoe.ChannelId.SET_ALLOW_CHARGING, new UnsignedWordElement(200))), //
 				new FC3ReadRegistersTask(211, Priority.LOW, //
-						m(EvseGoe.ChannelId.HARDWARE_MAX_CURRENT, new UnsignedWordElement(211))), //
+						m(EvseGoe.ChannelId.HARDWARE_MAX_CURRENT, new UnsignedWordElement(211), SCALE_FACTOR_3)), //
 				new FC3ReadRegistersTask(299, Priority.HIGH, //
 						m(EvseGoe.ChannelId.SET_CHARGING_CURRENT, new UnsignedWordElement(299), SCALE_FACTOR_3)), //
 				new FC3ReadRegistersTask(332, Priority.LOW, //
@@ -294,12 +299,8 @@ public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseG
 	}
 
 	private int getMaxCurrentInMilliAmpere() {
-		var result = this.config.maxCurrent();
-		var hardwareMax = this.getHardwareMaxCurrentChannel().value().get();
-		if (hardwareMax != null) {
-			result = Math.min(result, (int) Math.round(hardwareMax * 1000));
-		}
-		return result;
+		final var configuredMax = this.config.maxCurrent();
+		return Math.min(configuredMax, this.getHardwareMaxCurrentChannel().value().orElse(configuredMax));
 	}
 
 	private PhaseSwitchDirection getPhaseSwitchAbility(SingleOrThreePhase phases) {
@@ -324,33 +325,42 @@ public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseG
 	}
 
 	private void applySetPoint(int setPointInMilliAmpere) {
-		// register 299 accepts only 6..32 A, so charging is started and stopped via ALLOW
-		try {
-			this.applyAllowCharging(setPointInMilliAmpere > 0);
-			if (setPointInMilliAmpere == 0) {
-				this.lastSetPoint = 0;
-				return;
-			}
-			final var setPointInWholeAmpere = Math.round(setPointInMilliAmpere / 1000f) * 1000;
-			final var readback = this.getSetChargingCurrentChannel().value().get();
-			if (Objects.equals(this.lastSetPoint, setPointInMilliAmpere) //
-					&& (readback == null || readback == setPointInWholeAmpere)) {
-				return;
-			}
-			this.lastSetPoint = setPointInMilliAmpere;
-			this.setSetChargingCurrent(setPointInMilliAmpere);
-		} catch (OpenemsNamedException e) {
-			this.log.error("Failed to apply set-point: " + e.getMessage());
+		final var now = Instant.now(this.componentManager.getClock());
+		if (this.isSetPointWriteThrottled(now, setPointInMilliAmpere)) {
+			return;
 		}
+		this.previousSetPoint = Tuple2.of(now, setPointInMilliAmpere);
+		try {
+			// register 299 accepts only 6..32 A, so charging is started and stopped via ALLOW
+			this.applyAllowCharging(setPointInMilliAmpere > 0);
+			if (setPointInMilliAmpere > 0) {
+				this.setSetChargingCurrent(setPointInMilliAmpere);
+			}
+		} catch (OpenemsNamedException e) {
+			this.log.error("Failed to apply set-point", e);
+		}
+	}
+
+	private boolean isSetPointWriteThrottled(Instant now, int setPointInMilliAmpere) {
+		if (this.previousSetPoint == null) {
+			return false;
+		}
+		final var previousValue = this.previousSetPoint.b();
+		if (setPointInMilliAmpere == 0 && previousValue != 0) {
+			return false; // stopping is never delayed
+		}
+		final var elapsedSeconds = Duration.between(this.previousSetPoint.a(), now).getSeconds();
+		final var interval = previousValue == setPointInMilliAmpere //
+				? SAME_SET_POINT_INTERVAL_SECONDS //
+				: NEW_SET_POINT_INTERVAL_SECONDS;
+		return elapsedSeconds < interval;
 	}
 
 	private void applyAllowCharging(boolean allowCharging) throws OpenemsNamedException {
 		final var readback = this.getSetAllowChargingChannel().value().get();
-		if (Objects.equals(this.lastAllowCharging, allowCharging) //
-				&& (readback == null || readback == allowCharging)) {
+		if (readback != null && readback == allowCharging) {
 			return;
 		}
-		this.lastAllowCharging = allowCharging;
 		this.setSetAllowCharging(allowCharging);
 	}
 
@@ -364,7 +374,7 @@ public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseG
 		try {
 			this.setSetPhaseSwitchMode(phaseSwitchMode);
 		} catch (OpenemsNamedException e) {
-			this.log.error("Failed to apply phase switch: " + e.getMessage());
+			this.log.error("Failed to apply phase switch", e);
 		}
 	}
 }

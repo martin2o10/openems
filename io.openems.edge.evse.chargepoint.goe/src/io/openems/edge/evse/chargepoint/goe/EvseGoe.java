@@ -2,7 +2,6 @@ package io.openems.edge.evse.chargepoint.goe;
 
 import static io.openems.common.channel.AccessMode.READ_WRITE;
 import static io.openems.common.types.OpenemsType.BOOLEAN;
-import static io.openems.common.types.OpenemsType.FLOAT;
 import static io.openems.common.types.OpenemsType.INTEGER;
 import static io.openems.common.types.OpenemsType.STRING;
 
@@ -12,7 +11,7 @@ import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
 import io.openems.edge.common.channel.BooleanWriteChannel;
 import io.openems.edge.common.channel.Doc;
 import io.openems.edge.common.channel.EnumReadChannel;
-import io.openems.edge.common.channel.FloatReadChannel;
+import io.openems.edge.common.channel.IntegerReadChannel;
 import io.openems.edge.common.channel.IntegerWriteChannel;
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.evse.api.chargepoint.EvseChargePoint;
@@ -37,8 +36,8 @@ public interface EvseGoe extends EvseChargePoint, ElectricityMeter, OpenemsCompo
 		ERROR(Doc.of(ErrorCode.values())//
 				.persistencePriority(PersistencePriority.LOW)//
 				.text("Error")), //
-		VOLTAGE_N(Doc.of(FLOAT)//
-				.unit(Unit.VOLT)//
+		VOLTAGE_N(Doc.of(INTEGER)//
+				.unit(Unit.MILLIVOLT)//
 				.persistencePriority(PersistencePriority.LOW)//
 				.text("Voltage N")), //
 		POWER_FACTOR_L1(Doc.of(INTEGER)//
@@ -59,8 +58,8 @@ public interface EvseGoe extends EvseChargePoint, ElectricityMeter, OpenemsCompo
 				.text("Serial number")), //
 		PHASES(Doc.of(INTEGER)//
 				.text("Phase states before/after contactor")), //
-		HARDWARE_MAX_CURRENT(Doc.of(FLOAT)//
-				.unit(Unit.AMPERE)//
+		HARDWARE_MAX_CURRENT(Doc.of(INTEGER)//
+				.unit(Unit.MILLIAMPERE)//
 				.text("Maximum hardware current")), //
 		DEBUG_SET_PHASE_SWITCH_MODE(Doc.of(INTEGER)), //
 		SET_PHASE_SWITCH_MODE(Doc.of(INTEGER)//
@@ -118,7 +117,7 @@ public interface EvseGoe extends EvseChargePoint, ElectricityMeter, OpenemsCompo
 	 *
 	 * @return the Channel
 	 */
-	public default FloatReadChannel getHardwareMaxCurrentChannel() {
+	public default IntegerReadChannel getHardwareMaxCurrentChannel() {
 		return this.channel(ChannelId.HARDWARE_MAX_CURRENT);
 	}
 
