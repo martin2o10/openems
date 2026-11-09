@@ -55,7 +55,6 @@ public enum ErrorCode implements OptionsEnum {
 		case 1 -> RCCB;
 		case 3 -> PHASE;
 		case 8 -> NO_GROUND;
-		case 10 -> INTERNAL;
 		default -> INTERNAL;
 		};
 	}

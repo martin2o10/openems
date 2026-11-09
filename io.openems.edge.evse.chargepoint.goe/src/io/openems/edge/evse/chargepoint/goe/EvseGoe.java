@@ -2,7 +2,6 @@ package io.openems.edge.evse.chargepoint.goe;
 
 import static io.openems.common.channel.AccessMode.READ_WRITE;
 import static io.openems.common.types.OpenemsType.BOOLEAN;
-import static io.openems.common.types.OpenemsType.FLOAT;
 import static io.openems.common.types.OpenemsType.INTEGER;
 import static io.openems.common.types.OpenemsType.STRING;
 
@@ -12,7 +11,7 @@ import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
 import io.openems.edge.common.channel.BooleanWriteChannel;
 import io.openems.edge.common.channel.Doc;
 import io.openems.edge.common.channel.EnumReadChannel;
-import io.openems.edge.common.channel.FloatReadChannel;
+import io.openems.edge.common.channel.IntegerReadChannel;
 import io.openems.edge.common.channel.IntegerWriteChannel;
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.evse.api.chargepoint.EvseChargePoint;
@@ -37,11 +36,8 @@ public interface EvseGoe extends EvseChargePoint, ElectricityMeter, OpenemsCompo
 		ERROR(Doc.of(ErrorCode.values())//
 				.persistencePriority(PersistencePriority.LOW)//
 				.text("Error")), //
-		IS_EV_CONNECTED(Doc.of(BOOLEAN)//
-				.persistencePriority(PersistencePriority.MEDIUM)//
-				.text("Is an EV connected")), //
-		VOLTAGE_N(Doc.of(FLOAT)//
-				.unit(Unit.VOLT)//
+		VOLTAGE_N(Doc.of(INTEGER)//
+				.unit(Unit.MILLIVOLT)//
 				.persistencePriority(PersistencePriority.LOW)//
 				.text("Voltage N")), //
 		POWER_FACTOR_L1(Doc.of(INTEGER)//
@@ -56,41 +52,34 @@ public interface EvseGoe extends EvseChargePoint, ElectricityMeter, OpenemsCompo
 				.unit(Unit.PERCENT)//
 				.persistencePriority(PersistencePriority.LOW)//
 				.text("Power factor L3")), //
-		// Charged energy of the current charging session; Deka-Watt-seconds are
-		// converted to Watt-hours
-		ENERGY_SESSION(Doc.of(INTEGER)//
-				.unit(Unit.WATT_HOURS)//
-				.persistencePriority(PersistencePriority.LOW)//
-				.text("Charged energy of the current charging session")), //
-		FWV(Doc.of(STRING)//
+		FIRMWARE_VERSION(Doc.of(STRING)//
 				.text("Firmware version")), //
-		SNR(Doc.of(STRING)//
+		SERIAL_NUMBER(Doc.of(STRING)//
 				.text("Serial number")), //
-		// Phase states before/after the contactor; binary flags 0b00ABCDEF per
-		// go-e Modbus API v2 (verification on hardware pending)
 		PHASES(Doc.of(INTEGER)//
 				.text("Phase states before/after contactor")), //
-		HARDWARE_MAX_CURRENT(Doc.of(FLOAT)//
-				.unit(Unit.AMPERE)//
-				.text("Maximum hardware current (register 211 AMPERE_MAX)")), //
-		PHASE_SWITCH_MODE(Doc.of(INTEGER)//
+		HARDWARE_MAX_CURRENT(Doc.of(INTEGER)//
+				.unit(Unit.MILLIAMPERE)//
+				.text("Maximum hardware current")), //
+		DEBUG_SET_PHASE_SWITCH_MODE(Doc.of(INTEGER)), //
+		SET_PHASE_SWITCH_MODE(Doc.of(INTEGER)//
+				.accessMode(READ_WRITE)//
 				.persistencePriority(PersistencePriority.LOW)//
-				.text("Phase switch mode (register 332 PHASE_SWITCH_MODE; accepts only 0, 1, 2)")), //
+				.onChannelSetNextWriteMirrorToDebugChannel(DEBUG_SET_PHASE_SWITCH_MODE)//
+				.text("Phase switch mode: 1 = single-phase, 2 = three-phase")), //
 		DEBUG_SET_CHARGING_CURRENT(Doc.of(INTEGER)), //
-		// READ_WRITE: written via FC16 to register 299 (AMPERE_VOLATILE) and read
-		// back as the source of truth for the currently applied current
 		SET_CHARGING_CURRENT(Doc.of(INTEGER)//
 				.accessMode(READ_WRITE)//
 				.unit(Unit.MILLIAMPERE)//
-				.persistencePriority(PersistencePriority.MEDIUM)//
+				.persistencePriority(PersistencePriority.LOW)//
 				.onChannelSetNextWriteMirrorToDebugChannel(DEBUG_SET_CHARGING_CURRENT)//
-				.text("Charging current (register 299 AMPERE_VOLATILE)")), //
+				.text("Charging current")), //
 		DEBUG_SET_ALLOW_CHARGING(Doc.of(BOOLEAN)), //
 		SET_ALLOW_CHARGING(Doc.of(BOOLEAN)//
 				.accessMode(READ_WRITE)//
-				.persistencePriority(PersistencePriority.MEDIUM)//
+				.persistencePriority(PersistencePriority.LOW)//
 				.onChannelSetNextWriteMirrorToDebugChannel(DEBUG_SET_ALLOW_CHARGING)//
-				.text("Allow charging (register 200 ALLOW)")) //
+				.text("Allow charging")) //
 		;
 
 		private final Doc doc;
@@ -128,7 +117,7 @@ public interface EvseGoe extends EvseChargePoint, ElectricityMeter, OpenemsCompo
 	 *
 	 * @return the Channel
 	 */
-	public default FloatReadChannel getHardwareMaxCurrentChannel() {
+	public default IntegerReadChannel getHardwareMaxCurrentChannel() {
 		return this.channel(ChannelId.HARDWARE_MAX_CURRENT);
 	}
 
@@ -168,5 +157,24 @@ public interface EvseGoe extends EvseChargePoint, ElectricityMeter, OpenemsCompo
 	 */
 	public default void setSetAllowCharging(boolean value) throws OpenemsNamedException {
 		this.getSetAllowChargingChannel().setNextWriteValue(value);
+	}
+
+	/**
+	 * Gets the Channel for {@link ChannelId#SET_PHASE_SWITCH_MODE}.
+	 *
+	 * @return the Channel
+	 */
+	public default IntegerWriteChannel getSetPhaseSwitchModeChannel() {
+		return this.channel(ChannelId.SET_PHASE_SWITCH_MODE);
+	}
+
+	/**
+	 * Sets the next Write Value for {@link ChannelId#SET_PHASE_SWITCH_MODE}.
+	 *
+	 * @param value 1 for single-phase, 2 for three-phase
+	 * @throws OpenemsNamedException on error
+	 */
+	public default void setSetPhaseSwitchMode(int value) throws OpenemsNamedException {
+		this.getSetPhaseSwitchModeChannel().setNextWriteValue(value);
 	}
 }
