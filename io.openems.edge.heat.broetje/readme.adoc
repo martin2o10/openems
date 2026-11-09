@@ -1,0 +1,42 @@
+= Broetje Heat Pumps
+
+Integration of Broetje heat pumps via Modbus.
+
+== Supported Devices
+
+.Broetje BLW NEO
+* **Communication**: Modbus TCP or Modbus RTU via the communication module NEO-RKM (only one of both can be active)
+* **Control**: electric power setpoint ("Anforderungsprofil 3", register 125) and grid operator lock (registers 149/150)
+* **Documentation**: https://polo.broetje.de/pdf/7734937=2=pdf_(bdr_a4_manual)=de-de_ma_neo-rkm.pdf[NEO-RKM installation manual (German) icon:external-link[]]
+
+== Components
+
+=== Heat Broetje BLW NEO
+
+*Factory-PID*: `Heat.Broetje.Neo`
+
+.Implemented Natures
+* ManagedHeatPump
+* Heat
+* ElectricityMeter
+* ModbusComponent
+* TimedataProvider
+
+The component starts in read-only mode. If read-only is disabled, the `HeatPumpAction` of a Controller is written:
+
+* `Power`: the electric power setpoint (register 125), limited to the configured maximum power. Values below the configured minimum power are written as 0.
+* `Lock`: the heat pump is locked via the grid operator release (registers 149/150).
+* `OwnControl` (or no action): power setpoint 0 and the grid operator release is handed back to the device.
+* Setpoints are written at most every write interval (minimum 5 seconds, as required by the NEO-RKM).
+
+.Device setup for the power setpoint
+* NEO-RKM: PV selection = Modbus TCP or Modbus RTU
+* NEO-RWP: WNA "FU extern" = ON
+
+The heat pump adjusts its compressor speed slowly; after a start there is a pre-run time of several minutes without speed changes.
+
+.Open points
+* Behaviour of the device on communication loss is not documented
+* Word order of 32-bit registers is assumed big-endian (high word first)
+
+https://github.com/OpenEMS/openems/tree/develop/io.openems.edge.heat.broetje[Source Code icon:github[]]

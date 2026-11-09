@@ -104,6 +104,7 @@
 	bnd.identity;id='io.openems.edge.controller.evcs',\
 	bnd.identity;id='io.openems.edge.controller.evcs.fixactivepower',\
 	bnd.identity;id='io.openems.edge.controller.evse',\
+	bnd.identity;id='io.openems.edge.controller.heatpump',\
 	bnd.identity;id='io.openems.edge.controller.generic.jsonlogic',\
 	bnd.identity;id='io.openems.edge.controller.highloadtimeslot',\
 	bnd.identity;id='io.openems.edge.controller.io.alarm',\
@@ -163,6 +164,7 @@
 	bnd.identity;id='io.openems.edge.fronius',\
 	bnd.identity;id='io.openems.edge.goodwe',\
 	bnd.identity;id='io.openems.edge.heat.askoma',\
+	bnd.identity;id='io.openems.edge.heat.broetje',\
 	bnd.identity;id='io.openems.edge.heat.mypv',\
 	bnd.identity;id='io.openems.edge.huawei',\
 	bnd.identity;id='io.openems.edge.io.filipowski',\
@@ -324,6 +326,7 @@
 	io.openems.edge.controller.evcs;version=snapshot,\
 	io.openems.edge.controller.evcs.fixactivepower;version=snapshot,\
 	io.openems.edge.controller.evse;version=snapshot,\
+	io.openems.edge.controller.heatpump;version=snapshot,\
 	io.openems.edge.controller.generic.jsonlogic;version=snapshot,\
 	io.openems.edge.controller.highloadtimeslot;version=snapshot,\
 	io.openems.edge.controller.io.alarm;version=snapshot,\
@@ -388,6 +391,7 @@
 	io.openems.edge.goodwe;version=snapshot,\
 	io.openems.edge.heat.api;version=snapshot,\
 	io.openems.edge.heat.askoma;version=snapshot,\
+	io.openems.edge.heat.broetje;version=snapshot,\
 	io.openems.edge.heat.mypv;version=snapshot,\
 	io.openems.edge.huawei;version=snapshot,\
 	io.openems.edge.io.api;version=snapshot,\

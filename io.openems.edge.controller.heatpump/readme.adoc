@@ -1,0 +1,12 @@
+= Heat Pump Controllers
+
+Controls heat pumps that implement the `ManagedHeatPump` nature, following the structure of the EVSE Controllers:
+
+- `Controller.HeatPump.Single`: one Controller per heat pump with Mode (`OWN_CONTROL`, `SURPLUS`, `FORCE`, `SMART`), anti-cycling protection and Energy Scheduler
+- `Controller.HeatPump.Cluster`: distributes surplus power to all single Controllers in the configured order
+
+The Controllers never override the own control of the heat pump; they only request additional consumption. Heat pumps in read-only mode are not controlled, but all decisions are visible in the Channels.
+
+In `SMART` mode the Energy Scheduler chooses per period between `SURPLUS` and `FORCE`, based on a simple storage model (volume between minimum and maximum temperature, constant average heat demand, estimated COP).
+
+https://github.com/OpenEMS/openems/tree/develop/io.openems.edge.controller.heatpump[Source Code icon:github[]]
