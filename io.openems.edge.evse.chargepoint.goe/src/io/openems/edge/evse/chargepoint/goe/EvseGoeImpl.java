@@ -324,17 +324,20 @@ public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseG
 	}
 
 	private void applySetPoint(int setPointInMilliAmpere) {
-		final var now = Instant.now(this.componentManager.getClock());
-		if (this.isSetPointWriteThrottled(now, setPointInMilliAmpere)) {
-			return;
-		}
-		this.previousSetPoint = Tuple2.of(now, setPointInMilliAmpere);
 		try {
-			// register 299 accepts only 6..32 A, so charging is started and stopped via ALLOW
+			// register 299 accepts only 6..32 A, so charging is started and stopped via
+			// ALLOW; ALLOW is reconciled with its readback in every cycle
 			this.applyAllowCharging(setPointInMilliAmpere > 0);
-			if (setPointInMilliAmpere > 0) {
-				this.setSetChargingCurrent(setPointInMilliAmpere);
+			if (setPointInMilliAmpere == 0) {
+				this.previousSetPoint = null; // the current is written immediately on restart
+				return;
 			}
+			final var now = Instant.now(this.componentManager.getClock());
+			if (this.isSetPointWriteThrottled(now, setPointInMilliAmpere)) {
+				return;
+			}
+			this.previousSetPoint = Tuple2.of(now, setPointInMilliAmpere);
+			this.setSetChargingCurrent(setPointInMilliAmpere);
 		} catch (OpenemsNamedException e) {
 			this.log.error("Failed to apply set-point", e);
 		}
@@ -345,9 +348,6 @@ public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseG
 			return false;
 		}
 		final var previousValue = this.previousSetPoint.b();
-		if (setPointInMilliAmpere == 0 && previousValue != 0) {
-			return false; // stopping is never delayed
-		}
 		final var elapsedSeconds = Duration.between(this.previousSetPoint.a(), now).getSeconds();
 		final var interval = previousValue == setPointInMilliAmpere //
 				? SAME_SET_POINT_INTERVAL_SECONDS //

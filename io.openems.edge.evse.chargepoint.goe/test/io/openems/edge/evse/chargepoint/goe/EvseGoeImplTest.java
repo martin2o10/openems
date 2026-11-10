@@ -335,6 +335,26 @@ public class EvseGoeImplTest {
 	}
 
 	@Test
+	public void testStopIsRetriedIfWriteIsLost() throws Exception {
+		final var sut = new EvseGoeImpl();
+		final var clock = createDummyClock();
+		final var test = prepareGoeTest(sut, createFixtureBridge(32), clock, config()) //
+				.next(new TestCase(), 20);
+
+		// first stop request: the write of ALLOW=0 is lost, ALLOW still reads 1
+		sut.apply(actions(sut, 0));
+		assertEquals(false, sut.getSetAllowChargingChannel().getNextWriteValueAndReset().get());
+		assertEquals(0, getWriteRegisterValue(sut, 200));
+
+		// the next stop request retries ALLOW=0 immediately
+		sut.apply(actions(sut, 0));
+		assertEquals(false, sut.getSetAllowChargingChannel().getNextWriteValueAndReset().get());
+		assertEquals(0, getWriteRegisterValue(sut, 200));
+
+		test.deactivate();
+	}
+
+	@Test
 	public void testReadOnly() throws Exception {
 		final var sut = new EvseGoeImpl();
 		final var test = prepareGoeTest(sut, createFixtureBridge(32), createDummyClock(), config().setReadOnly(true)) //
