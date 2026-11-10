@@ -1,0 +1,75 @@
+= EVSE Charge-Point ABL eM4
+
+Implementation for the ABL eM4 charging station series in stand-alone operation.
+
+== Supported devices
+
+- ABL eM4 Single
+- ABL eM4 Twin (one component per outlet)
+
+Groups of eM4 Controller and Extender are not supported.
+
+== Communication
+
+This component communicates via Modbus/TCP according to ABL "Modbus TCP - Schnittstellenbeschreibung Wallbox eM4 Controller / Extender", R 01, 19.12.2023. The charge point identifies itself by its IP address; the Unit-ID is 255. Only function codes 3 and 16 are supported.
+
+== Configuration
+
+[cols="1,1,1,1"]
+|===
+|Property |Type |Default |Description
+
+|id
+|String
+|evseChargePoint0
+|Unique ID of this Component
+
+|alias
+|String
+|
+|Human-readable name of this Component
+
+|enabled
+|Boolean
+|true
+|Is this Component enabled?
+
+|readOnly
+|Boolean
+|false
+|Defines that this charge point is read only
+
+|modbus_id
+|String
+|modbus0
+|ID of Modbus bridge
+
+|modbusUnitId
+|Integer
+|255
+|The Unit-ID of the Modbus device
+
+|outlet
+|Outlet
+|OUTLET_1
+|Outlet of the charge point; `OUTLET_2` is the right outlet of an eM4 Twin
+
+|phaseRotation
+|PhaseRotation
+|L1_L2_L3
+|Apply standard or rotated wiring
+
+|wiring
+|SingleOrThreePhase
+|THREE_PHASE
+|Physical wiring of the charge point
+|===
+
+== Features
+
+- Supports reading of meter values (voltage, current, power, energy)
+- Supports setting the charging current in steps of 0.1 A; a current of 0 A stops charging
+- Maximum charging current is limited by the maximum current of the installation (Idefault)
+- Phase switching is not supported, because the Modbus interface does not provide it
+
+https://github.com/OpenEMS/openems/tree/develop/io.openems.edge.evse.chargepoint.abl[Source Code icon:github[]]
