@@ -208,11 +208,10 @@ public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseG
 		if (!this.isEnabled()) {
 			return;
 		}
-		switch (event.getTopic()) {
-		case TOPIC_CYCLE_BEFORE_PROCESS_IMAGE -> {
-			final CarState carState = this.getCarStateChannel().getNextValue().asEnum();
-			setValue(this, EvseChargePoint.ChannelId.IS_READY_FOR_CHARGING, carState.isReadyForCharging);
-		}
+		if (TOPIC_CYCLE_BEFORE_PROCESS_IMAGE.equals(event.getTopic())) {
+			final var carState = this.getCarStateChannel().getNextValue().asEnum();
+			final var isReadyForCharging = carState != null && carState.isReadyForCharging;
+			setValue(this, EvseChargePoint.ChannelId.IS_READY_FOR_CHARGING, isReadyForCharging);
 		}
 	}
 
