@@ -7,6 +7,23 @@ Implementation for the go-e Gemini charging station series.
 - go-e Gemini
 - go-e Gemini flex
 
+== Requirements
+
+- go-e firmware 057.1 or newer (Modbus/TCP API v2)
+
+== Verification status
+
+Verified on a go-e Gemini 11 kW with firmware 059.4:
+
+- Reading of meter values, car state (ready, no EV), error, firmware version and hardware maximum current
+- Writing of charging current (register 299) and enabling/disabling charging (register 200), including readback
+
+Not yet verified on hardware:
+
+- Phase switching (register 332)
+- Car states while an EV is connected or charging
+- Meter values under load
+
 == Communication
 
 This component communicates via Modbus/TCP (go-e Modbus TCP API v2). The Modbus interface has to be enabled in the go-e App or via the HTTP API key `men`. Writes use function code 16 only, because function code 6 is not supported by go-e.

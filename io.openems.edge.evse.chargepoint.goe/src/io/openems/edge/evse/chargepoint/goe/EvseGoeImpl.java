@@ -52,6 +52,7 @@ import io.openems.edge.bridge.modbus.api.element.UnsignedWordElement;
 import io.openems.edge.bridge.modbus.api.task.FC16WriteRegistersTask;
 import io.openems.edge.bridge.modbus.api.task.FC3ReadRegistersTask;
 import io.openems.edge.bridge.modbus.api.task.FC4ReadInputRegistersTask;
+import io.openems.edge.common.channel.EnumReadChannel;
 import io.openems.edge.common.component.ComponentManager;
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.common.taskmanager.Priority;
@@ -212,6 +213,13 @@ public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseG
 			final CarState carState = this.getCarStateChannel().getNextValue().asEnum();
 			final boolean isReadyForCharging = carState != null && carState.isReadyForCharging;
 			setValue(this, EvseChargePoint.ChannelId.IS_READY_FOR_CHARGING, isReadyForCharging);
+
+			final EnumReadChannel errorChannel = this.channel(EvseGoe.ChannelId.ERROR);
+			final ErrorCode errorCode = errorChannel.getNextValue().asEnum();
+			setValue(this, EvseGoe.ChannelId.ERR_RCCB, errorCode == ErrorCode.RCCB);
+			setValue(this, EvseGoe.ChannelId.ERR_PHASE, errorCode == ErrorCode.PHASE);
+			setValue(this, EvseGoe.ChannelId.ERR_NO_GROUND, errorCode == ErrorCode.NO_GROUND);
+			setValue(this, EvseGoe.ChannelId.ERR_INTERNAL, errorCode == ErrorCode.INTERNAL);
 		}
 	}
 
