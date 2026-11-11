@@ -119,17 +119,24 @@ public class EvseGoeImplTest {
 
 	@ParameterizedTest(name = "ERROR {0} -> {1}")
 	@CsvSource({ //
-			"0, NO_ERROR", //
-			"8, NO_GROUND", //
-			"4711, INTERNAL" // unknown values map to INTERNAL as documented by go-e
+			"0, NO_ERROR, false, false, false, false", //
+			"1, RCCB, true, false, false, false", //
+			"3, PHASE, false, true, false, false", //
+			"8, NO_GROUND, false, false, true, false", //
+			"4711, INTERNAL, false, false, false, true" // unknown values map to INTERNAL as documented by go-e
 	})
-	public void testErrorMapping(int errorRegister, ErrorCode expectedErrorCode) throws Exception {
+	public void testErrorMapping(int errorRegister, ErrorCode expectedErrorCode, boolean rccb, boolean phase,
+			boolean noGround, boolean internal) throws Exception {
 		final var sut = new EvseGoeImpl();
 		final var bridge = createFixtureBridge(32).withInputRegisters(107, errorRegister);
 		prepareGoeTest(sut, bridge, createDummyClock(), config()) //
 				.next(new TestCase(), 20) //
 				.next(new TestCase() //
-						.output(EvseGoe.ChannelId.ERROR, expectedErrorCode)) //
+						.output(EvseGoe.ChannelId.ERROR, expectedErrorCode) //
+						.output(EvseGoe.ChannelId.ERR_RCCB, rccb) //
+						.output(EvseGoe.ChannelId.ERR_PHASE, phase) //
+						.output(EvseGoe.ChannelId.ERR_NO_GROUND, noGround) //
+						.output(EvseGoe.ChannelId.ERR_INTERNAL, internal)) //
 				.deactivate();
 	}
 

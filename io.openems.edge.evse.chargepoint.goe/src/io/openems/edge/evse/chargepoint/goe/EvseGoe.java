@@ -5,6 +5,7 @@ import static io.openems.common.types.OpenemsType.BOOLEAN;
 import static io.openems.common.types.OpenemsType.INTEGER;
 import static io.openems.common.types.OpenemsType.STRING;
 
+import io.openems.common.channel.Level;
 import io.openems.common.channel.PersistencePriority;
 import io.openems.common.channel.Unit;
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
@@ -36,6 +37,14 @@ public interface EvseGoe extends EvseChargePoint, ElectricityMeter, OpenemsCompo
 		ERROR(Doc.of(ErrorCode.values())//
 				.persistencePriority(PersistencePriority.LOW)//
 				.text("Error")), //
+		ERR_RCCB(Doc.of(Level.FAULT)//
+				.translationKey(EvseGoe.class, "errRccb")), //
+		ERR_PHASE(Doc.of(Level.FAULT)//
+				.translationKey(EvseGoe.class, "errPhase")), //
+		ERR_NO_GROUND(Doc.of(Level.FAULT)//
+				.translationKey(EvseGoe.class, "errNoGround")), //
+		ERR_INTERNAL(Doc.of(Level.FAULT)//
+				.translationKey(EvseGoe.class, "errInternal")), //
 		VOLTAGE_N(Doc.of(INTEGER)//
 				.unit(Unit.MILLIVOLT)//
 				.persistencePriority(PersistencePriority.LOW)//
