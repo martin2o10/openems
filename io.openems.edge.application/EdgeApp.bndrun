@@ -149,6 +149,7 @@
 	bnd.identity;id='io.openems.edge.evse.chargepoint.alpitronic',\
 	bnd.identity;id='io.openems.edge.evse.chargepoint.ambibox',\
 	bnd.identity;id='io.openems.edge.evse.chargepoint.bender',\
+	bnd.identity;id='io.openems.edge.evse.chargepoint.goe',\
 	bnd.identity;id='io.openems.edge.evse.chargepoint.hardybarth',\
 	bnd.identity;id='io.openems.edge.evse.chargepoint.heidelberg',\
 	bnd.identity;id='io.openems.edge.evse.chargepoint.keba',\
@@ -373,6 +374,7 @@
 	io.openems.edge.evse.chargepoint.alpitronic;version=snapshot,\
 	io.openems.edge.evse.chargepoint.ambibox;version=snapshot,\
 	io.openems.edge.evse.chargepoint.bender;version=snapshot,\
+	io.openems.edge.evse.chargepoint.goe;version=snapshot,\
 	io.openems.edge.evse.chargepoint.hardybarth;version=snapshot,\
 	io.openems.edge.evse.chargepoint.heidelberg;version=snapshot,\
 	io.openems.edge.evse.chargepoint.keba;version=snapshot,\
