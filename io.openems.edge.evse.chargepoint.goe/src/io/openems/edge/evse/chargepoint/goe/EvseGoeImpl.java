@@ -180,7 +180,7 @@ public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseG
 						m(EvseGoe.ChannelId.POWER_FACTOR_L3, new UnsignedDoublewordElement(156).wordOrder(LSWMSW))), //
 				new FC4ReadInputRegistersTask(205, Priority.LOW, //
 						m(EvseGoe.ChannelId.PHASES, new UnsignedWordElement(205))), //
-				new FC3ReadRegistersTask(200, Priority.LOW, //
+				new FC3ReadRegistersTask(200, Priority.HIGH, //
 						m(EvseGoe.ChannelId.SET_ALLOW_CHARGING, new UnsignedWordElement(200))), //
 				new FC3ReadRegistersTask(211, Priority.LOW, //
 						m(EvseGoe.ChannelId.HARDWARE_MAX_CURRENT, new UnsignedWordElement(211), SCALE_FACTOR_3)), //
@@ -331,7 +331,9 @@ public class EvseGoeImpl extends AbstractOpenemsModbusComponent implements EvseG
 				convertMilliAmpereToWatt(oppositePhase, maxCurrent));
 	}
 
-	private void applySetPoint(int setPointInMilliAmpere) {
+	private void applySetPoint(int requestedSetPointInMilliAmpere) {
+		// register 299 holds whole Amperes
+		final var setPointInMilliAmpere = requestedSetPointInMilliAmpere / 1000 * 1000;
 		try {
 			// register 299 accepts only 6..32 A, so charging is started and stopped via
 			// ALLOW; ALLOW is reconciled with its readback in every cycle
