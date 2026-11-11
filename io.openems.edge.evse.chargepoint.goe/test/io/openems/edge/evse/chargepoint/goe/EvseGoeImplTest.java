@@ -298,12 +298,17 @@ public class EvseGoeImplTest {
 		sut.apply(actions(sut, 20000));
 		assertEquals(20000, sut.getSetChargingCurrentChannel().getNextWriteValueAndReset().get());
 
-		// the Set-Point is written in whole Amperes and never above the requested
-		// current: 16500 mA -> 16 A register value
+		// the Set-Point is rounded down to whole Amperes: 16500 mA -> 16 A
 		clock.leap(6, SECONDS);
 		sut.apply(actions(sut, 16500));
-		assertEquals(16500, sut.getSetChargingCurrentChannel().getNextWriteValueAndReset().get());
+		assertEquals(16000, sut.getSetChargingCurrentChannel().getNextWriteValueAndReset().get());
 		assertEquals(16, getWriteRegisterValue(sut, 299));
+
+		// 16500 mA and 16000 mA are the same whole Ampere value, not a new Set-Point
+		clock.leap(6, SECONDS);
+		sut.apply(actions(sut, 16000));
+		assertFalse(sut.getSetChargingCurrentChannel().getNextWriteValue().isPresent(),
+				"16000 mA and 16500 mA must be treated as the same Set-Point");
 
 		test.deactivate();
 	}
