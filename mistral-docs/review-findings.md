@@ -333,4 +333,4 @@ Hardware-Messungen an go-e Gemini 11 kW, FW 059.4 (QModMaster, 22./23.10.2026).
   (Abschnitt 6) dokumentiert. Reviewer: Vibe (Mistral), Branch feature/go-e,
   Commit 5013e2ee3c3a1c292e8d9590a3a8e4c8650adec3.
 - 2026-11-20: Tippfehler korrigiert (LSWMSW-Schreibweise, REV-008-Formulierung,
-  REV-009-Verweichlichung美妙ung, Abschnitt-7-Typo). Inhaltlich unveraendert.
+  REV-009-Formulierung, Abschnitt-7-Typo). Inhaltlich unveraendert.
