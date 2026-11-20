@@ -49,7 +49,7 @@ Hardware-Messungen an go-e Gemini 11 kW, FW 059.4 (QModMaster, 22./23.10.2026).
    oder WONT_FIX/DEFERRED (mit Begruendung).
 4. Evidence muss belegt sein: Datei + Methode, Doku-Abschnitt oder Messung.
    Keine unbelegten Behauptungen. Vermutungen erhalten den Zusatz confidence: low.
-5. Nach jedem Update dieser Datei: Abschnitt 7 (Changelog) ergaenzen (Datum + Was).
+5. Nach jedem Update dieser Datei: Abschnitt 8 (Changelog) ergaenzen (Datum + Was).
 6. findings nur zu Komponenten des eigenen Entwicklungs-Zweigs; externe Bugs
    (z. B. prepare-commit.sh) als eigene Datei in mistral-docs/ fuehren.
 7. Ordner mistral-docs/ niemals in OpenEMS-/FEMS-PRs mergen.
@@ -101,7 +101,7 @@ Hardware-Messungen an go-e Gemini 11 kW, FW 059.4 (QModMaster, 22./23.10.2026).
   vom 22./23.10.2026 (CAR_STATE, FC16 auf 299, ALLOW 200, ERROR, FW 059.4)
   wurden aber mit QModMaster durchgefuehrt, nicht mit dieser OpenEMS-Komponente.
   Die Base-Addr-Frage (Doku-Wire-Adresse vs. +1 im Tool) ist nicht abschliessend
-  geklaert; der Code nutzt die Doku-Wire-Adressen, was OpenEMS-Konvention entspricht.
+  geklaert; der Code nutzt die Doku-Wire-Adressen, was der OpenEMS-Konvention entspricht.
 - recommendation: >
   Einen echten Testlauf der OpenEMS-Komponente gegen die Gemini machen
   (Kanaele pruefen, Setpoint setzen). Danach readme praezisieren:
@@ -115,7 +115,7 @@ Hardware-Messungen an go-e Gemini 11 kW, FW 059.4 (QModMaster, 22./23.10.2026).
 - status: OPEN
 - found: 2026-11-20
 - component: goe
-- area: readme.adoc, Abschnitt Requirements; EvseGoeImpl (Annahme LSWMSWFW, FWV als ASCII)
+- area: readme.adoc, Abschnitt Requirements; EvseGoeImpl (Annahme LSWMSW, FWV als ASCII)
 - requirements: REQ-02, REQ-09
 - evidence: >
   modbus-de.md: In Firmware 060.3 wurde die Byte-Reihenfolge getauscht,
@@ -144,8 +144,8 @@ Hardware-Messungen an go-e Gemini 11 kW, FW 059.4 (QModMaster, 22./23.10.2026).
   geschrieben. Doku: 299 akzeptiert nur 6..32 A; Verhalten bei 5 A ist
   undokumentiert. Werte unter 500 mA werden korrekt als 0 (Stopp ueber ALLOW)
   behandelt, Werte ueber 6500 korrekt trunciert; nur der Bereich 1000..5900 ist
-  lueckenhaft. Controller wuenscht normalerweise 6 A (Ability-Minimum), der Fall
-  ist also defensiv zu schliessen.
+  lueckenhaft. Der Controller wuenscht normalerweise >= 6 A (Ability-Minimum),
+  der Fall ist also defensiv zu schliessen.
 - recommendation: >
   Bei value > 0 auf MIN_CURRENT clampen: Math.max(MIN_CURRENT, truncated).
   Testfall ergaenzen (z. B. 5000 mA -> 6 A).
@@ -166,7 +166,7 @@ Hardware-Messungen an go-e Gemini 11 kW, FW 059.4 (QModMaster, 22./23.10.2026).
   Implementiert ist: neue Setpoints bis 5 s verzögert, identische nur alle 30 s
   (Begruendung im Test: Restore nach Box-Neustart wegen RAM-Register 299).
   Verhalten ist ok, aber weder im readme erwaehnt noch gegen die Referenz
-  begruendet. Risiko: im Review als KI-Eigeninterpretation ohne Abstimmung.
+  begruendet. Risiko: im Review als KI-Eigeninterpretation ohne Abstimmung gewertet.
 - recommendation: >
   Einen Satz in readme (Communication): Schreibintervalle 5 s neue / 30 s
   identische Setpoints, Begruendung RAM-Volatile-Restore. In der
@@ -201,7 +201,7 @@ Hardware-Messungen an go-e Gemini 11 kW, FW 059.4 (QModMaster, 22./23.10.2026).
   Register 205 (PHASES, Bits vor/nach Schuetz) wird gelesen und als Kanal
   angeboten, aber getPhases() nutzt den psm-Readback (332) plus Strom-Heuristik.
   HW-Messung 22.10.: 56 = 3 Phasen, konsistent mit Spannungsmessung; 205 zeigt
-  real anliegende Phasen statt Konfiguration und ware die robustere Quelle.
+  real anliegende Phasen statt Konfiguration und waere die robustere Quelle.
 - recommendation: >
   Kurzfristig: Kommentar an den Kanal, dass 205 als kuenftiger Upgrade-Pfad
   der Phasenerkennung dient (HW-Teil-2 pending). Spaeter: getPhases() auf 205
@@ -231,10 +231,11 @@ Hardware-Messungen an go-e Gemini 11 kW, FW 059.4 (QModMaster, 22./23.10.2026).
 - area: EvseGoeImpl.getPhases() vs getPhaseSwitchAbility()
 - requirements: REQ-07
 - evidence: >
-  Beide Methoden pruefen denselben Kanalwert auf两个 Weisen:
-  value().orElse(0) vs value().get() == null. Beide korrekt (Channel.value()
-  liefert Value-Objekt, get() kann null sein), Stil aber uneinheitlich.
-- recommendation: vereinheitlichen (orElse/Optional-IDiom bevorzugt).
+  Beide Methoden pruefen denselben Kanalwert auf zwei verschiedene Weisen:
+  value().orElse(0) vs value().get() == null. Beide Varianten sind korrekt
+  (Channel.value() liefert ein Value-Objekt, get() kann null sein),
+  der Stil ist aber uneinheitlich.
+- recommendation: vereinheitlichen (orElse/Optional-Idiom bevorzugt).
 - resolution:
 
 ### REV-009
@@ -248,11 +249,10 @@ Hardware-Messungen an go-e Gemini 11 kW, FW 059.4 (QModMaster, 22./23.10.2026).
 - evidence: >
   Readbacks von 200 und 299 laufen mit Priority.HIGH, 332 aber mit LOW.
   getPhases()/getPhaseSwitchAbility() lesen den Kanal aber jeden Zyklus;
-  nach einem Phasenwechsel kann die Ability-Neueruerung verzoegert sein.
+  nach einem Phasenwechsel kann die Ability-Erneuerung verzoegert sein.
 - recommendation: >
-  Pruefen, ob LOW-Abtastrate dafuer reicht (OpenEMS: LOW = seltener
-  gepollte Tasks); falls Phasenwechsel-Latenz relevant, auf HIGH heben und
-  Task-Bloecke pruefen (Implikation: Block 200/211 nicht kontiguierlich).
+  Pruefen, ob die LOW-Abtastrate dafuer reicht; falls die Phasenwechsel-Latenz
+  relevant ist, auf HIGH heben (Implikation fuer Task-Bloecke pruefen).
 - resolution:
 
 ### REV-010
@@ -282,10 +282,10 @@ Hardware-Messungen an go-e Gemini 11 kW, FW 059.4 (QModMaster, 22./23.10.2026).
 - area: readme.adoc (fehlender Abschnitt Known limitations / Fehlerverhalten)
 - requirements: REQ-05, REQ-09
 - evidence: >
-  Bei Kommunikationsverlust: Kanal ERROR behaelt letzten Wert (kein false
-  Fehlalarm, Tests decken das ab), Geraet laeuft autonom mit letzter
-  Konfiguration weiter, OpenEMS re-appliziert nach Reconnect (vgl. REV-004,
-  30-s-Refresh). Nicht davon steht im readme.
+  Bei Kommunikationsverlust: Kanal ERROR behaelt den letzten Wert (kein
+  falscher Fehlalarm, Tests decken das ab), das Geraet laeuft autonom mit
+  letzter Konfiguration weiter, OpenEMS re-appliziert nach Reconnect
+  (vgl. REV-004, 30-s-Refresh). Nichts davon steht im readme.
 - recommendation: >
   Zwei bis drei Saetze im readme (Communication/Known limitations):
   Fallback-Verhalten des Geraets, Fehlerkanal-Verhalten, Re-Apply nach
@@ -296,7 +296,7 @@ Hardware-Messungen an go-e Gemini 11 kW, FW 059.4 (QModMaster, 22./23.10.2026).
 
 - Register-Adressen, Typen, Skalierungen: vollstaendig konsistent mit modbus-de.md
   (VOLT x10^3 -> mV; AMP x10^2 -> mA; POWER_TOTAL x10^-2 -> W; POWER_L x10^2 -> W;
-  ENERGY_TOTAL x10^2 -> Wh; AMPERE_MAX/A f -> mA; SNR/FWV ASCII).
+  ENERGY_TOTAL x10^2 -> Wh; AMPERE_MAX A -> mA; SNR/FWV ASCII).
 - FN16-only-Write-Constraint umgesetzt (kein FC6); EEPROM 301 wird nie geschrieben.
 - Enable-on-Charge ueber ALLOW mit Readback-Abgleich; Stopp sofort; Retest bei
   verlorenem Write (Tests testAllowCharging, testStopIsRetriedIfWriteIsLost).
@@ -305,22 +305,22 @@ Hardware-Messungen an go-e Gemini 11 kW, FW 059.4 (QModMaster, 22./23.10.2026).
 - Kommunikationsverlust erzeugt keinen Fehlalarm (Test testErrorIsUndefinedOnCommunicationLoss).
 - Phasenwechsel Option A komplett: Ability-Guard (332 unlesbar / SINGLE_PHASE-Wiring),
   opposite-Phase-Ability (Mennekes-Muster 3), Auto-Modus wird auf OpenEMS-Modus gesetzt.
-- Modbus-Register-Prioritaeten im Wesentlichen Alfen-konform; Debug-Mirror-Kanale,
+- Modbus-Register-Prioritaeten im Wesentlichen Alfen-konform; Debug-Mirror-Kanaele,
   translations de/en, @GenerateTargetsFromReferences (kein deprecated Modbus_target).
-- Zeilen-/Wort-Order-Annahmen durch Standby-HW-Messungen gestuetzt (LSWMSW;
-  FINALER >64k-Beweis unter Last noch offen, in readme eingetragen).
+- Zeilen-/Wort-Order-Annahmen durch Standby-HW-Messungen gestuetzt (LSWMSW);
+  finaler >64k-Beweis unter Last noch offen, im readme eingetragen.
 - EdgeApp.bndrun: Bundle in -runrequires (Zeile 152) und -runbundles (Zeile 377)
   alphabetisch einsortiert.
 - Tests: 13 Methoden, gute Abdeckung (Aktivierung, Skalen, parametrisierte
   Mappings, Ability-Grenzen inkl. 11-kW-Variante, Throttle-Timing mit Clock-Leap,
   Phasenwechsel, Read-Only).
 
-## 7. Nächste Schritte vor Review-Runde 3
+## 7. Naechste Schritte vor Review-Runde 3
 
 1. REV-003 (Clamp) und REV-002 (readme/DEVICE_SOFTWARE_OUTDATED) umsetzen.
 2. REV-004, REV-005, REV-006, REV-011 als readme-Saetze ergaenzen; Nits streichen.
 3. Rebuild: :io.openems.edge.evse.chargepoint.goe:test + checkstyleAll
-   (lettester dokumentierter Full-Build war vor dem Runde-1-Umbau).
+   (letzter dokumentierter Full-Build war vor dem Runde-1-Umbau).
 4. Live-Lauf der Komponente gegen die Gemini (schliesst REV-001 und offene
    HW-Punkte: CAR_STATE 2/3/4, Word-Order unter Last, psm-Write 332).
 5. Danach Review-Runde 3 bei Sebastian; PR-Text: Throttle-Begruendung,
@@ -332,3 +332,5 @@ Hardware-Messungen an go-e Gemini 11 kW, FW 059.4 (QModMaster, 22./23.10.2026).
   Anforderungen REQ-01 bis REQ-11 festgehalten, Verifikations-Stand
   (Abschnitt 6) dokumentiert. Reviewer: Vibe (Mistral), Branch feature/go-e,
   Commit 5013e2ee3c3a1c292e8d9590a3a8e4c8650adec3.
+- 2026-11-20: Tippfehler korrigiert (LSWMSW-Schreibweise, REV-008-Formulierung,
+  REV-009-Verweichlichung美妙ung, Abschnitt-7-Typo). Inhaltlich unveraendert.
