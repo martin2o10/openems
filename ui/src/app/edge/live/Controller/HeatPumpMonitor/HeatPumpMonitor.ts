@@ -3,6 +3,7 @@ import { AbstractFlatWidget } from "src/app/shared/components/flat/abstract-flat
 import { Icon } from "src/app/shared/type/widget";
 
 import { ChannelAddress, CurrentData } from "../../../../shared/shared";
+import { SharedControllerHeatPumpMonitor } from "./shared/shared";
 
 @Component({
     selector: "Controller_HeatPumpMonitor",
@@ -16,7 +17,7 @@ export class Controller_HeatPumpMonitorComponent extends AbstractFlatWidget {
         size: "large",
         color: "normal",
     };
-    public state: string = "?";
+    public state: string | null = null;
     public startsTotal: number | null = null;
     public runTimeTotalHours: number | null = null;
     public lastRunDurationHours: number | null = null;
@@ -42,13 +43,7 @@ export class Controller_HeatPumpMonitorComponent extends AbstractFlatWidget {
         }
 
         const running = currentData.allComponents[this.component.id + "/HeatPumpRunning"];
-        if (running == null) {
-            this.state = "?";
-        } else {
-            this.state = this.translate.instant(
-                running === true || running === 1 ? "HEAT_PUMP_MONITOR.RUNNING" : "HEAT_PUMP_MONITOR.PAUSED",
-            );
-        }
+        this.state = SharedControllerHeatPumpMonitor.runningStateText(this.translate)(running);
 
         this.startsTotal = currentData.allComponents[this.component.id + "/HeatPumpStartsTotal"];
         this.runTimeTotalHours = this.secondsToHours(currentData.allComponents[this.component.id + "/HeatPumpRunTimeTotal"]);

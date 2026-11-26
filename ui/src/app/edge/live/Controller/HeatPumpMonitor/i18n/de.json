@@ -1,7 +1,5 @@
 {
     "HEAT_PUMP_MONITOR": {
-        "RUNNING": "Läuft",
-        "PAUSED": "Pausiert",
         "TOTAL_STARTS": "Starts gesamt",
         "TOTAL_RUN_TIME": "Laufzeit gesamt [h]",
         "LAST_RUN_DURATION": "Letzte Laufdauer [h]",

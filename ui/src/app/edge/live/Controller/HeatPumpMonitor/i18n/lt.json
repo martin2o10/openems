@@ -1,7 +1,5 @@
 {
     "HEAT_PUMP_MONITOR": {
-        "RUNNING": "Veikia",
-        "PAUSED": "Pauzė",
         "TOTAL_STARTS": "Iš viso paleidimų",
         "TOTAL_RUN_TIME": "Bendras veikimo laikas [h]",
         "LAST_RUN_DURATION": "Paskutinio paleidimo trukmė [h]",

@@ -15,7 +15,7 @@ export namespace SharedControllerHeatPumpMonitor {
     };
 
     /**
-     * Converts the 'HeatPumpRunning' channel value to a translated state text.
+     * Converts the 'HeatPumpRunning' channel value to a translated ON/OFF state text (GENERAL.ON/OFF).
      */
     export const runningStateText = (translate: TranslateService) => {
         return (value: number | boolean | null): string | null => {
@@ -23,8 +23,8 @@ export namespace SharedControllerHeatPumpMonitor {
                 return null;
             }
             return value === true || value === 1
-                ? translate.instant("HEAT_PUMP_MONITOR.RUNNING")
-                : translate.instant("HEAT_PUMP_MONITOR.PAUSED");
+                ? translate.instant("GENERAL.ON")
+                : translate.instant("GENERAL.OFF");
         };
     };
 

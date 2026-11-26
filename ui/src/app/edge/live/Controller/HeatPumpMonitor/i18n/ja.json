@@ -1,7 +1,5 @@
 {
     "HEAT_PUMP_MONITOR": {
-        "RUNNING": "運転中",
-        "PAUSED": "停止中",
         "TOTAL_STARTS": "総運転開始回数",
         "TOTAL_RUN_TIME": "総運転時間 [h]",
         "LAST_RUN_DURATION": "最終運転時間 [h]",

@@ -28,7 +28,7 @@ export class ControllerHeatPumpMonitorHomeComponent extends AbstractFormlyCompon
         const lines: OeFormlyField[] = [
             {
                 type: "channel-line",
-                name: translate.instant("GENERAL.STATUS"),
+                name: translate.instant("EDGE.INDEX.WIDGETS.HEAT_PUMP.OPERATING_STATUS"),
                 channel: component.id + "/HeatPumpRunning",
                 converter: SharedControllerHeatPumpMonitor.runningStateText(translate),
             },
