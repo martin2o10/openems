@@ -1,0 +1,47 @@
+= Heat Pump Monitor
+
+Monitors a heat pump that is not necessarily integrated as an OpenEMS device, e.g. via a separate electricity meter or via a running signal from the heat pump itself, and provides cycle statistics. This Controller is strictly read-only; it never controls the heat pump. It is useful to evaluate start-stop behavior (short-cycling) and to establish a baseline for optimization.
+
+== Running State Detection
+
+One of two signals is evaluated per cycle:
+
+. *Running Channel*: any Boolean or Integer channel that indicates whether the heat pump is running (e.g. a relay or Modbus register). A value of not 0 counts as running. If this is configured, it takes precedence.
+. *Power Channel*: the electrical power of the heat pump in [W] (e.g. from a Shelly meter). A hysteresis is applied: the start threshold (default 300 W) applies while the heat pump is considered paused; the stop threshold (default 100 W) applies while it is considered running.
+
+If the signal is unavailable (channel value is null), the current state is kept and a warning is logged on availability changes.
+
+== Debouncing
+
+Starts and stops are debounced, to filter volatile signals:
+
+* A start is counted only after the signal has been continuously active for the 'Minimum Run Time' (default 60 s).
+* The heat pump is considered paused only after the signal has been continuously inactive for at least the 'Minimum Pause Time' (default 60 s). Short dropouts during a run do not split it into multiple runs.
+
+== Channels
+
+|===
+|Channel |Description
+
+|HeatPumpRunning
+|Current running state (after debouncing)
+
+|HeatPumpStartsTotal
+|Total number of heat pump starts; initialized from Timedata on startup and incremented continuously. Evaluate periods (e.g. per day) via the difference of the Timedata history.
+
+|HeatPumpRunTimeTotal
+|Total running time in [s]; initialized from Timedata on startup and accumulated continuously. Evaluate periods via the difference of the Timedata history. The running time includes the 'Minimum Pause Time' debounce window.
+
+|HeatPumpLastRunDuration
+|Duration of the last completed run in [s]
+
+|HeatPumpLastPauseDuration
+|Duration of the last completed pause between two runs in [s]
+|===
+
+== Limitations
+
+* If this Component is restarted while the heat pump is running, the first detected start after the restart is counted as a new start, because the previous running phase is unknown.
+* If no Timedata service is available, the counters start from 0.
+
+https://github.com/OpenEMS/openems/tree/develop/io.openems.edge.controller.heatpump.monitor[Source Code icon:github[]]
