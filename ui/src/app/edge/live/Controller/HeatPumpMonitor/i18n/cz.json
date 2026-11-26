@@ -1,0 +1,10 @@
+{
+    "HEAT_PUMP_MONITOR": {
+        "RUNNING": "Běží",
+        "PAUSED": "Pozastaveno",
+        "TOTAL_STARTS": "Celkem startů",
+        "TOTAL_RUN_TIME": "Celková doba běhu [h]",
+        "LAST_RUN_DURATION": "Poslední doba běhu [h]",
+        "LAST_PAUSE_DURATION": "Poslední pauza [h]"
+    }
+}

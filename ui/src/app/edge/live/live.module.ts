@@ -26,6 +26,7 @@ import { AdministrationComponent } from "./Controller/Evcs/administration/admini
 import { Controller_Evcs } from "./Controller/Evcs/Evcs";
 import { ControllerEvseSingle } from "./Controller/Evse/EvseSingle.module";
 import { ControllerHeatModule } from "./Controller/Heat/Heat";
+import { ControllerHeatPumpMonitorModule } from "./Controller/HeatPumpMonitor/controller-heat-pump-monitor";
 import { ControllerBraiinsModule } from "./Controller/Io/Braiins/braiins.module";
 import { Controller_Io_ChannelSingleThresholdComponent } from "./Controller/Io/ChannelSingleThreshold/flat/flat";
 import { Controller_Io_ChannelSingleThresholdModalComponent } from "./Controller/Io/ChannelSingleThreshold/modal/modal.component";
@@ -72,6 +73,7 @@ import { SystemOutageInfoComponent } from "./system-outage-info/oe-system-outage
         Controller_Evcs,
         ControllerEvseSingle,
         ControllerHeatModule,
+        ControllerHeatPumpMonitorModule,
         ControllerIoHeatingElement,
         Controller_Io_HeatingRoom,
         ControllerIoFixDigitalOutput,

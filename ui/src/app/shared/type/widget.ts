@@ -38,6 +38,7 @@ export enum WidgetFactory {
     "Controller.Ess.Time-Of-Use-Tariff.Discharge",
     "Controller.Ess.Time-Of-Use-Tariff",
     "Controller.Heat.Heatingelement",
+    "Controller.HeatPump.Monitor",
     "Controller.IO.ChannelSingleThreshold",
     "Controller.Io.FixDigitalOutput",
     "Controller.IO.Heating.Room",

@@ -136,6 +136,10 @@
                       <Controller_Channelthreshold [componentId]="widget.componentId"></Controller_Channelthreshold>
                     </ion-col>
 
+                    <ion-col *ngSwitchCase="'Controller.HeatPump.Monitor'" size="12" [attr.size-lg]="widgetColumnSize" class="ion-no-padding">
+                      <Controller_HeatPumpMonitor [componentId]="widget.componentId"></Controller_HeatPumpMonitor>
+                    </ion-col>
+
                     <ion-col *ngSwitchCase="'io.openems.impl.controller.channelthreshold.ChannelThresholdController'" size="12" [attr.size-lg]="widgetColumnSize" class="ion-no-padding">
                       <Controller_Channelthreshold [componentId]="widget.componentId"></Controller_Channelthreshold>
                     </ion-col>

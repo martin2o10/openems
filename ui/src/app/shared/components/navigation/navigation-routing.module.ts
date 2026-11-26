@@ -59,6 +59,8 @@ import { HeatScheduleComponent } from "src/app/edge/live/Controller/Heat/schedul
 import { HeatAddTaskComponent } from "src/app/edge/live/Controller/Heat/schedule/task/add/add";
 import { HeatEditTaskComponent } from "src/app/edge/live/Controller/Heat/schedule/task/edit/edit";
 import { ControllerHeatSettingsComponent } from "src/app/edge/live/Controller/Heat/settings/settings";
+import { ControllerHeatPumpMonitorHistoryComponent } from "src/app/edge/live/Controller/HeatPumpMonitor/history/new-navigation/new-navigation";
+import { ControllerHeatPumpMonitorHomeComponent } from "src/app/edge/live/Controller/HeatPumpMonitor/new-navigation/new-navigation";
 import { ControllerBraiinsHomeComponent } from "src/app/edge/live/Controller/Io/Braiins/new-navigation/new-navigation";
 import { ControllerBraiinsModeComponent } from "src/app/edge/live/Controller/Io/Braiins/pages/mode/mode";
 import { ControllerBraiinsScheduleComponent } from "src/app/edge/live/Controller/Io/Braiins/pages/schedule/schedule.component";
@@ -322,12 +324,28 @@ const controllerRoutes: (suffix: string | null) => Routes = (prefix: string | nu
             component: ControllerChannelthresholdHistoryComponent,
         },
         {
+            path: "controller/heatpump-monitor/:componentId",
+            component: ControllerHeatPumpMonitorHomeComponent,
+        },
+        {
+            path: "controller/heatpump-monitor/:componentId/history",
+            component: ControllerHeatPumpMonitorHistoryComponent,
+        },
+        {
             path: "controller/channelthreshold/:componentId",
             component: ChannelthresholdHomeComponent,
         },
         {
             path: "controller/channelthreshold/:componentId/history",
             component: ControllerChannelthresholdHistoryComponent,
+        },
+        {
+            path: "controller/heatpump-monitor/:componentId",
+            component: ControllerHeatPumpMonitorHomeComponent,
+        },
+        {
+            path: "controller/heatpump-monitor/:componentId/history",
+            component: ControllerHeatPumpMonitorHistoryComponent,
         },
         {
             path: "controller/time-of-use/:componentId",
@@ -488,6 +506,14 @@ const controllerRoutes: (suffix: string | null) => Routes = (prefix: string | nu
         {
             path: "controller/channelthreshold/:componentId/history",
             component: ControllerChannelthresholdHistoryComponent,
+        },
+        {
+            path: "controller/heatpump-monitor/:componentId",
+            component: ControllerHeatPumpMonitorHomeComponent,
+        },
+        {
+            path: "controller/heatpump-monitor/:componentId/history",
+            component: ControllerHeatPumpMonitorHistoryComponent,
         },
         {
             path: "controller/chp/:componentId",

@@ -628,6 +628,7 @@ export namespace NavigationConstants {
         "Heat.Askoma",
         "Heat.MyPv.AcThor9s",
         "Controller.Io.HeatPump.SgReady",
+        "Controller.HeatPump.Monitor",
         "Controller.Api.ModbusTcp.ReadWrite",
         "Controller.TimeslotPeakshaving",
         "Controller.Symmetric.PeakShaving",

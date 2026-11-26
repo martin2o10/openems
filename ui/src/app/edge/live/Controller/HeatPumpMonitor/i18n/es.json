@@ -1,0 +1,10 @@
+{
+    "HEAT_PUMP_MONITOR": {
+        "RUNNING": "En marcha",
+        "PAUSED": "En pausa",
+        "TOTAL_STARTS": "Arranques totales",
+        "TOTAL_RUN_TIME": "Tiempo de funcionamiento total [h]",
+        "LAST_RUN_DURATION": "Duración del último funcionamiento [h]",
+        "LAST_PAUSE_DURATION": "Última pausa [h]"
+    }
+}

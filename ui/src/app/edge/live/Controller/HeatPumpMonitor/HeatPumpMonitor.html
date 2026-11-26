@@ -1,0 +1,9 @@
+@if (isInitialized) {
+  <oe-flat-widget [icon]="icon" [title]="component.alias">
+    <oe-flat-widget-line [name]="'GENERAL.STATUS' | translate" [value]="state"></oe-flat-widget-line>
+    <oe-flat-widget-line [name]="'HEAT_PUMP_MONITOR.TOTAL_STARTS' | translate" [value]="startsTotal"></oe-flat-widget-line>
+    <oe-flat-widget-line [name]="'HEAT_PUMP_MONITOR.TOTAL_RUN_TIME' | translate" [value]="runTimeTotalHours"></oe-flat-widget-line>
+    <oe-flat-widget-line [name]="'HEAT_PUMP_MONITOR.LAST_RUN_DURATION' | translate" [value]="lastRunDurationHours"></oe-flat-widget-line>
+    <oe-flat-widget-line [name]="'HEAT_PUMP_MONITOR.LAST_PAUSE_DURATION' | translate" [value]="lastPauseDurationHours"></oe-flat-widget-line>
+  </oe-flat-widget>
+}
