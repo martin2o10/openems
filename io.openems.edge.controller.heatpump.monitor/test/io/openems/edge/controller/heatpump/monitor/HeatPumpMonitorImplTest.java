@@ -9,6 +9,7 @@ import static io.openems.edge.controller.heatpump.monitor.HeatPumpMonitor.Channe
 import static io.openems.edge.controller.heatpump.monitor.HeatPumpMonitor.ChannelId.HEAT_PUMP_RUN_TIME_TOTAL;
 import static io.openems.edge.controller.heatpump.monitor.HeatPumpMonitor.ChannelId.HEAT_PUMP_RUNNING;
 import static io.openems.edge.controller.heatpump.monitor.HeatPumpMonitor.ChannelId.HEAT_PUMP_STARTS_TOTAL;
+import static io.openems.edge.controller.heatpump.monitor.HeatPumpMonitor.ChannelId.HEATING_ELEMENTS_ACTIVE_POWER;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -33,6 +34,8 @@ public class HeatPumpMonitorImplTest {
 	private static final ChannelAddress POWER = new ChannelAddress("meter0", "ActivePower");
 	private static final ChannelAddress BUFFER_TEMPERATURE = new ChannelAddress("tempBuffer0", "Temperature");
 	private static final ChannelAddress OUTSIDE_TEMPERATURE = new ChannelAddress("tempOutside0", "Temperature");
+	private static final ChannelAddress HEATING_ELEMENT_0 = new ChannelAddress("heatingElement0", "ActivePower");
+	private static final ChannelAddress HEATING_ELEMENT_1 = new ChannelAddress("heatingElement1", "ActivePower");
 
 	/**
 	 * Builds a {@link ControllerTest} with a Dummy Timedata and a Dummy
@@ -263,6 +266,35 @@ public class HeatPumpMonitorImplTest {
 						.output(HEAT_PUMP_ACTIVE_POWER, null) //
 						.output(HEAT_PUMP_BUFFER_TEMPERATURE, null) //
 						.output(HEAT_PUMP_OUTSIDE_TEMPERATURE, null)) //
+				.deactivate();
+	}
+
+	@Test
+	void heatingElementsSum_test() throws Exception {
+		final var clock = createDummyClock();
+		this.createDefaultControllerTest(clock, new DummyTimedata("timedata0")) //
+				.addComponent(new DummyElectricityMeter("heatingElement0")) //
+				.addComponent(new DummyElectricityMeter("heatingElement1")) //
+				.activate(MyConfig.create() //
+						.setId(COMPONENT_ID) //
+						.setHeatPumpPowerChannelAddress(POWER.toString()) //
+						.setHeatingElementPowerChannelAddresses(new String[] { //
+								HEATING_ELEMENT_0.toString(), HEATING_ELEMENT_1.toString() }) //
+						.build()) //
+				.next(new TestCase("Sum of all heating elements") //
+						.input(POWER, 500) //
+						.input(HEATING_ELEMENT_0, 300) //
+						.input(HEATING_ELEMENT_1, 200) //
+						.output(HEAT_PUMP_ACTIVE_POWER, 500) //
+						.output(HEATING_ELEMENTS_ACTIVE_POWER, 500)) //
+				.next(new TestCase("Unavailable heating elements are excluded from the sum") //
+						.input(HEATING_ELEMENT_0, 300) //
+						.input(HEATING_ELEMENT_1, null) //
+						.output(HEATING_ELEMENTS_ACTIVE_POWER, 300)) //
+				.next(new TestCase("Sum is null if all values are unavailable") //
+						.input(HEATING_ELEMENT_0, null) //
+						.input(HEATING_ELEMENT_1, null) //
+						.output(HEATING_ELEMENTS_ACTIVE_POWER, null)) //
 				.deactivate();
 	}
 }

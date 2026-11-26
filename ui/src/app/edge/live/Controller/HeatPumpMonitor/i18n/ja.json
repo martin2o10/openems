@@ -3,6 +3,8 @@
         "ACTIVE_POWER": "消費電力 [W]",
         "BUFFER_TEMPERATURE": "蓄熱槽温度 [°C]",
         "OUTSIDE_TEMPERATURE": "外気温 [°C]",
+        "HEATING_ELEMENTS_TOTAL": "補助ヒーター合計 [W]",
+        "HEATING_ELEMENTS": "補助ヒーター",
         "TOTAL_STARTS": "総運転開始回数",
         "TOTAL_RUN_TIME": "総運転時間 [h]",
         "LAST_RUN_DURATION": "最終運転時間 [h]",

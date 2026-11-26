@@ -3,6 +3,8 @@
         "ACTIVE_POWER": "Consumo eléctrico [W]",
         "BUFFER_TEMPERATURE": "Temperatura del acumulador [°C]",
         "OUTSIDE_TEMPERATURE": "Temperatura exterior [°C]",
+        "HEATING_ELEMENTS_TOTAL": "Potencia total de las resistencias [W]",
+        "HEATING_ELEMENTS": "Resistencias",
         "TOTAL_STARTS": "Arranques totales",
         "TOTAL_RUN_TIME": "Tiempo de funcionamiento total [h]",
         "LAST_RUN_DURATION": "Duración del último funcionamiento [h]",

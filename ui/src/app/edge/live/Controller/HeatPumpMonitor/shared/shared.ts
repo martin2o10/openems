@@ -46,6 +46,51 @@ export namespace SharedControllerHeatPumpMonitor {
         return value != null && value !== "";
     };
 
+    /**
+     * Normalizes a configuration property to a list of channel addresses.
+     * Handles arrays as well as comma-separated strings.
+     */
+    const parseChannelAddresses = (raw: unknown): string[] => {
+        if (raw == null) {
+            return [];
+        }
+        if (Array.isArray(raw)) {
+            return raw.filter((entry): entry is string => typeof entry === "string" && entry !== "");
+        }
+        if (typeof raw === "string") {
+            return raw
+                .split(",")
+                .map((entry) => entry.trim())
+                .filter((entry) => entry !== "");
+        }
+        return [];
+    };
+
+    /**
+     * Gets the configured heating element power channel addresses of the Component.
+     */
+    export const getHeatingElementChannelAddresses = (component: EdgeConfig.Component): string[] => {
+        return parseChannelAddresses(component.properties["heatingElementPowerChannelAddresses"]);
+    };
+
+    /**
+     * Builds one entry (label + channel address) per configured heating element.
+     * The label is the alias of the source component, falling back to its component id.
+     */
+    export const getHeatingElements = (
+        config: EdgeConfig | null,
+        component: EdgeConfig.Component,
+    ): Array<{ label: string; channelAddress: string }> => {
+        return getHeatingElementChannelAddresses(component).map((channelAddress) => {
+            const componentId = channelAddress.slice(0, channelAddress.indexOf("/"));
+            const sourceComponent = config?.components[componentId];
+            return {
+                label: sourceComponent?.alias || componentId,
+                channelAddress: channelAddress,
+            };
+        });
+    };
+
     export function getNavigationTree(
         translate: TranslateService,
         component: EdgeConfig.Component,

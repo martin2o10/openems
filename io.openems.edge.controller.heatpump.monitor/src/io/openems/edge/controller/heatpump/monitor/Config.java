@@ -29,6 +29,9 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 	@AttributeDefinition(name = "Outside Temperature Channel", description = "Optional channel address of the outside temperature in [°C]. The value is mirrored to the 'HeatPumpOutsideTemperature' Channel.")
 	String outsideTemperatureChannelAddress() default "";
 
+	@AttributeDefinition(name = "Heating Element Power Channels", description = "Optional channel addresses of the electrical power of zero or more heating elements in [W]. The sum of all values is mirrored to the 'HeatingElementsActivePower' Channel.")
+	String[] heatingElementPowerChannelAddresses() default {};
+
 	@AttributeDefinition(name = "Power Start Threshold", description = "Minimum electrical power in [W], above which the heat pump is considered running.")
 	int powerStartThreshold() default 300;
 

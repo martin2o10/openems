@@ -2,6 +2,8 @@ package io.openems.edge.controller.heatpump.monitor;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
@@ -34,8 +36,9 @@ import io.openems.edge.timedata.api.utils.CalculateStateCounter;
  * OpenEMS device, e.g. via a separate electricity meter. The electrical power
  * of the heat pump is required; an additional running signal can be configured
  * for more reliable start detection. It is strictly read-only and provides
- * cycle statistics (starts, run time, durations) and mirrors the configured
- * power and temperature values.
+ * cycle statistics (starts, run time, durations), mirrors the heat pump power
+ * and the configured temperature values, and sums up the power of optional
+ * heating elements.
  */
 @Designate(ocd = Config.class, factory = true)
 @Component(//
@@ -59,6 +62,7 @@ public class HeatPumpMonitorImpl extends AbstractOpenemsComponent
 	private ChannelAddress powerChannelAddress = null;
 	private ChannelAddress bufferTemperatureChannelAddress = null;
 	private ChannelAddress outsideTemperatureChannelAddress = null;
+	private List<ChannelAddress> heatingElementPowerChannelAddresses = new ArrayList<>();
 
 	private CalculateActiveTime calculateRunTime = null;
 	private CalculateStateCounter calculateStarts = null;
@@ -99,6 +103,12 @@ public class HeatPumpMonitorImpl extends AbstractOpenemsComponent
 		}
 		if (!config.outsideTemperatureChannelAddress().isBlank()) {
 			this.outsideTemperatureChannelAddress = ChannelAddress.fromString(config.outsideTemperatureChannelAddress());
+		}
+		for (String address : config.heatingElementPowerChannelAddresses()) {
+			if (address == null || address.isBlank()) {
+				continue;
+			}
+			this.heatingElementPowerChannelAddresses.add(ChannelAddress.fromString(address));
 		}
 
 		/* Validate configuration: the power channel is required. */
@@ -239,9 +249,10 @@ public class HeatPumpMonitorImpl extends AbstractOpenemsComponent
 	}
 
 	/**
-	 * Mirrors the configured power and temperature values to the corresponding
-	 * Channels in every cycle, so that they are available via this Component,
-	 * e.g. for the UI, without knowing the original source Channels.
+	 * Mirrors the configured power and temperature values and sums up the
+	 * heating element power to the corresponding Channels in every cycle, so
+	 * that they are available via this Component, e.g. for the UI, without
+	 * knowing the original source Channels.
 	 *
 	 * @throws OpenemsNamedException if a configured source Channel is unknown
 	 */
@@ -258,6 +269,17 @@ public class HeatPumpMonitorImpl extends AbstractOpenemsComponent
 			this._setHeatPumpOutsideTemperature(TypeUtils.getAsType(OpenemsType.FLOAT, //
 					this.componentManager.getChannel(this.outsideTemperatureChannelAddress).value().get()));
 		}
+
+		/* Sum up the configured heating elements. */
+		Integer heatingElementsPower = null;
+		for (ChannelAddress address : this.heatingElementPowerChannelAddresses) {
+			final var power = TypeUtils.getAsType(OpenemsType.INTEGER, //
+					this.componentManager.getChannel(address).value().get());
+			if (power != null) {
+				heatingElementsPower = heatingElementsPower == null ? power : heatingElementsPower + power;
+			}
+		}
+		this._setHeatingElementsActivePower(heatingElementsPower);
 	}
 
 	@Override

@@ -39,8 +39,12 @@ export class ControllerHeatPumpMonitorSingleChartComponent extends AbstractHisto
         return {
             input: [
                 {
-                    name: controllerId,
-                    powerChannel: new ChannelAddress(controllerId, "HeatPumpRunning"),
+                    name: controllerId + "/HeatPumpActivePower",
+                    powerChannel: new ChannelAddress(controllerId, "HeatPumpActivePower"),
+                },
+                {
+                    name: controllerId + "/HeatingElementsActivePower",
+                    powerChannel: new ChannelAddress(controllerId, "HeatingElementsActivePower"),
                 },
                 {
                     name: controllerId + "/HeatPumpBufferTemperature",
@@ -56,17 +60,29 @@ export class ControllerHeatPumpMonitorSingleChartComponent extends AbstractHisto
                     {
                         name: Name.METER_ALIAS_OR_ID(component),
                         converter: () => {
-                            return data[controllerId].map((val) => val);
+                            return HistoryUtils.CONVERT_WATT_TO_KILOWATT_OR_KILOWATTHOURS(
+                                data[controllerId + "/HeatPumpActivePower"] ?? [],
+                            );
                         },
-                        yAxisId: ChartAxis.LEFT,
-                        color: ChartConstants.Colors.SHADES_OF_YELLOW[0],
+                        yAxisId: ChartAxis.RIGHT,
+                        color: ChartConstants.Colors.RED,
+                    },
+                    {
+                        name: translate.instant("HEAT_PUMP_MONITOR.HEATING_ELEMENTS"),
+                        converter: () => {
+                            return HistoryUtils.CONVERT_WATT_TO_KILOWATT_OR_KILOWATTHOURS(
+                                data[controllerId + "/HeatingElementsActivePower"] ?? [],
+                            );
+                        },
+                        yAxisId: ChartAxis.RIGHT,
+                        color: ChartConstants.Colors.YELLOW,
                     },
                     {
                         name: translate.instant("HEAT_PUMP_MONITOR.BUFFER_TEMPERATURE"),
                         converter: () => {
                             return data[controllerId + "/HeatPumpBufferTemperature"]?.map((val) => val);
                         },
-                        yAxisId: ChartAxis.RIGHT,
+                        yAxisId: ChartAxis.LEFT,
                         color: ChartConstants.Colors.BLUE,
                     },
                     {
@@ -74,7 +90,7 @@ export class ControllerHeatPumpMonitorSingleChartComponent extends AbstractHisto
                         converter: () => {
                             return data[controllerId + "/HeatPumpOutsideTemperature"]?.map((val) => val);
                         },
-                        yAxisId: ChartAxis.RIGHT,
+                        yAxisId: ChartAxis.LEFT,
                         color: ChartConstants.Colors.BLUE_GREY,
                     },
                 ];
@@ -86,12 +102,12 @@ export class ControllerHeatPumpMonitorSingleChartComponent extends AbstractHisto
             },
             yAxes: [
                 {
-                    unit: YAxisType.RELAY,
+                    unit: YAxisType.TEMPERATURE,
                     position: "left",
                     yAxisId: ChartAxis.LEFT,
                 },
                 {
-                    unit: YAxisType.TEMPERATURE,
+                    unit: YAxisType.POWER,
                     position: "right",
                     yAxisId: ChartAxis.RIGHT,
                     displayGrid: false,

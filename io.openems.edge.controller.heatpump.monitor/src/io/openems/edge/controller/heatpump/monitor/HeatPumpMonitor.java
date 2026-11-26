@@ -87,6 +87,24 @@ public interface HeatPumpMonitor extends Controller, OpenemsComponent {
 				.accessMode(AccessMode.READ_ONLY)), //
 
 		/**
+		 * Total electrical power of the configured heating elements in [W].
+		 *
+		 * <p>
+		 * The value is the sum of all configured 'Heating Element Power
+		 * Channels', evaluated in every cycle. It is null, if no heating
+		 * element is configured or if all values are currently unavailable.
+		 *
+		 * <ul>
+		 * <li>Type: Integer
+		 * <li>Unit: W
+		 * </ul>
+		 */
+		HEATING_ELEMENTS_ACTIVE_POWER(Doc.of(OpenemsType.INTEGER)//
+				.unit(Unit.WATT)//
+				.persistencePriority(PersistencePriority.HIGH)//
+				.accessMode(AccessMode.READ_ONLY)), //
+
+		/**
 		 * Total number of heat pump starts since activation of this Component.
 		 *
 		 * <p>
@@ -272,5 +290,24 @@ public interface HeatPumpMonitor extends Controller, OpenemsComponent {
 	 */
 	public default LongReadChannel getHeatPumpLastPauseDurationChannel() {
 		return this.channel(ChannelId.HEAT_PUMP_LAST_PAUSE_DURATION);
+	}
+
+	/**
+	 * Gets the Channel for {@link ChannelId#HEATING_ELEMENTS_ACTIVE_POWER}.
+	 *
+	 * @return the Channel
+	 */
+	public default IntegerReadChannel getHeatingElementsActivePowerChannel() {
+		return this.channel(ChannelId.HEATING_ELEMENTS_ACTIVE_POWER);
+	}
+
+	/**
+	 * Internal method to set the 'nextValue' on
+	 * {@link ChannelId#HEATING_ELEMENTS_ACTIVE_POWER} Channel.
+	 *
+	 * @param value the next value
+	 */
+	public default void _setHeatingElementsActivePower(Integer value) {
+		this.getHeatingElementsActivePowerChannel().setNextValue(value);
 	}
 }

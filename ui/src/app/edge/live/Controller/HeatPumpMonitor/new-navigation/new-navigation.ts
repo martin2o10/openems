@@ -24,7 +24,11 @@ export class ControllerHeatPumpMonitorHomeComponent extends AbstractFormlyCompon
     protected override formlyWrapper: "formly-field-modal" | "formly-field-navigation" = "formly-field-navigation";
     private route: ActivatedRoute = inject(ActivatedRoute);
 
-    public static getFormlyGeneralView(translate: TranslateService, component: EdgeConfig.Component): OeFormlyView {
+    public static getFormlyGeneralView(
+        translate: TranslateService,
+        config: EdgeConfig,
+        component: EdgeConfig.Component,
+    ): OeFormlyView {
         const lines: OeFormlyField[] = [
             {
                 type: "channel-line",
@@ -55,6 +59,20 @@ export class ControllerHeatPumpMonitorHomeComponent extends AbstractFormlyCompon
                 name: translate.instant("HEAT_PUMP_MONITOR.OUTSIDE_TEMPERATURE"),
                 channel: component.id + "/HeatPumpOutsideTemperature",
                 converter: SharedControllerHeatPumpMonitor.temperatureOneDecimal,
+            });
+        }
+        for (const heatingElement of SharedControllerHeatPumpMonitor.getHeatingElements(config, component)) {
+            lines.push({
+                type: "channel-line",
+                name: heatingElement.label + " [W]",
+                channel: heatingElement.channelAddress,
+            });
+        }
+        if (SharedControllerHeatPumpMonitor.getHeatingElementChannelAddresses(component).length > 0) {
+            lines.push({
+                type: "channel-line",
+                name: translate.instant("HEAT_PUMP_MONITOR.HEATING_ELEMENTS_TOTAL"),
+                channel: component.id + "/HeatingElementsActivePower",
             });
         }
 
@@ -100,6 +118,6 @@ export class ControllerHeatPumpMonitorHomeComponent extends AbstractFormlyCompon
         const component = config.getComponentSafely(this.route.snapshot.params.componentId);
         AssertionUtils.assertIsDefined(component);
 
-        return ControllerHeatPumpMonitorHomeComponent.getFormlyGeneralView(this.translate, component);
+        return ControllerHeatPumpMonitorHomeComponent.getFormlyGeneralView(this.translate, config, component);
     }
 }

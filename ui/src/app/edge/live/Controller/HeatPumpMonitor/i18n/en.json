@@ -3,6 +3,8 @@
         "ACTIVE_POWER": "Power consumption [W]",
         "BUFFER_TEMPERATURE": "Buffer temperature [°C]",
         "OUTSIDE_TEMPERATURE": "Outside temperature [°C]",
+        "HEATING_ELEMENTS_TOTAL": "Heating elements total [W]",
+        "HEATING_ELEMENTS": "Heating elements",
         "TOTAL_STARTS": "Total starts",
         "TOTAL_RUN_TIME": "Total run time [h]",
         "LAST_RUN_DURATION": "Last run duration [h]",

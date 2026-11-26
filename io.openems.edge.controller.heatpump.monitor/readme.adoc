@@ -1,6 +1,6 @@
 = Heat Pump Monitor
 
-Monitors a heat pump that is not necessarily integrated as an OpenEMS device, e.g. via a separate electricity meter, and provides cycle statistics. This Controller is strictly read-only; it never controls the heat pump. It is useful to evaluate start-stop behavior (short-cycling) and to establish a baseline for optimization.
+Monitors a heat pump that is not necessarily integrated as an OpenEMS device, e.g. via a separate electricity meter, and provides cycle statistics. The electrical power of optional heating elements (zero or more) is summed up as well. This Controller is strictly read-only; it never controls the heat pump. It is useful to evaluate start-stop behavior (short-cycling) and to establish a baseline for optimization.
 
 == Running State Detection
 
@@ -24,8 +24,9 @@ The following values are mirrored from the configured source channels in every c
 . *Power Channel*: mirrored to the 'HeatPumpActivePower' Channel.
 . *Buffer Temperature Channel* (optional): mirrored to the 'HeatPumpBufferTemperature' Channel.
 . *Outside Temperature Channel* (optional): mirrored to the 'HeatPumpOutsideTemperature' Channel.
+. *Heating Element Power Channels* (optional, zero or more): the sum of all values is mirrored to the 'HeatingElementsActivePower' Channel.
 
-Mirrored values are null if the source channel is not configured or if its value is currently unavailable.
+Mirrored values are null if the source channel is not configured or if its value is currently unavailable. The heating elements sum is null, if no heating element is configured or if all values are currently unavailable.
 
 == Channels
 
@@ -43,6 +44,9 @@ Mirrored values are null if the source channel is not configured or if its value
 
 |HeatPumpOutsideTemperature
 |Outside temperature in [°C]; mirrored from the optional 'Outside Temperature Channel'; null if it is not configured
+
+|HeatingElementsActivePower
+|Total electrical power of the heating elements in [W]; sum of the optionally configured 'Heating Element Power Channels'; null if none is configured or all values are unavailable
 
 |HeatPumpStartsTotal
 |Total number of heat pump starts; initialized from Timedata on startup and incremented continuously. Evaluate periods (e.g. per day) via the difference of the Timedata history.

@@ -21,6 +21,8 @@ export class Controller_HeatPumpMonitorComponent extends AbstractFlatWidget {
     public activePower: number | null = null;
     public bufferTemperature: number | null = null;
     public outsideTemperature: number | null = null;
+    public heatingElements: Array<{ label: string; value: number | null }> = [];
+    public heatingElementsTotal: number | null = null;
     public startsTotal: number | null = null;
     public runTimeTotalHours: number | null = null;
     public lastRunDurationHours: number | null = null;
@@ -39,6 +41,11 @@ export class Controller_HeatPumpMonitorComponent extends AbstractFlatWidget {
             new ChannelAddress(this.component.id, "HeatPumpActivePower"),
             new ChannelAddress(this.component.id, "HeatPumpBufferTemperature"),
             new ChannelAddress(this.component.id, "HeatPumpOutsideTemperature"),
+            new ChannelAddress(this.component.id, "HeatingElementsActivePower"),
+            ...SharedControllerHeatPumpMonitor.getHeatingElementChannelAddresses(this.component).map((address) => {
+                const separator = address.indexOf("/");
+                return new ChannelAddress(address.slice(0, separator), address.slice(separator + 1));
+            }),
             new ChannelAddress(this.component.id, "HeatPumpStartsTotal"),
             new ChannelAddress(this.component.id, "HeatPumpRunTimeTotal"),
             new ChannelAddress(this.component.id, "HeatPumpLastRunDuration"),
@@ -65,6 +72,11 @@ export class Controller_HeatPumpMonitorComponent extends AbstractFlatWidget {
         this.outsideTemperature = SharedControllerHeatPumpMonitor.temperatureOneDecimal(
             currentData.allComponents[this.component.id + "/HeatPumpOutsideTemperature"],
         );
+        this.heatingElements = SharedControllerHeatPumpMonitor.getHeatingElements(this.config, this.component).map((element) => ({
+            label: element.label,
+            value: currentData.allComponents[element.channelAddress],
+        }));
+        this.heatingElementsTotal = currentData.allComponents[this.component.id + "/HeatingElementsActivePower"];
         this.startsTotal = currentData.allComponents[this.component.id + "/HeatPumpStartsTotal"];
         this.runTimeTotalHours = this.secondsToHours(currentData.allComponents[this.component.id + "/HeatPumpRunTimeTotal"]);
         this.lastRunDurationHours = this.secondsToHours(currentData.allComponents[this.component.id + "/HeatPumpLastRunDuration"]);

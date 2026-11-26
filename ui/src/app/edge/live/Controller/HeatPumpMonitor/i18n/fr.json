@@ -3,6 +3,8 @@
         "ACTIVE_POWER": "Consommation électrique [W]",
         "BUFFER_TEMPERATURE": "Température du ballon tampon [°C]",
         "OUTSIDE_TEMPERATURE": "Température extérieure [°C]",
+        "HEATING_ELEMENTS_TOTAL": "Puissance totale des résistances [W]",
+        "HEATING_ELEMENTS": "Résistances d'appoint",
         "TOTAL_STARTS": "Démarrages au total",
         "TOTAL_RUN_TIME": "Temps de fonctionnement total [h]",
         "LAST_RUN_DURATION": "Durée du dernier fonctionnement [h]",

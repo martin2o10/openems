@@ -3,6 +3,8 @@
         "ACTIVE_POWER": "Příkon [W]",
         "BUFFER_TEMPERATURE": "Teplota zásobníku [°C]",
         "OUTSIDE_TEMPERATURE": "Venkovní teplota [°C]",
+        "HEATING_ELEMENTS_TOTAL": "Topné články celkem [W]",
+        "HEATING_ELEMENTS": "Topné články",
         "TOTAL_STARTS": "Celkem startů",
         "TOTAL_RUN_TIME": "Celková doba běhu [h]",
         "LAST_RUN_DURATION": "Poslední doba běhu [h]",
