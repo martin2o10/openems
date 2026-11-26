@@ -1,13 +1,12 @@
 = Heat Pump Monitor
 
-Monitors a heat pump that is not necessarily integrated as an OpenEMS device, e.g. via a separate electricity meter or via a running signal from the heat pump itself, and provides cycle statistics. This Controller is strictly read-only; it never controls the heat pump. It is useful to evaluate start-stop behavior (short-cycling) and to establish a baseline for optimization.
+Monitors a heat pump that is not necessarily integrated as an OpenEMS device, e.g. via a separate electricity meter, and provides cycle statistics. This Controller is strictly read-only; it never controls the heat pump. It is useful to evaluate start-stop behavior (short-cycling) and to establish a baseline for optimization.
 
 == Running State Detection
 
-One of two signals is evaluated per cycle:
+The electrical power of the heat pump in [W] (e.g. from a Shelly meter) is required. It is evaluated per cycle with a hysteresis: the start threshold (default 300 W) applies while the heat pump is considered paused; the stop threshold (default 100 W) applies while it is considered running.
 
-. *Running Channel*: any Boolean or Integer channel that indicates whether the heat pump is running (e.g. a relay or Modbus register). A value of not 0 counts as running. If this is configured, it takes precedence.
-. *Power Channel*: the electrical power of the heat pump in [W] (e.g. from a Shelly meter). A hysteresis is applied: the start threshold (default 300 W) applies while the heat pump is considered paused; the stop threshold (default 100 W) applies while it is considered running.
+Optionally a *Running Channel* can be configured additionally: any Boolean or Integer channel that indicates whether the heat pump is running (e.g. a relay or Modbus register). A value of not 0 counts as running. If this is configured, it takes precedence over the power thresholds for the running state detection.
 
 If the signal is unavailable (channel value is null), the current state is kept and a warning is logged on availability changes.
 
@@ -37,7 +36,7 @@ Mirrored values are null if the source channel is not configured or if its value
 |Current running state (after debouncing)
 
 |HeatPumpActivePower
-|Electrical power of the heat pump in [W]; mirrored from the configured 'Power Channel'; null if no power channel is configured
+|Electrical power of the heat pump in [W]; mirrored from the required 'Power Channel'
 
 |HeatPumpBufferTemperature
 |Temperature of the buffer storage in [°C]; mirrored from the optional 'Buffer Temperature Channel'; null if it is not configured

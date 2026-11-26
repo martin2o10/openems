@@ -5,7 +5,7 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 
 @ObjectClassDefinition(//
 		name = "Controller Heat Pump Monitor", //
-		description = "Monitors a heat pump via a running signal or via its electrical power and provides cycle statistics (starts, run time). This Controller is read-only; it does not control the heat pump.")
+		description = "Monitors a heat pump via its electrical power and provides cycle statistics (starts, run time). An additional running signal can be configured for more reliable start detection. This Controller is read-only; it does not control the heat pump.")
 @interface Config {
 
 	@AttributeDefinition(name = "Component-ID", description = "Unique ID of this Component")
@@ -17,10 +17,10 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 	@AttributeDefinition(name = "Is enabled?", description = "Is this Component enabled?")
 	boolean enabled() default true;
 
-	@AttributeDefinition(name = "Running Channel", description = "Channel address of a signal that indicates whether the heat pump is running. Accepts Boolean (true = running) or Integer (not 0 = running). Takes precedence over the 'Power Channel'.")
+	@AttributeDefinition(name = "Running Channel", description = "Optional channel address of a signal that indicates whether the heat pump is running. Accepts Boolean (true = running) or Integer (not 0 = running). Takes precedence over the 'Power Channel' for the running state detection.")
 	String heatPumpRunningChannelAddress() default "";
 
-	@AttributeDefinition(name = "Power Channel", description = "Channel address of the electrical power of the heat pump in [W]. Ignored if 'Running Channel' is set. Its value is also mirrored to the 'HeatPumpActivePower' Channel.")
+	@AttributeDefinition(name = "Power Channel", description = "Channel address of the electrical power of the heat pump in [W]; required. Its value is also mirrored to the 'HeatPumpActivePower' Channel.")
 	String heatPumpPowerChannelAddress() default "";
 
 	@AttributeDefinition(name = "Buffer Temperature Channel", description = "Optional channel address of a buffer storage temperature in [°C]. The value is mirrored to the 'HeatPumpBufferTemperature' Channel.")

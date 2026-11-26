@@ -31,10 +31,11 @@ import io.openems.edge.timedata.api.utils.CalculateStateCounter;
 
 /**
  * This Controller monitors a heat pump that is not necessarily integrated as an
- * OpenEMS device, e.g. via a separate electricity meter or via a running signal
- * from the heat pump itself. It is strictly read-only and provides cycle
- * statistics (starts, run time, durations) and mirrors the configured power
- * and temperature values.
+ * OpenEMS device, e.g. via a separate electricity meter. The electrical power
+ * of the heat pump is required; an additional running signal can be configured
+ * for more reliable start detection. It is strictly read-only and provides
+ * cycle statistics (starts, run time, durations) and mirrors the configured
+ * power and temperature values.
  */
 @Designate(ocd = Config.class, factory = true)
 @Component(//
@@ -100,13 +101,12 @@ public class HeatPumpMonitorImpl extends AbstractOpenemsComponent
 			this.outsideTemperatureChannelAddress = ChannelAddress.fromString(config.outsideTemperatureChannelAddress());
 		}
 
-		/* Validate configuration: at least one signal must be configured. */
-		if (this.runningChannelAddress == null && this.powerChannelAddress == null) {
-			throw new IllegalArgumentException("Heat Pump Monitor [" + config.id()
-					+ "]: configure at least a 'Running Channel' or a 'Power Channel'");
+		/* Validate configuration: the power channel is required. */
+		if (this.powerChannelAddress == null) {
+			throw new IllegalArgumentException(
+					"Heat Pump Monitor [" + config.id() + "]: the 'Power Channel' is required");
 		}
-		if (this.powerChannelAddress != null //
-				&& config.powerStopThreshold() > config.powerStartThreshold()) {
+		if (config.powerStopThreshold() > config.powerStartThreshold()) {
 			throw new IllegalArgumentException("Heat Pump Monitor [" + config.id()
 					+ "]: 'Power Stop Threshold' must not be greater than 'Power Start Threshold'");
 		}

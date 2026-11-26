@@ -10,6 +10,7 @@ import static io.openems.edge.controller.heatpump.monitor.HeatPumpMonitor.Channe
 import static io.openems.edge.controller.heatpump.monitor.HeatPumpMonitor.ChannelId.HEAT_PUMP_RUNNING;
 import static io.openems.edge.controller.heatpump.monitor.HeatPumpMonitor.ChannelId.HEAT_PUMP_STARTS_TOTAL;
 import static java.time.temporal.ChronoUnit.SECONDS;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -129,12 +130,14 @@ public class HeatPumpMonitorImplTest {
 				.activate(MyConfig.create() //
 						.setId(COMPONENT_ID) //
 						.setHeatPumpRunningChannelAddress(POWER.toString()) //
+						.setHeatPumpPowerChannelAddress(POWER.toString()) //
 						.setMinimumRunTimeSeconds(30) //
 						.setMinimumPauseTimeSeconds(30) //
 						.build()) //
 				.next(new TestCase("Running signal [1]") //
 						.input(POWER, 1) //
-						.output(HEAT_PUMP_RUNNING, false)) //
+						.output(HEAT_PUMP_RUNNING, false) //
+						.output(HEAT_PUMP_ACTIVE_POWER, 1)) //
 				.next(new TestCase("Start is counted") //
 						.timeleap(clock, 30, SECONDS) //
 						.input(POWER, 1) //
@@ -148,8 +151,21 @@ public class HeatPumpMonitorImplTest {
 						.timeleap(clock, 30, SECONDS) //
 						.input(POWER, 0) //
 						.output(HEAT_PUMP_RUNNING, false) //
-						.output(HEAT_PUMP_LAST_RUN_DURATION, 30L)) //
+						.output(HEAT_PUMP_LAST_RUN_DURATION, 30L) //
+						.output(HEAT_PUMP_ACTIVE_POWER, 0)) //
 				.deactivate();
+	}
+
+	@Test
+	void missingPowerChannelIsRejected_test() {
+		final var clock = createDummyClock();
+		assertThrows(IllegalArgumentException.class, () -> {
+			this.createDefaultControllerTest(clock, new DummyTimedata("timedata0")) //
+					.activate(MyConfig.create() //
+							.setId(COMPONENT_ID) //
+							.setHeatPumpRunningChannelAddress(POWER.toString()) //
+							.build());
+		});
 	}
 
 	@Test
