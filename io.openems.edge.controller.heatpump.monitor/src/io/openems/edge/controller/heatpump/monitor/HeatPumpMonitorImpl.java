@@ -65,7 +65,7 @@ public class HeatPumpMonitorImpl extends AbstractOpenemsComponent
 	private Instant rawRunningSince = null;
 	/** Timestamp when the raw signal first suggested pausing; or null. */
 	private Instant notRunningSince = null;
-	/** Timestamp when the monitored heat pump started running; or null. */
+	/** Timestamp when the current run started (after the start debounce); or null. */
 	private Instant startedAt = null;
 	/** Timestamp when the monitored heat pump stopped running; or null. */
 	private Instant stoppedAt = null;
@@ -161,7 +161,7 @@ public class HeatPumpMonitorImpl extends AbstractOpenemsComponent
 				/* Start: the signal is active for at least the 'Minimum Run Time'. */
 				if (!now.minusSeconds(this.config.minimumRunTimeSeconds()).isBefore(runSince)) {
 					this.isRunning = true;
-					this.startedAt = runSince;
+					this.startedAt = now;
 					this.calculateStarts.update(true);
 					if (this.stoppedAt != null) {
 						this.channel(HeatPumpMonitor.ChannelId.HEAT_PUMP_LAST_PAUSE_DURATION)

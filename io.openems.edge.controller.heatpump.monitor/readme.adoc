@@ -33,10 +33,10 @@ Starts and stops are debounced, to filter volatile signals:
 |Total running time in [s]; initialized from Timedata on startup and accumulated continuously. Evaluate periods via the difference of the Timedata history. The running time includes the 'Minimum Pause Time' debounce window.
 
 |HeatPumpLastRunDuration
-|Duration of the last completed run in [s]
+|Duration of the last completed run in [s]; measured from the confirmed start (after 'Minimum Run Time') until the raw signal dropped
 
 |HeatPumpLastPauseDuration
-|Duration of the last completed pause between two runs in [s]
+|Duration of the last completed pause between two runs in [s]; measured between the raw signal drop and its return
 |===
 
 == Limitations
