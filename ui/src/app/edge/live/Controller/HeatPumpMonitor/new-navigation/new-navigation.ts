@@ -32,6 +32,33 @@ export class ControllerHeatPumpMonitorHomeComponent extends AbstractFormlyCompon
                 channel: component.id + "/HeatPumpRunning",
                 converter: SharedControllerHeatPumpMonitor.runningStateText(translate),
             },
+        ];
+
+        if (SharedControllerHeatPumpMonitor.isConfigured(component, "heatPumpPowerChannelAddress")) {
+            lines.push({
+                type: "channel-line",
+                name: translate.instant("HEAT_PUMP_MONITOR.ACTIVE_POWER"),
+                channel: component.id + "/HeatPumpActivePower",
+            });
+        }
+        if (SharedControllerHeatPumpMonitor.isConfigured(component, "bufferTemperatureChannelAddress")) {
+            lines.push({
+                type: "channel-line",
+                name: translate.instant("HEAT_PUMP_MONITOR.BUFFER_TEMPERATURE"),
+                channel: component.id + "/HeatPumpBufferTemperature",
+                converter: SharedControllerHeatPumpMonitor.temperatureOneDecimal,
+            });
+        }
+        if (SharedControllerHeatPumpMonitor.isConfigured(component, "outsideTemperatureChannelAddress")) {
+            lines.push({
+                type: "channel-line",
+                name: translate.instant("HEAT_PUMP_MONITOR.OUTSIDE_TEMPERATURE"),
+                channel: component.id + "/HeatPumpOutsideTemperature",
+                converter: SharedControllerHeatPumpMonitor.temperatureOneDecimal,
+            });
+        }
+
+        lines.push(
             {
                 type: "channel-line",
                 name: translate.instant("HEAT_PUMP_MONITOR.TOTAL_STARTS"),
@@ -55,7 +82,7 @@ export class ControllerHeatPumpMonitorHomeComponent extends AbstractFormlyCompon
                 channel: component.id + "/HeatPumpLastPauseDuration",
                 converter: SharedControllerHeatPumpMonitor.secondsToHours,
             },
-        ];
+        );
 
         return {
             title: component.alias,

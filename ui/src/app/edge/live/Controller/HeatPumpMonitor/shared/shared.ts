@@ -28,6 +28,24 @@ export namespace SharedControllerHeatPumpMonitor {
         };
     };
 
+    /**
+     * Converts a temperature value to a value with one decimal.
+     */
+    export const temperatureOneDecimal = (value: number | null): number | null => {
+        if (value == null) {
+            return null;
+        }
+        return Math.round(value * 10) / 10;
+    };
+
+    /**
+     * Checks whether a configuration property is set on the Component (not null and not empty).
+     */
+    export const isConfigured = (component: EdgeConfig.Component, propertyName: string): boolean => {
+        const value = component.properties[propertyName];
+        return value != null && value !== "";
+    };
+
     export function getNavigationTree(
         translate: TranslateService,
         component: EdgeConfig.Component,

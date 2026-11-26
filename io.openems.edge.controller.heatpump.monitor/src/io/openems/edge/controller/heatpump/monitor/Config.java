@@ -20,8 +20,14 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 	@AttributeDefinition(name = "Running Channel", description = "Channel address of a signal that indicates whether the heat pump is running. Accepts Boolean (true = running) or Integer (not 0 = running). Takes precedence over the 'Power Channel'.")
 	String heatPumpRunningChannelAddress() default "";
 
-	@AttributeDefinition(name = "Power Channel", description = "Channel address of the electrical power of the heat pump in [W]. Ignored if 'Running Channel' is set.")
+	@AttributeDefinition(name = "Power Channel", description = "Channel address of the electrical power of the heat pump in [W]. Ignored if 'Running Channel' is set. Its value is also mirrored to the 'HeatPumpActivePower' Channel.")
 	String heatPumpPowerChannelAddress() default "";
+
+	@AttributeDefinition(name = "Buffer Temperature Channel", description = "Optional channel address of a buffer storage temperature in [°C]. The value is mirrored to the 'HeatPumpBufferTemperature' Channel.")
+	String bufferTemperatureChannelAddress() default "";
+
+	@AttributeDefinition(name = "Outside Temperature Channel", description = "Optional channel address of the outside temperature in [°C]. The value is mirrored to the 'HeatPumpOutsideTemperature' Channel.")
+	String outsideTemperatureChannelAddress() default "";
 
 	@AttributeDefinition(name = "Power Start Threshold", description = "Minimum electrical power in [W], above which the heat pump is considered running.")
 	int powerStartThreshold() default 300;

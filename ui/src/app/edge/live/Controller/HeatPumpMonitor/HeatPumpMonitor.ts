@@ -18,10 +18,16 @@ export class Controller_HeatPumpMonitorComponent extends AbstractFlatWidget {
         color: "normal",
     };
     public state: string | null = null;
+    public activePower: number | null = null;
+    public bufferTemperature: number | null = null;
+    public outsideTemperature: number | null = null;
     public startsTotal: number | null = null;
     public runTimeTotalHours: number | null = null;
     public lastRunDurationHours: number | null = null;
     public lastPauseDurationHours: number | null = null;
+    public showActivePower = false;
+    public showBufferTemperature = false;
+    public showOutsideTemperature = false;
 
     protected override getChannelAddresses() {
         if (this.component == null) {
@@ -30,6 +36,9 @@ export class Controller_HeatPumpMonitorComponent extends AbstractFlatWidget {
 
         return [
             new ChannelAddress(this.component.id, "HeatPumpRunning"),
+            new ChannelAddress(this.component.id, "HeatPumpActivePower"),
+            new ChannelAddress(this.component.id, "HeatPumpBufferTemperature"),
+            new ChannelAddress(this.component.id, "HeatPumpOutsideTemperature"),
             new ChannelAddress(this.component.id, "HeatPumpStartsTotal"),
             new ChannelAddress(this.component.id, "HeatPumpRunTimeTotal"),
             new ChannelAddress(this.component.id, "HeatPumpLastRunDuration"),
@@ -42,9 +51,20 @@ export class Controller_HeatPumpMonitorComponent extends AbstractFlatWidget {
             return;
         }
 
+        this.showActivePower = SharedControllerHeatPumpMonitor.isConfigured(this.component, "heatPumpPowerChannelAddress");
+        this.showBufferTemperature = SharedControllerHeatPumpMonitor.isConfigured(this.component, "bufferTemperatureChannelAddress");
+        this.showOutsideTemperature = SharedControllerHeatPumpMonitor.isConfigured(this.component, "outsideTemperatureChannelAddress");
+
         const running = currentData.allComponents[this.component.id + "/HeatPumpRunning"];
         this.state = SharedControllerHeatPumpMonitor.runningStateText(this.translate)(running);
 
+        this.activePower = currentData.allComponents[this.component.id + "/HeatPumpActivePower"];
+        this.bufferTemperature = SharedControllerHeatPumpMonitor.temperatureOneDecimal(
+            currentData.allComponents[this.component.id + "/HeatPumpBufferTemperature"],
+        );
+        this.outsideTemperature = SharedControllerHeatPumpMonitor.temperatureOneDecimal(
+            currentData.allComponents[this.component.id + "/HeatPumpOutsideTemperature"],
+        );
         this.startsTotal = currentData.allComponents[this.component.id + "/HeatPumpStartsTotal"];
         this.runTimeTotalHours = this.secondsToHours(currentData.allComponents[this.component.id + "/HeatPumpRunTimeTotal"]);
         this.lastRunDurationHours = this.secondsToHours(currentData.allComponents[this.component.id + "/HeatPumpLastRunDuration"]);

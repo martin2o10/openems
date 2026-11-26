@@ -1,5 +1,8 @@
 {
     "HEAT_PUMP_MONITOR": {
+        "ACTIVE_POWER": "Effektupptag [W]",
+        "BUFFER_TEMPERATURE": "Bufferttemperatur [°C]",
+        "OUTSIDE_TEMPERATURE": "Utomhustemperatur [°C]",
         "TOTAL_STARTS": "Totalt antal starter",
         "TOTAL_RUN_TIME": "Total drifttid [h]",
         "LAST_RUN_DURATION": "Senaste drifttid [h]",

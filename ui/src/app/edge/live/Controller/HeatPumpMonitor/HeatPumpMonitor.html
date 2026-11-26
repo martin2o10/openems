@@ -1,6 +1,15 @@
 @if (isInitialized) {
   <oe-flat-widget [icon]="icon" [title]="component.alias">
     <oe-flat-widget-line [name]="'EDGE.INDEX.WIDGETS.HEAT_PUMP.OPERATING_STATUS' | translate" [value]="state"></oe-flat-widget-line>
+    @if (showActivePower) {
+      <oe-flat-widget-line [name]="'HEAT_PUMP_MONITOR.ACTIVE_POWER' | translate" [value]="activePower"></oe-flat-widget-line>
+    }
+    @if (showBufferTemperature) {
+      <oe-flat-widget-line [name]="'HEAT_PUMP_MONITOR.BUFFER_TEMPERATURE' | translate" [value]="bufferTemperature"></oe-flat-widget-line>
+    }
+    @if (showOutsideTemperature) {
+      <oe-flat-widget-line [name]="'HEAT_PUMP_MONITOR.OUTSIDE_TEMPERATURE' | translate" [value]="outsideTemperature"></oe-flat-widget-line>
+    }
     <oe-flat-widget-line [name]="'HEAT_PUMP_MONITOR.TOTAL_STARTS' | translate" [value]="startsTotal"></oe-flat-widget-line>
     <oe-flat-widget-line [name]="'HEAT_PUMP_MONITOR.TOTAL_RUN_TIME' | translate" [value]="runTimeTotalHours"></oe-flat-widget-line>
     <oe-flat-widget-line [name]="'HEAT_PUMP_MONITOR.LAST_RUN_DURATION' | translate" [value]="lastRunDurationHours"></oe-flat-widget-line>

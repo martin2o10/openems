@@ -1,5 +1,8 @@
 {
     "HEAT_PUMP_MONITOR": {
+        "ACTIVE_POWER": "Suvartojama galia [W]",
+        "BUFFER_TEMPERATURE": "Buferio temperatūra [°C]",
+        "OUTSIDE_TEMPERATURE": "Lauko temperatūra [°C]",
         "TOTAL_STARTS": "Iš viso paleidimų",
         "TOTAL_RUN_TIME": "Bendras veikimo laikas [h]",
         "LAST_RUN_DURATION": "Paskutinio paleidimo trukmė [h]",

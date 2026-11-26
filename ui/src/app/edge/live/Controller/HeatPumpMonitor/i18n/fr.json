@@ -1,5 +1,8 @@
 {
     "HEAT_PUMP_MONITOR": {
+        "ACTIVE_POWER": "Consommation électrique [W]",
+        "BUFFER_TEMPERATURE": "Température du ballon tampon [°C]",
+        "OUTSIDE_TEMPERATURE": "Température extérieure [°C]",
         "TOTAL_STARTS": "Démarrages au total",
         "TOTAL_RUN_TIME": "Temps de fonctionnement total [h]",
         "LAST_RUN_DURATION": "Durée du dernier fonctionnement [h]",

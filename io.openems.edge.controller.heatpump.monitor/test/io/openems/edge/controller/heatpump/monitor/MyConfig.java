@@ -9,6 +9,8 @@ public class MyConfig extends AbstractComponentConfig implements Config {
 		private String id;
 		private String heatPumpRunningChannelAddress = "";
 		private String heatPumpPowerChannelAddress = "";
+		private String bufferTemperatureChannelAddress = "";
+		private String outsideTemperatureChannelAddress = "";
 		private int powerStartThreshold = 300;
 		private int powerStopThreshold = 100;
 		private int minimumRunTimeSeconds = 60;
@@ -29,6 +31,16 @@ public class MyConfig extends AbstractComponentConfig implements Config {
 
 		public Builder setHeatPumpPowerChannelAddress(String heatPumpPowerChannelAddress) {
 			this.heatPumpPowerChannelAddress = heatPumpPowerChannelAddress;
+			return this;
+		}
+
+		public Builder setBufferTemperatureChannelAddress(String bufferTemperatureChannelAddress) {
+			this.bufferTemperatureChannelAddress = bufferTemperatureChannelAddress;
+			return this;
+		}
+
+		public Builder setOutsideTemperatureChannelAddress(String outsideTemperatureChannelAddress) {
+			this.outsideTemperatureChannelAddress = outsideTemperatureChannelAddress;
 			return this;
 		}
 
@@ -81,6 +93,16 @@ public class MyConfig extends AbstractComponentConfig implements Config {
 	@Override
 	public String heatPumpPowerChannelAddress() {
 		return this.builder.heatPumpPowerChannelAddress;
+	}
+
+	@Override
+	public String bufferTemperatureChannelAddress() {
+		return this.builder.bufferTemperatureChannelAddress;
+	}
+
+	@Override
+	public String outsideTemperatureChannelAddress() {
+		return this.builder.outsideTemperatureChannelAddress;
 	}
 
 	@Override

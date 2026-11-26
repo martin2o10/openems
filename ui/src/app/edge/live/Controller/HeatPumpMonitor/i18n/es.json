@@ -1,5 +1,8 @@
 {
     "HEAT_PUMP_MONITOR": {
+        "ACTIVE_POWER": "Consumo eléctrico [W]",
+        "BUFFER_TEMPERATURE": "Temperatura del acumulador [°C]",
+        "OUTSIDE_TEMPERATURE": "Temperatura exterior [°C]",
         "TOTAL_STARTS": "Arranques totales",
         "TOTAL_RUN_TIME": "Tiempo de funcionamiento total [h]",
         "LAST_RUN_DURATION": "Duración del último funcionamiento [h]",

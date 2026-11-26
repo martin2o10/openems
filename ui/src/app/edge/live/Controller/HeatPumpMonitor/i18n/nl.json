@@ -1,5 +1,8 @@
 {
     "HEAT_PUMP_MONITOR": {
+        "ACTIVE_POWER": "Opgenomen vermogen [W]",
+        "BUFFER_TEMPERATURE": "Buffertemperatuur [°C]",
+        "OUTSIDE_TEMPERATURE": "Buitentemperatuur [°C]",
         "TOTAL_STARTS": "Totaal aantal starts",
         "TOTAL_RUN_TIME": "Totale bedrijfstijd [h]",
         "LAST_RUN_DURATION": "Duur laatste bedrijfsperiode [h]",

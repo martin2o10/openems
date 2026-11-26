@@ -33,7 +33,8 @@ import io.openems.edge.timedata.api.utils.CalculateStateCounter;
  * This Controller monitors a heat pump that is not necessarily integrated as an
  * OpenEMS device, e.g. via a separate electricity meter or via a running signal
  * from the heat pump itself. It is strictly read-only and provides cycle
- * statistics (starts, run time, durations).
+ * statistics (starts, run time, durations) and mirrors the configured power
+ * and temperature values.
  */
 @Designate(ocd = Config.class, factory = true)
 @Component(//
@@ -55,6 +56,8 @@ public class HeatPumpMonitorImpl extends AbstractOpenemsComponent
 	private Config config = null;
 	private ChannelAddress runningChannelAddress = null;
 	private ChannelAddress powerChannelAddress = null;
+	private ChannelAddress bufferTemperatureChannelAddress = null;
+	private ChannelAddress outsideTemperatureChannelAddress = null;
 
 	private CalculateActiveTime calculateRunTime = null;
 	private CalculateStateCounter calculateStarts = null;
@@ -90,6 +93,12 @@ public class HeatPumpMonitorImpl extends AbstractOpenemsComponent
 		if (!config.heatPumpPowerChannelAddress().isBlank()) {
 			this.powerChannelAddress = ChannelAddress.fromString(config.heatPumpPowerChannelAddress());
 		}
+		if (!config.bufferTemperatureChannelAddress().isBlank()) {
+			this.bufferTemperatureChannelAddress = ChannelAddress.fromString(config.bufferTemperatureChannelAddress());
+		}
+		if (!config.outsideTemperatureChannelAddress().isBlank()) {
+			this.outsideTemperatureChannelAddress = ChannelAddress.fromString(config.outsideTemperatureChannelAddress());
+		}
 
 		/* Validate configuration: at least one signal must be configured. */
 		if (this.runningChannelAddress == null && this.powerChannelAddress == null) {
@@ -123,6 +132,9 @@ public class HeatPumpMonitorImpl extends AbstractOpenemsComponent
 					this.componentManager.getClock());
 			this.calculateStarts = new CalculateStateCounter(this, HeatPumpMonitor.ChannelId.HEAT_PUMP_STARTS_TOTAL);
 		}
+
+		/* Mirror the configured power and temperature values. */
+		this.mirrorValues();
 
 		/* Continuously keep the total run time and the starts counter up-to-date. */
 		this.calculateRunTime.update(this.isRunning);
@@ -224,6 +236,28 @@ public class HeatPumpMonitorImpl extends AbstractOpenemsComponent
 		}
 
 		return rawRunning;
+	}
+
+	/**
+	 * Mirrors the configured power and temperature values to the corresponding
+	 * Channels in every cycle, so that they are available via this Component,
+	 * e.g. for the UI, without knowing the original source Channels.
+	 *
+	 * @throws OpenemsNamedException if a configured source Channel is unknown
+	 */
+	private void mirrorValues() throws OpenemsNamedException {
+		if (this.powerChannelAddress != null) {
+			this._setHeatPumpActivePower(TypeUtils.getAsType(OpenemsType.INTEGER, //
+					this.componentManager.getChannel(this.powerChannelAddress).value().get()));
+		}
+		if (this.bufferTemperatureChannelAddress != null) {
+			this._setHeatPumpBufferTemperature(TypeUtils.getAsType(OpenemsType.FLOAT, //
+					this.componentManager.getChannel(this.bufferTemperatureChannelAddress).value().get()));
+		}
+		if (this.outsideTemperatureChannelAddress != null) {
+			this._setHeatPumpOutsideTemperature(TypeUtils.getAsType(OpenemsType.FLOAT, //
+					this.componentManager.getChannel(this.outsideTemperatureChannelAddress).value().get()));
+		}
 	}
 
 	@Override

@@ -18,6 +18,16 @@ Starts and stops are debounced, to filter volatile signals:
 * A start is counted only after the signal has been continuously active for the 'Minimum Run Time' (default 60 s).
 * The heat pump is considered paused only after the signal has been continuously inactive for at least the 'Minimum Pause Time' (default 60 s). Short dropouts during a run do not split it into multiple runs.
 
+== Mirrored Values
+
+The following values are mirrored from the configured source channels in every cycle, so that they are available via this Component, e.g. for the UI, without knowing the original source channels:
+
+. *Power Channel*: mirrored to the 'HeatPumpActivePower' Channel.
+. *Buffer Temperature Channel* (optional): mirrored to the 'HeatPumpBufferTemperature' Channel.
+. *Outside Temperature Channel* (optional): mirrored to the 'HeatPumpOutsideTemperature' Channel.
+
+Mirrored values are null if the source channel is not configured or if its value is currently unavailable.
+
 == Channels
 
 |===
@@ -25,6 +35,15 @@ Starts and stops are debounced, to filter volatile signals:
 
 |HeatPumpRunning
 |Current running state (after debouncing)
+
+|HeatPumpActivePower
+|Electrical power of the heat pump in [W]; mirrored from the configured 'Power Channel'; null if no power channel is configured
+
+|HeatPumpBufferTemperature
+|Temperature of the buffer storage in [°C]; mirrored from the optional 'Buffer Temperature Channel'; null if it is not configured
+
+|HeatPumpOutsideTemperature
+|Outside temperature in [°C]; mirrored from the optional 'Outside Temperature Channel'; null if it is not configured
 
 |HeatPumpStartsTotal
 |Total number of heat pump starts; initialized from Timedata on startup and incremented continuously. Evaluate periods (e.g. per day) via the difference of the Timedata history.

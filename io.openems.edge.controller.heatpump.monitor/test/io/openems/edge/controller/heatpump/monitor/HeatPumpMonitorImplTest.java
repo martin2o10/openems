@@ -1,8 +1,11 @@
 package io.openems.edge.controller.heatpump.monitor;
 
 import static io.openems.common.test.TestUtils.createDummyClock;
+import static io.openems.edge.controller.heatpump.monitor.HeatPumpMonitor.ChannelId.HEAT_PUMP_ACTIVE_POWER;
+import static io.openems.edge.controller.heatpump.monitor.HeatPumpMonitor.ChannelId.HEAT_PUMP_BUFFER_TEMPERATURE;
 import static io.openems.edge.controller.heatpump.monitor.HeatPumpMonitor.ChannelId.HEAT_PUMP_LAST_PAUSE_DURATION;
 import static io.openems.edge.controller.heatpump.monitor.HeatPumpMonitor.ChannelId.HEAT_PUMP_LAST_RUN_DURATION;
+import static io.openems.edge.controller.heatpump.monitor.HeatPumpMonitor.ChannelId.HEAT_PUMP_OUTSIDE_TEMPERATURE;
 import static io.openems.edge.controller.heatpump.monitor.HeatPumpMonitor.ChannelId.HEAT_PUMP_RUN_TIME_TOTAL;
 import static io.openems.edge.controller.heatpump.monitor.HeatPumpMonitor.ChannelId.HEAT_PUMP_RUNNING;
 import static io.openems.edge.controller.heatpump.monitor.HeatPumpMonitor.ChannelId.HEAT_PUMP_STARTS_TOTAL;
@@ -27,6 +30,8 @@ public class HeatPumpMonitorImplTest {
 
 	private static final String COMPONENT_ID = "ctrl0";
 	private static final ChannelAddress POWER = new ChannelAddress("meter0", "ActivePower");
+	private static final ChannelAddress BUFFER_TEMPERATURE = new ChannelAddress("tempBuffer0", "Temperature");
+	private static final ChannelAddress OUTSIDE_TEMPERATURE = new ChannelAddress("tempOutside0", "Temperature");
 
 	/**
 	 * Builds a {@link ControllerTest} with a Dummy Timedata and a Dummy
@@ -213,6 +218,35 @@ public class HeatPumpMonitorImplTest {
 						.input(POWER, 500) //
 						.output(HEAT_PUMP_RUNNING, true) //
 						.output(HEAT_PUMP_RUN_TIME_TOTAL, 1060L)) //
+				.deactivate();
+	}
+
+	@Test
+	void mirroredValues_test() throws Exception {
+		final var clock = createDummyClock();
+		this.createDefaultControllerTest(clock, new DummyTimedata("timedata0")) //
+				.addComponent(new DummyTemperatureSensor("tempBuffer0")) //
+				.addComponent(new DummyTemperatureSensor("tempOutside0")) //
+				.activate(MyConfig.create() //
+						.setId(COMPONENT_ID) //
+						.setHeatPumpPowerChannelAddress(POWER.toString()) //
+						.setBufferTemperatureChannelAddress(BUFFER_TEMPERATURE.toString()) //
+						.setOutsideTemperatureChannelAddress(OUTSIDE_TEMPERATURE.toString()) //
+						.build()) //
+				.next(new TestCase("Power and temperatures are mirrored to the Channels") //
+						.input(POWER, 500) //
+						.input(BUFFER_TEMPERATURE, 45) //
+						.input(OUTSIDE_TEMPERATURE, -7) //
+						.output(HEAT_PUMP_ACTIVE_POWER, 500) //
+						.output(HEAT_PUMP_BUFFER_TEMPERATURE, 45.0f) //
+						.output(HEAT_PUMP_OUTSIDE_TEMPERATURE, -7.0f)) //
+				.next(new TestCase("Unavailable values are mirrored as null") //
+						.input(POWER, null) //
+						.input(BUFFER_TEMPERATURE, null) //
+						.input(OUTSIDE_TEMPERATURE, null) //
+						.output(HEAT_PUMP_ACTIVE_POWER, null) //
+						.output(HEAT_PUMP_BUFFER_TEMPERATURE, null) //
+						.output(HEAT_PUMP_OUTSIDE_TEMPERATURE, null)) //
 				.deactivate();
 	}
 }

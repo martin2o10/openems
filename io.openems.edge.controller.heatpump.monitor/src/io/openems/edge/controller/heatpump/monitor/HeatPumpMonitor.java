@@ -6,6 +6,7 @@ import io.openems.common.types.OpenemsType;
 import io.openems.edge.common.channel.AccessMode;
 import io.openems.edge.common.channel.BooleanReadChannel;
 import io.openems.edge.common.channel.Doc;
+import io.openems.edge.common.channel.FloatReadChannel;
 import io.openems.edge.common.channel.IntegerReadChannel;
 import io.openems.edge.common.channel.LongReadChannel;
 import io.openems.edge.common.component.OpenemsComponent;
@@ -28,6 +29,60 @@ public interface HeatPumpMonitor extends Controller, OpenemsComponent {
 		 * </ul>
 		 */
 		HEAT_PUMP_RUNNING(Doc.of(OpenemsType.BOOLEAN)//
+				.persistencePriority(PersistencePriority.HIGH)//
+				.accessMode(AccessMode.READ_ONLY)), //
+
+		/**
+		 * Electrical power of the heat pump in [W].
+		 *
+		 * <p>
+		 * The value is mirrored from the configured 'Power Channel' in every
+		 * cycle. It is null, if no power channel is configured or if its value
+		 * is currently unavailable.
+		 *
+		 * <ul>
+		 * <li>Type: Integer
+		 * <li>Unit: W
+		 * </ul>
+		 */
+		HEAT_PUMP_ACTIVE_POWER(Doc.of(OpenemsType.INTEGER)//
+				.unit(Unit.WATT)//
+				.persistencePriority(PersistencePriority.HIGH)//
+				.accessMode(AccessMode.READ_ONLY)), //
+
+		/**
+		 * Temperature of the buffer storage in [°C].
+		 *
+		 * <p>
+		 * The value is mirrored from the optionally configured 'Buffer
+		 * Temperature Channel' in every cycle. It is null, if no channel is
+		 * configured or if its value is currently unavailable.
+		 *
+		 * <ul>
+		 * <li>Type: Float
+		 * <li>Unit: °C
+		 * </ul>
+		 */
+		HEAT_PUMP_BUFFER_TEMPERATURE(Doc.of(OpenemsType.FLOAT)//
+				.unit(Unit.DEGREE_CELSIUS)//
+				.persistencePriority(PersistencePriority.HIGH)//
+				.accessMode(AccessMode.READ_ONLY)), //
+
+		/**
+		 * Outside temperature in [°C].
+		 *
+		 * <p>
+		 * The value is mirrored from the optionally configured 'Outside
+		 * Temperature Channel' in every cycle. It is null, if no channel is
+		 * configured or if its value is currently unavailable.
+		 *
+		 * <ul>
+		 * <li>Type: Float
+		 * <li>Unit: °C
+		 * </ul>
+		 */
+		HEAT_PUMP_OUTSIDE_TEMPERATURE(Doc.of(OpenemsType.FLOAT)//
+				.unit(Unit.DEGREE_CELSIUS)//
 				.persistencePriority(PersistencePriority.HIGH)//
 				.accessMode(AccessMode.READ_ONLY)), //
 
@@ -124,6 +179,63 @@ public interface HeatPumpMonitor extends Controller, OpenemsComponent {
 	 */
 	public default void _setHeatPumpRunning(boolean value) {
 		this.getHeatPumpRunningChannel().setNextValue(value);
+	}
+
+	/**
+	 * Gets the Channel for {@link ChannelId#HEAT_PUMP_ACTIVE_POWER}.
+	 *
+	 * @return the Channel
+	 */
+	public default IntegerReadChannel getHeatPumpActivePowerChannel() {
+		return this.channel(ChannelId.HEAT_PUMP_ACTIVE_POWER);
+	}
+
+	/**
+	 * Internal method to set the 'nextValue' on
+	 * {@link ChannelId#HEAT_PUMP_ACTIVE_POWER} Channel.
+	 *
+	 * @param value the next value
+	 */
+	public default void _setHeatPumpActivePower(Integer value) {
+		this.getHeatPumpActivePowerChannel().setNextValue(value);
+	}
+
+	/**
+	 * Gets the Channel for {@link ChannelId#HEAT_PUMP_BUFFER_TEMPERATURE}.
+	 *
+	 * @return the Channel
+	 */
+	public default FloatReadChannel getHeatPumpBufferTemperatureChannel() {
+		return this.channel(ChannelId.HEAT_PUMP_BUFFER_TEMPERATURE);
+	}
+
+	/**
+	 * Internal method to set the 'nextValue' on
+	 * {@link ChannelId#HEAT_PUMP_BUFFER_TEMPERATURE} Channel.
+	 *
+	 * @param value the next value
+	 */
+	public default void _setHeatPumpBufferTemperature(Float value) {
+		this.getHeatPumpBufferTemperatureChannel().setNextValue(value);
+	}
+
+	/**
+	 * Gets the Channel for {@link ChannelId#HEAT_PUMP_OUTSIDE_TEMPERATURE}.
+	 *
+	 * @return the Channel
+	 */
+	public default FloatReadChannel getHeatPumpOutsideTemperatureChannel() {
+		return this.channel(ChannelId.HEAT_PUMP_OUTSIDE_TEMPERATURE);
+	}
+
+	/**
+	 * Internal method to set the 'nextValue' on
+	 * {@link ChannelId#HEAT_PUMP_OUTSIDE_TEMPERATURE} Channel.
+	 *
+	 * @param value the next value
+	 */
+	public default void _setHeatPumpOutsideTemperature(Float value) {
+		this.getHeatPumpOutsideTemperatureChannel().setNextValue(value);
 	}
 
 	/**

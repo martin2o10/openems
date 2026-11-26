@@ -2,7 +2,7 @@ import { CommonModule } from "@angular/common";
 import { ChangeDetectionStrategy, Component } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
 import { IonicModule } from "@ionic/angular";
-import { TranslateModule } from "@ngx-translate/core";
+import { TranslateModule, TranslateService } from "@ngx-translate/core";
 import { BaseChartDirective } from "ng2-charts";
 import { NgxSpinnerModule } from "ngx-spinner";
 import { AbstractHistoryChart } from "src/app/shared/components/chart/abstracthistorychart";
@@ -29,7 +29,11 @@ import { ChartAxis, HistoryUtils, YAxisType } from "src/app/shared/utils/utils";
     ],
 })
 export class ControllerHeatPumpMonitorSingleChartComponent extends AbstractHistoryChart {
-    public static getChartData(_config: EdgeConfig, component: EdgeConfig.Component): HistoryUtils.ChartData {
+    public static getChartData(
+        _config: EdgeConfig,
+        translate: TranslateService,
+        component: EdgeConfig.Component,
+    ): HistoryUtils.ChartData {
         const controllerId = component.id;
 
         return {
@@ -37,6 +41,14 @@ export class ControllerHeatPumpMonitorSingleChartComponent extends AbstractHisto
                 {
                     name: controllerId,
                     powerChannel: new ChannelAddress(controllerId, "HeatPumpRunning"),
+                },
+                {
+                    name: controllerId + "/HeatPumpBufferTemperature",
+                    powerChannel: new ChannelAddress(controllerId, "HeatPumpBufferTemperature"),
+                },
+                {
+                    name: controllerId + "/HeatPumpOutsideTemperature",
+                    powerChannel: new ChannelAddress(controllerId, "HeatPumpOutsideTemperature"),
                 },
             ],
             output: (data: HistoryUtils.ChannelData) => {
@@ -46,7 +58,24 @@ export class ControllerHeatPumpMonitorSingleChartComponent extends AbstractHisto
                         converter: () => {
                             return data[controllerId].map((val) => val);
                         },
+                        yAxisId: ChartAxis.LEFT,
                         color: ChartConstants.Colors.SHADES_OF_YELLOW[0],
+                    },
+                    {
+                        name: translate.instant("HEAT_PUMP_MONITOR.BUFFER_TEMPERATURE"),
+                        converter: () => {
+                            return data[controllerId + "/HeatPumpBufferTemperature"]?.map((val) => val);
+                        },
+                        yAxisId: ChartAxis.RIGHT,
+                        color: ChartConstants.Colors.BLUE,
+                    },
+                    {
+                        name: translate.instant("HEAT_PUMP_MONITOR.OUTSIDE_TEMPERATURE"),
+                        converter: () => {
+                            return data[controllerId + "/HeatPumpOutsideTemperature"]?.map((val) => val);
+                        },
+                        yAxisId: ChartAxis.RIGHT,
+                        color: ChartConstants.Colors.BLUE_GREY,
                     },
                 ];
 
@@ -61,11 +90,17 @@ export class ControllerHeatPumpMonitorSingleChartComponent extends AbstractHisto
                     position: "left",
                     yAxisId: ChartAxis.LEFT,
                 },
+                {
+                    unit: YAxisType.TEMPERATURE,
+                    position: "right",
+                    yAxisId: ChartAxis.RIGHT,
+                    displayGrid: false,
+                },
             ],
         };
     }
 
     protected override getChartData(): HistoryUtils.ChartData {
-        return ControllerHeatPumpMonitorSingleChartComponent.getChartData(this.config, this.component);
+        return ControllerHeatPumpMonitorSingleChartComponent.getChartData(this.config, this.translate, this.component);
     }
 }

@@ -1,5 +1,8 @@
 {
     "HEAT_PUMP_MONITOR": {
+        "ACTIVE_POWER": "Leistungsaufnahme [W]",
+        "BUFFER_TEMPERATURE": "Puffer-Temperatur [°C]",
+        "OUTSIDE_TEMPERATURE": "Außentemperatur [°C]",
         "TOTAL_STARTS": "Starts gesamt",
         "TOTAL_RUN_TIME": "Laufzeit gesamt [h]",
         "LAST_RUN_DURATION": "Letzte Laufdauer [h]",
