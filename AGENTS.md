@@ -34,7 +34,16 @@ Main stacks: Java 25, Gradle, OSGi/bnd workspace, JUnit 5 (Jupiter), Angular/Ion
 - Modbus devices should use the existing `io.openems.edge.bridge.modbus` protocol/register mapping patterns.
 - Checkstyle is enforced via `cnf/checkstyle.xml` with zero warnings.
 - Add new bundles/components only when explicitly required; follow the closest existing bundle structure.
-- Useful Java entry point bundles: `io.openems.edge.controller.ess.balancing`, `io.openems.edge.evse.chargepoint.keba`, and `io.openems.edge.evse.chargepoint.mennekes`; inspect matching `Config.java`, `*Impl.java`, and `*Test.java` files before copying patterns.
+- Useful Java entry point bundles: `io.openems.edge.controller.ess.balancing`, `io.openems.edge.evse.chargepoint.keba`, and `io.openems.edge.evse.chargepoint.mennekes`; for heat devices see the section below. Inspect matching `Config.java`, `*Impl.java`, and `*Test.java` files before copying patterns.
+
+
+## Heat Pumps and Heating Elements
+
+- Heat devices live in `io.openems.edge.heat.*`, one bundle per manufacturer (e.g. `io.openems.edge.heat.mypv`, `io.openems.edge.heat.askoma`); shared natures are in `io.openems.edge.heat.api`.
+- Distinguish the two natures: power-controlled thermal loads like heating rods implement `ManagedHeatElement` with a `TARGET_ACTIVE_POWER` channel; heat pumps implement `ManagedHeatPump`.
+- `ManagedHeatPump` follows the EVSE Charge-Point profile: the driver only declares its abilities via `getHeatPumpAbilities()` (`ApplyPower.Continuous` for continuously controllable power, `ApplyPower.SgReady` for relay control, plus minimum run/off times) and applies exactly one `HeatPumpAction` (`OwnControl`, `Lock` or `Power`) per Cycle via `apply(...)`. All decisions are taken by Controllers (`io.openems.edge.controller.heatpump.*`); they must re-apply the action in every Cycle. The internal control of the heat pump (frost protection, comfort) always has precedence.
+- `ManagedHeatPump` extends `ElectricityMeter`; implement `Heat` to publish temperatures.
+- Safety rules for controllable heat drivers: `readOnly` defaults to `true`; device-specific minimum write intervals are enforced in code, not only via config; when control stops (no action applied in a Cycle, component deactivation, or communication loss), the device must fall back to its own control.
 
 ## UI
 
