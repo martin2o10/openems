@@ -108,6 +108,12 @@ public class BroetjeNeoModbusSlaveSimulator {
 		image.addInputRegister(40, new SimpleRegister(0)); // expansion valve
 		image.addInputRegister(41, new SimpleRegister(20)); // demand: space heating
 
+		// Input registers 42-45: operating hours as UINT32 doublewords
+		image.addInputRegister(42, new SimpleRegister(0)); // operating hours 1 high word
+		image.addInputRegister(43, new SimpleRegister(1234)); // ... low word [h]
+		image.addInputRegister(44, new SimpleRegister(0)); // operating hours 2 high word
+		image.addInputRegister(45, new SimpleRegister(56)); // ... low word [h]
+
 		// Input registers 60-75: energies as UINT32 doublewords, power, thermal power
 		image.addInputRegister(60, new SimpleRegister(0)); // thermal energy heating [kWh] high word
 		image.addInputRegister(61, new SimpleRegister(10)); // ... low word
@@ -131,6 +137,23 @@ public class BroetjeNeoModbusSlaveSimulator {
 		image.addRegister(125, new SimpleRegister(0)); // power setpoint [W], writable
 		image.addRegister(149, new SimpleRegister(0)); // grid operator release value, writable
 		image.addRegister(150, new SimpleRegister(0)); // grid operator release activate, writable
+
+		// Holding registers 101-106: holding values
+		for (int address = 101; address <= 106; address++) {
+			image.addRegister(address, new SimpleRegister(address * 10));
+		}
+		// Holding register 117/127: external request
+		image.addRegister(117, new SimpleRegister(0));
+		image.addRegister(127, new SimpleRegister(0));
+		// Holding register 126: compressor speed setpoint [‰]
+		image.addRegister(126, new SimpleRegister(450));
+		// Holding registers 129-134: external sensor overrides
+		for (int address = 129; address <= 134; address++) {
+			image.addRegister(address, new SimpleRegister(0));
+		}
+		// Holding registers 147/148: second stage
+		image.addRegister(147, new SimpleRegister(0));
+		image.addRegister(148, new SimpleRegister(0));
 		return image;
 	}
 
