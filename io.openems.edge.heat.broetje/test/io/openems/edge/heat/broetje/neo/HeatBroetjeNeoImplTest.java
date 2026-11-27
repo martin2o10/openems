@@ -181,4 +181,43 @@ class HeatBroetjeNeoImplTest {
 
 		sut.deactivate();
 	}
+
+	@Test
+	void testApplyLockThenPowerReleasesLock() throws Exception {
+		var clock = new TimeLeapClock(Instant.parse("2026-11-06T12:00:00Z"), ZoneOffset.UTC);
+		var sut = new HeatBroetjeNeoImpl();
+		new ComponentTest(sut) //
+				.addReference("componentManager", new DummyComponentManager(clock)) //
+				.addReference("setModbus", createBridge().withClock(clock)) //
+				.activate(MyConfig.create() //
+						.setId("heatPump0") //
+						.setModbusId("modbus0") //
+						.setReadOnly(false) //
+						.build()) //
+				.next(new TestCase());
+
+		// Lock: registers 149 = 0, 150 = 1
+		clock.leap(10, ChronoUnit.SECONDS);
+		sut.apply(HeatPumpAction.LOCK);
+		assertEquals(Optional.of(0),
+				sut.<IntegerWriteChannel>channel(HeatBroetjeNeo.ChannelId.GRID_OPERATOR_RELEASE_VALUE)
+						.getNextWriteValue());
+		assertEquals(Optional.of(1),
+				sut.<IntegerWriteChannel>channel(HeatBroetjeNeo.ChannelId.GRID_OPERATOR_RELEASE_ACTIVATE)
+						.getNextWriteValue());
+
+		// Power after Lock must explicitly release the lock: (power, 1, 0)
+		clock.leap(10, ChronoUnit.SECONDS);
+		sut.apply(new HeatPumpAction.Power(2000, false));
+		assertEquals(Optional.of(2000),
+				sut.<IntegerWriteChannel>channel(HeatBroetjeNeo.ChannelId.POWER_SETPOINT).getNextWriteValue());
+		assertEquals(Optional.of(1),
+				sut.<IntegerWriteChannel>channel(HeatBroetjeNeo.ChannelId.GRID_OPERATOR_RELEASE_VALUE)
+						.getNextWriteValue());
+		assertEquals(Optional.of(0),
+				sut.<IntegerWriteChannel>channel(HeatBroetjeNeo.ChannelId.GRID_OPERATOR_RELEASE_ACTIVATE)
+						.getNextWriteValue());
+
+		sut.deactivate();
+	}
 }

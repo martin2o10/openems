@@ -72,9 +72,10 @@ public class SetpointHandler {
 			return new Result(null, 0, 1);
 		}
 		if (action instanceof HeatPumpAction.Power p) {
-			// 'force' is a request semantic per maintainer feedback: the heat pump is asked
-			// to run at maximum power, whether it does so remains up to its own control;
-			// there is no register equivalent on the Broetje.
+			// 'force' is request semantics (maintainer feedback 28.11.: "please run at
+			// maximum power; whether it does so remains up to its own control"); there is
+			// no register equivalent on the Broetje - register 127 as a force mapping was
+			// considered and rejected (see specification section 12, open point 3)
 			var clamped = Math.max(0, Math.min(p.power(), this.maxPower));
 			var power = clamped < this.minPower ? 0 : clamped;
 			// explicitly release a previous lock: 149 = 1 (grid operator release value),
