@@ -89,7 +89,7 @@ public class HeatPumpMonitorImpl extends AbstractOpenemsComponent
 	}
 
 	@Activate
-	private void activate(ComponentContext context, Config config) {
+	private void activate(ComponentContext context, Config config) throws OpenemsNamedException {
 		this.config = config;
 
 		if (!config.heatPumpRunningChannelAddress().isBlank()) {
@@ -216,16 +216,16 @@ public class HeatPumpMonitorImpl extends AbstractOpenemsComponent
 		Boolean rawRunning;
 		if (this.runningChannelAddress != null) {
 			final var value = this.componentManager.getChannel(this.runningChannelAddress).value().get();
-			final var asBoolean = TypeUtils.getAsType(OpenemsType.BOOLEAN, value);
+			final Boolean asBoolean = TypeUtils.getAsType(OpenemsType.BOOLEAN, value);
 			if (asBoolean != null) {
 				rawRunning = asBoolean;
 			} else {
-				final var asInteger = TypeUtils.getAsType(OpenemsType.INTEGER, value);
+				final Integer asInteger = TypeUtils.getAsType(OpenemsType.INTEGER, value);
 				rawRunning = asInteger == null ? null : asInteger != 0;
 			}
 
 		} else {
-			final var power = TypeUtils.getAsType(OpenemsType.INTEGER, //
+			final Integer power = TypeUtils.getAsType(OpenemsType.INTEGER, //
 					this.componentManager.getChannel(this.powerChannelAddress).value().get());
 			if (power == null) {
 				rawRunning = null;
@@ -273,7 +273,7 @@ public class HeatPumpMonitorImpl extends AbstractOpenemsComponent
 		/* Sum up the configured heating elements. */
 		Integer heatingElementsPower = null;
 		for (ChannelAddress address : this.heatingElementPowerChannelAddresses) {
-			final var power = TypeUtils.getAsType(OpenemsType.INTEGER, //
+			final Integer power = TypeUtils.getAsType(OpenemsType.INTEGER, //
 					this.componentManager.getChannel(address).value().get());
 			if (power != null) {
 				heatingElementsPower = heatingElementsPower == null ? power : heatingElementsPower + power;

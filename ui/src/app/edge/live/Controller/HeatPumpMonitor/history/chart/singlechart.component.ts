@@ -61,7 +61,7 @@ export class ControllerHeatPumpMonitorSingleChartComponent extends AbstractHisto
                         name: Name.METER_ALIAS_OR_ID(component),
                         converter: () => {
                             return HistoryUtils.CONVERT_WATT_TO_KILOWATT_OR_KILOWATTHOURS(
-                                data[controllerId + "/HeatPumpActivePower"] ?? [],
+                                (data[controllerId + "/HeatPumpActivePower"] ?? []) as number[],
                             );
                         },
                         yAxisId: ChartAxis.RIGHT,
@@ -71,7 +71,7 @@ export class ControllerHeatPumpMonitorSingleChartComponent extends AbstractHisto
                         name: translate.instant("HEAT_PUMP_MONITOR.HEATING_ELEMENTS"),
                         converter: () => {
                             return HistoryUtils.CONVERT_WATT_TO_KILOWATT_OR_KILOWATTHOURS(
-                                data[controllerId + "/HeatingElementsActivePower"] ?? [],
+                                (data[controllerId + "/HeatingElementsActivePower"] ?? []) as number[],
                             );
                         },
                         yAxisId: ChartAxis.RIGHT,

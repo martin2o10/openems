@@ -7,9 +7,9 @@ export namespace SharedControllerHeatPumpMonitor {
     /**
      * Converts a duration value in [s] to a string in [h] with one decimal.
      */
-    export const secondsToHours = (value: number | null): string | null => {
+    export const secondsToHours = (value: number | null): string => {
         if (value == null) {
-            return null;
+            return "-";
         }
         return (Math.round((value / 3600) * 10) / 10).toFixed(1);
     };
@@ -18,9 +18,9 @@ export namespace SharedControllerHeatPumpMonitor {
      * Converts the 'HeatPumpRunning' channel value to a translated ON/OFF state text (GENERAL.ON/OFF).
      */
     export const runningStateText = (translate: TranslateService) => {
-        return (value: number | boolean | null): string | null => {
+        return (value: number | boolean | null): string => {
             if (value == null) {
-                return null;
+                return "-";
             }
             return value === true || value === 1
                 ? translate.instant("GENERAL.ON")
@@ -29,13 +29,13 @@ export namespace SharedControllerHeatPumpMonitor {
     };
 
     /**
-     * Converts a temperature value to a value with one decimal.
+     * Converts a temperature value to a string with one decimal.
      */
-    export const temperatureOneDecimal = (value: number | null): number | null => {
+    export const temperatureOneDecimal = (value: number | null): string => {
         if (value == null) {
-            return null;
+            return "-";
         }
-        return Math.round(value * 10) / 10;
+        return (Math.round(value * 10) / 10).toString();
     };
 
     /**

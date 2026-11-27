@@ -11,6 +11,7 @@ import static io.openems.edge.controller.heatpump.monitor.HeatPumpMonitor.Channe
 import static io.openems.edge.controller.heatpump.monitor.HeatPumpMonitor.ChannelId.HEAT_PUMP_STARTS_TOTAL;
 import static io.openems.edge.controller.heatpump.monitor.HeatPumpMonitor.ChannelId.HEATING_ELEMENTS_ACTIVE_POWER;
 import static java.time.temporal.ChronoUnit.SECONDS;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.Instant;
@@ -19,9 +20,9 @@ import java.time.ZonedDateTime;
 
 import org.junit.jupiter.api.Test;
 
-import io.openems.common.test.DummyConfigurationAdmin;
 import io.openems.common.test.TimeLeapClock;
 import io.openems.common.types.ChannelAddress;
+import io.openems.common.utils.ReflectionUtils.ReflectionException;
 import io.openems.edge.common.test.AbstractComponentTest.TestCase;
 import io.openems.edge.common.test.DummyComponentManager;
 import io.openems.edge.controller.test.ControllerTest;
@@ -40,10 +41,14 @@ public class HeatPumpMonitorImplTest {
 	/**
 	 * Builds a {@link ControllerTest} with a Dummy Timedata and a Dummy
 	 * Electricity-Meter as heat pump power source.
+	 *
+	 * @param clock    the {@link TimeLeapClock} to use; or null for the default clock
+	 * @param timedata the {@link DummyTimedata} to use; or null for none
+	 * @return the {@link ControllerTest}
+	 * @throws Exception on error
 	 */
 	private ControllerTest createDefaultControllerTest(TimeLeapClock clock, DummyTimedata timedata) throws Exception {
 		var test = new ControllerTest(new HeatPumpMonitorImpl()) //
-				.addReference("configurationAdmin", new DummyConfigurationAdmin()) //
 				.addReference("componentManager", clock == null //
 						? new DummyComponentManager() //
 						: new DummyComponentManager(clock));
@@ -162,13 +167,14 @@ public class HeatPumpMonitorImplTest {
 	@Test
 	void missingPowerChannelIsRejected_test() {
 		final var clock = createDummyClock();
-		assertThrows(IllegalArgumentException.class, () -> {
+		final var exception = assertThrows(ReflectionException.class, () -> {
 			this.createDefaultControllerTest(clock, new DummyTimedata("timedata0")) //
 					.activate(MyConfig.create() //
 							.setId(COMPONENT_ID) //
 							.setHeatPumpRunningChannelAddress(POWER.toString()) //
 							.build());
 		});
+		assertInstanceOf(IllegalArgumentException.class, exception.getCause().getCause());
 	}
 
 	@Test

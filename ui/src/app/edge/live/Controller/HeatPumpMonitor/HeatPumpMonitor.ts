@@ -19,8 +19,8 @@ export class Controller_HeatPumpMonitorComponent extends AbstractFlatWidget {
     };
     public state: string | null = null;
     public activePower: number | null = null;
-    public bufferTemperature: number | null = null;
-    public outsideTemperature: number | null = null;
+    public bufferTemperature: string | null = null;
+    public outsideTemperature: string | null = null;
     public heatingElements: Array<{ label: string; value: number | null }> = [];
     public heatingElementsTotal: number | null = null;
     public startsTotal: number | null = null;
