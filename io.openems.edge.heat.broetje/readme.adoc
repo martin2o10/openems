@@ -1,0 +1,56 @@
+= Broetje BLW NEO Heat Pump
+
+Monitoring and control of the Broetje BLW NEO heat pump via the NEO-RKM communication module (Modbus TCP).
+
+== Overview
+
+This bundle integrates Broetje BLW NEO heat pumps (e.g. BLW NEO 12 B) with the NEO-RKM Modbus module into OpenEMS as a `ManagedHeatPump`. In the default read-only mode it only reads status, temperatures and energy values; the heat pump stays in its own control. If `readOnly` is disabled, Controllers can apply `HeatPumpAction`s per Cycle: the electric power setpoint (register 125, demand profile 3), the grid operator lock (registers 149/150) or a fallback to the heat pump's own control (register 150 = 0). Writes are rate-limited to at least 5 s as required by the NEO-RKM.
+
+== Supported Devices
+
+.Broetje BLW NEO with NEO-RKM
+* **Type**: Air-to-water heat pump with Modbus communication module
+* **Communication**: Modbus TCP (default port 502, Unit-ID 1)
+* **Control**: Continuous electric power setpoint (register 125) and EVU lock (registers 149/150); the internal control of the heat pump (frost protection, comfort) always has precedence
+* **Monitoring**: Temperatures, pressures, power, thermal power, COP, energy, operating state
+* **Documentation**: NEO-RKM installation manual 7734937, chapter 7.1 tables 4+5
+
+== Components
+
+=== Broetje BLW NEO Heat Pump
+
+*Name*: Heat Broetje BLW NEO
+
+*Factory-PID*: `Heat.Broetje.Neo`
+
+.Implemented Natures/Interfaces
+* HeatBroetjeNeo
+* ManagedHeatPump
+* Heat
+* ElectricityMeter
+* ModbusComponent
+* OpenemsComponent
+* TimedataProvider
+* EventHandler
+
+*Description*: Modbus interface for Broetje BLW NEO heat pumps via NEO-RKM. Read-only by default; the write path (power setpoint and grid operator lock) is only active when read-only mode is disabled.
+
+.*Configuration*:
+
+* `id` (String): Component ID for unique identification (default: "heatPump0")
+* `alias` (String): Human-readable alias for the component
+* `enabled` (Boolean): Enable/disable this component (default: true)
+* `modbus_id` (String): ID of the Modbus bridge to use (default: "modbus0")
+* `modbusUnitId` (Integer): Modbus Unit-ID of the heat pump (default: 1)
+* `readOnly` (Boolean): Read-only mode; no Modbus writes at all (default: true)
+* `minPower` / `maxPower` (Integer): Electric power range of the compressor [W] (default: 800/3500)
+* `minRunTimeSeconds` / `minOffTimeSeconds` (Integer): Minimum run/off times [s] declared as abilities (default: 1200/600)
+* `writeIntervalSeconds` (Integer): Write interval [s]; minimum 5 s enforced in code (default: 10)
+* `readPressures`, `readSourceTemperatures`, `readRefrigerantTemperatures`, `readPumpFlags`, `readFlowRate`, `readFreshWaterTemperature`, `readDelayedOutdoorTemperature`, `readMixerCircuitSetpoints`, `readExpansionValve`, `readOperatingHours`, `readHoldingRegisters`, `readSpeedSetpoint`, `readExternalRequest`, `readExternalSensorOverrides`, `readSecondStage` (Boolean): Poll optional register groups (default: false)
+
+=== Modbus Register Documentation
+
+* NEO-RKM Montageanleitung 7734937, Kapitel 7.1 Tabellen 4+5
+* https://github.com/AndyKausG/ha-broetje-neo[ha-broetje-neo Home Assistant integration (External Link)]
+
+https://github.com/OpenEMS/openems/tree/develop/io.openems.edge.heat.broetje[Source Code icon:github[]]
