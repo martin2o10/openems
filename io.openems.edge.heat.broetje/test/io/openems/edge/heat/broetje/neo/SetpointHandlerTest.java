@@ -59,8 +59,8 @@ class SetpointHandlerTest {
 
 	@Test
 	void forceHasNoRegisterEquivalent() {
-		// 'force' is a request semantic only; there is no register equivalent on
-		// the Broetje, so both variants map to the same registers
+		// 'force' is request semantics only (maintainer feedback; no register
+		// equivalent on the Broetje), so both variants map to the same registers
 		var forced = createHandler().calculate(new HeatPumpAction.Power(2000, true));
 		var normal = createHandler().calculate(new HeatPumpAction.Power(2000, false));
 
