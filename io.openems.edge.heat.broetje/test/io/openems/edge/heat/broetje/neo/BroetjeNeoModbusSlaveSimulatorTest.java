@@ -36,5 +36,22 @@ class BroetjeNeoModbusSlaveSimulatorTest {
 		assertEquals(0, image.getRegister(125).getValue());
 		assertEquals(0, image.getRegister(149).getValue());
 		assertEquals(0, image.getRegister(150).getValue());
+
+		// operating hours 42/44 as doublewords
+		assertEquals(0, image.getInputRegister(42).getValue());
+		assertEquals(1234, image.getInputRegister(43).getValue());
+		assertEquals(0, image.getInputRegister(44).getValue());
+		assertEquals(56, image.getInputRegister(45).getValue());
+
+		// optional holding registers ("Kür")
+		assertEquals(1010, image.getRegister(101).getValue());
+		assertEquals(1060, image.getRegister(106).getValue());
+		assertEquals(0, image.getRegister(117).getValue());
+		assertEquals(450, image.getRegister(126).getValue());
+		assertEquals(0, image.getRegister(127).getValue());
+		assertEquals(0, image.getRegister(129).getValue());
+		assertEquals(0, image.getRegister(134).getValue());
+		assertEquals(0, image.getRegister(147).getValue());
+		assertEquals(0, image.getRegister(148).getValue());
 	}
 }
