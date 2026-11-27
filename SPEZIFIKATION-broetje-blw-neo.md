@@ -28,7 +28,7 @@ Nicht-Ziele: FEMS bleibt unangetastet (die WP wird vom FEMS nicht per Modbus geh
 - Bundle: `io.openems.edge.heat.broetje` (upstream-Konvention `heat.<hersteller>`), Package `.neo`, Factory "Heat Broetje BLW NEO", FACTORY_ID `Heat.Broetje.Neo`, Component-ID `heatPump0`
 - Interfaces: `ManagedHeatPump` (Nature, ersetzt die v1 des alten Treibers), `Heat` (Temperaturen), `ModbusComponent`, `TimedataProvider`, `OpenemsComponent`. `ElectricityMeter` ist über die Nature (extends ElectricityMeter) abgedeckt.
 - Nature-Mechanik (aus pr/heatpump-nature): der Treiber deklariert `getHeatPumpAbilities()` und setzt Aktionen pro Cycle via `apply(HeatPumpAction)` um. Alle Entscheidungen treffen Controller, die WP-Eigenregelung (Frostschutz, Komfort) hat immer Vorrang.
-- **Design-Entscheidung ManagedHeatElement: Empfehlung NEIN (vorerst).** Begründung: Die Nature löst die Rolle von `ManagedHeatElement`/`TARGET_ACTIVE_POWER` für Wärmepumpen ab (`apply(HeatPumpAction.Power)` mit `ACTION_POWER`-Kanal ist das passende Muster). Ein zusätzlicher `ManagedHeatElement`-Setpoint-Pfad würde zwei konkurrierende Schreibquellen auf Register 125 bedeuten. Alternative, im Upstream-Review zu diskutieren: doch zusätzlich implementieren, damit die bestehende EnergyScheduler-Statemachine (SurplusHandler wie bei heat.askoma/heat.mypv) direkt greift. Dann aber klar getrennt: `TARGET_ACTIVE_POWER` nur lesender Mirror, Quelle der Wahrheit bleibt `apply()`. Entscheidung bleibt offen bis zur Abstimmung mit dem Upstream-Maintainer im Nature-PR.
+- **Design-Entscheidung ManagedHeatElement: Empfehlung NEIN (vorerst).** Begründung: Die Nature löst die Rolle von `ManagedHeatElement`/`TARGET_ACTIVE_POWER` für Wärmepumpen ab (`apply(HeatPumpAction.Power)` mit `ACTION_POWER`-Kanal ist das passende Muster). Ein zusätzlicher `ManagedHeatElement`-Setpoint-Pfad würde zwei konkurrierende Schreibquellen auf Register 125 bedeuten. Alternative, im Upstream-Review zu diskutieren: doch zusätzlich implementieren, damit die bestehende EnergyScheduler-Statemachine (SurplusHandler wie bei heat.askoma/heat.mypv) direkt greift. Dann aber klar getrennt: `TARGET_ACTIVE_POWER` nur lesender Mirror, Quelle der Wahrheit bleibt `apply()`. Entscheidung bleibt offen bis zur Abstimmung mit dem Upstream-Maintainer im Nature-PR. **Maintainer-Feedback (Stefan Feilmeier, 28.11.):** EVSE-Profil als richtiges Muster bestätigt. Eine Zusammenführung von HeatElement und HeatPump hält er perspektivisch für sinnvoll (oft derselbe Pufferspeicher, geteilte Thermosimulation, spätere gemeinsame Logiken). Konsequenz: Der Treiber implementiert nur ManagedHeatPump; die Nature-PR positioniert beide Natures als Geschwister in heat.api und nennt die Zusammenführungsrichtung als Ausblick.
 - Portierungsquellen: alter Treiber aus feature/heatpump-broetje-neo (ChannelIds, OperatingMode, OperatingStateMapper, SetpointHandler, Config) als Referenz; Muster für Modbus-Aufbau und readOnly-Default: heat.askoma (upstream).
 
 ## 5. Kanal- und Register-Zuordnung
@@ -92,7 +92,7 @@ Mapping der Nature-Aktionen auf Register (Portierung des bestehenden SetpointHan
 |---|---|
 | OwnControl | Rückfall in Eigenregelung: externen Request deaktivieren (Reg 150 = 0) |
 | Lock | EVU-Sperre: Reg 149 = 0, Reg 150 = 1 |
-| Power(p, force) | Reg 125 = clamp(p, minPower..maxPower), begrenzt durch aktive Sperre; p < minPower → 0 schreiben. force hat beim Brötje keine direkte Entsprechung: offen, ob force ignoriert oder über Reg 127 (ext. Anforderung) abgebildet wird |
+| Power(p, force) | Reg 125 = clamp(p, minPower..maxPower), begrenzt durch aktive Sperre; p < minPower → 0 schreiben. force ist Anfrage-Semantik (Maintainer-Feedback 28.11.: "bitte laufe mit maximaler Leistung, ob er das tut, bleibt letztlich ihm überlassen"); beim Brötje daher ohne eigene Register-Abbildung, die Eigenregelung des RKM hat ohnehin Vorrang. Register 127 als force-Abbildung verworfen |
 
 Abilities: `ApplyPower.Continuous(minPower, maxPower)` (Config 800/3500 W, für BLW 12 B verifizieren), `minRunTime`/`minOffTime` aus Config (alt 1200/600 s, verifizieren). Der SetpointHandler erzwingt das 5s-Minimum im Code, unabhängig von der Config.
 
@@ -130,6 +130,7 @@ id, alias, enabled, modbus_id (default modbus0), modbusUnitId (default 1), readO
 ## 11. Upstream-Strategie
 
 - PR-Reihenfolge: 1. Nature (pr/heatpump-nature, Discussion mit Maintainer, dort auch ManagedHeatElement-Frage klären), 2. Controller.HeatPump.Single/Cluster (pr/heatpump-controller), 3. Treiber (feature/broetje-blw-neo auf Basis der angenommenen PRs)
+- Maintainer-Feedback (Stefan Feilmeier, 28.11.): EVSE-Profil (Abilities + eine Aktion pro Cycle) als richtiges Muster bestätigt. Geplant ist, Teile der EVSE-Cluster-Logik in den PowerFlow zu extrahieren; das soll vor oder bei der HeatPump-Cluster-Umsetzung mitgedacht werden. Konsequenz: Cluster-Logik schlank halten und bei der Umsetzung von Controller.HeatPump.Cluster den PowerFlow-Extraktionsplan berücksichtigen. Relais-WPs langfristig über ApplyPower.SgReady als Treiber-Fähigkeit abbilden (bestätigt).
 - Muster und Qualitätsmaßstab: heat.askoma/heat.mypv (readme.adoc, Unit-Tests, OSGi-Config, bnd-Build)
 - Positionierung: kein öffentlicher OpenEMS-Wärmepumpen-Modbus-Treiber existiert (Stand 28.11., GitHub-Code-Suche); SESAM (Smart Energy Solutions) und clever-PV arbeiten bei WP nur mit SG-Ready bzw. Cloud. Der Treiber füllt die meistgefragte Lücke der Community (Foren-Threads seit 2020)
 - Lizenz: OpenEMS steht unter EPL-2.0/AGPL-3.0-Dual-Lizenz, eigene Contribution unter denselben Bedingungen
@@ -137,8 +138,8 @@ id, alias, enabled, modbus_id (default modbus0), modbusUnitId (default 1), readO
 ## 12. Offene Punkte
 
 1. Energie-Einheit der Register 42-72 (Wh vs. kWh): am Gerät klären
-2. ManagedHeatElement: ja/nein, Entscheidung im Nature-PR-Review
-3. force-Semantik bei Power(p, force): ignorieren oder über Reg 127 abbilden
+2. ManagedHeatElement: ja/nein → beantwortet 28.11. (Stefan): Treiber nur ManagedHeatPump; Zusammenführungsrichtung HeatElement/HeatPump (geteilte Thermosimulation) als Ausblick in der Nature-PR nennen
+3. force-Semantik → beantwortet 28.11. (Stefan): force ist Anfrage-Semantik, Umsetzung bleibt dem Gerät überlassen; beim Brötje keine Register-Abbildung
 4. RKM-Verhalten bei Kommunikationsabbruch: Probe (Abschnitt 6)
 5. minRunTime/minOffTime des BLW 12 B: verifizieren (alt 1200/600 s)
 6. Schreibintervall in der Praxis: 5 s Minimum vs. 10 s Default, Feldtest
