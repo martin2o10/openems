@@ -49,16 +49,19 @@ public interface HeatBroetjeNeo extends OpenemsComponent {
 		 * Device fault; register 26, flag (value > 0).
 		 */
 		DEVICE_FAULT(Doc.of(Level.FAULT) //
-				.text("The heat pump reports a fault (register 26)")), //
+				.text("The heat pump reports a fault (register 26)") //
+				.persistencePriority(PersistencePriority.MEDIUM)), //
 		/**
 		 * Defrost (4-way valve) active; register 27, flag (value > 0).
 		 */
-		DEFROST_VALVE_ACTIVE(Doc.of(OpenemsType.BOOLEAN)), //
+		DEFROST_VALVE_ACTIVE(Doc.of(OpenemsType.BOOLEAN) //
+				.persistencePriority(PersistencePriority.MEDIUM)), //
 		/**
-		 * Compressor speed; register 29, per mille.
+		 * Compressor speed; register 29, per mille. MEDIUM as a diagnostics value.
 		 */
 		COMPRESSOR_SPEED(Doc.of(OpenemsType.INTEGER) //
-				.unit(Unit.THOUSANDTH)), //
+				.unit(Unit.THOUSANDTH) //
+				.persistencePriority(PersistencePriority.MEDIUM)), //
 		/**
 		 * Coefficient of performance; register 30, x 0.1.
 		 */
@@ -73,9 +76,11 @@ public interface HeatBroetjeNeo extends OpenemsComponent {
 				.persistencePriority(PersistencePriority.HIGH) //
 				.text("Grid operator (EVU) release; false means the heat pump is locked")), //
 		/**
-		 * Current demand; register 41.
+		 * Current demand; register 41. Persisted HIGH like the operating state; small
+		 * enum, needed for history evaluation.
 		 */
-		DEMAND(Doc.of(Demand.values())), //
+		DEMAND(Doc.of(Demand.values()) //
+				.persistencePriority(PersistencePriority.HIGH)), //
 		/**
 		 * Operating mode; register 100 (FC3). Values 8-10 are read-only on the device.
 		 */
@@ -88,25 +93,29 @@ public interface HeatBroetjeNeo extends OpenemsComponent {
 		 * clarified on the device.
 		 */
 		THERMAL_ENERGY_HEATING(Doc.of(OpenemsType.LONG) //
-				.unit(Unit.WATT_HOURS)), //
+				.unit(Unit.WATT_HOURS) //
+				.persistencePriority(PersistencePriority.HIGH)), //
 		/**
 		 * Electric energy heating; register 62, UINT32. Unit (Wh vs. kWh) to be
 		 * clarified on the device.
 		 */
 		ELECTRIC_ENERGY_HEATING(Doc.of(OpenemsType.LONG) //
-				.unit(Unit.WATT_HOURS)), //
+				.unit(Unit.WATT_HOURS) //
+				.persistencePriority(PersistencePriority.HIGH)), //
 		/**
 		 * Thermal energy domestic hot water; register 64, UINT32. Unit (Wh vs. kWh) to
 		 * be clarified on the device.
 		 */
 		THERMAL_ENERGY_DHWS(Doc.of(OpenemsType.LONG) //
-				.unit(Unit.WATT_HOURS)), //
+				.unit(Unit.WATT_HOURS) //
+				.persistencePriority(PersistencePriority.HIGH)), //
 		/**
 		 * Electric energy domestic hot water; register 66, UINT32. Unit (Wh vs. kWh) to
 		 * be clarified on the device.
 		 */
 		ELECTRIC_ENERGY_DHWS(Doc.of(OpenemsType.LONG) //
-				.unit(Unit.WATT_HOURS)), //
+				.unit(Unit.WATT_HOURS) //
+				.persistencePriority(PersistencePriority.HIGH)), //
 		/**
 		 * Total thermal energy; register 72, UINT32. Unit (Wh vs. kWh) to be clarified
 		 * on the device.
@@ -122,172 +131,207 @@ public interface HeatBroetjeNeo extends OpenemsComponent {
 		 * readSourceTemperatures.
 		 */
 		SOURCE_FLOW_TEMPERATURE(Doc.of(OpenemsType.INTEGER) //
-				.unit(Unit.DEZIDEGREE_CELSIUS)), //
+				.unit(Unit.DEZIDEGREE_CELSIUS) //
+				.persistencePriority(PersistencePriority.MEDIUM)), //
 		/**
 		 * Source return temperature; register 16, INT16 x 0.1 °C. Group:
 		 * readSourceTemperatures.
 		 */
 		SOURCE_RETURN_TEMPERATURE(Doc.of(OpenemsType.INTEGER) //
-				.unit(Unit.DEZIDEGREE_CELSIUS)), //
+				.unit(Unit.DEZIDEGREE_CELSIUS) //
+				.persistencePriority(PersistencePriority.MEDIUM)), //
 		/**
 		 * Suction gas temperature; register 17, INT16 x 0.1 °C. Group:
 		 * readRefrigerantTemperatures.
 		 */
 		SUCTION_GAS_TEMPERATURE(Doc.of(OpenemsType.INTEGER) //
-				.unit(Unit.DEZIDEGREE_CELSIUS)), //
+				.unit(Unit.DEZIDEGREE_CELSIUS) //
+				.persistencePriority(PersistencePriority.MEDIUM)), //
 		/**
 		 * Evaporation temperature; register 18, INT16 x 0.1 °C. Group:
 		 * readRefrigerantTemperatures.
 		 */
 		EVAPORATION_TEMPERATURE(Doc.of(OpenemsType.INTEGER) //
-				.unit(Unit.DEZIDEGREE_CELSIUS)), //
+				.unit(Unit.DEZIDEGREE_CELSIUS) //
+				.persistencePriority(PersistencePriority.MEDIUM)), //
 		/**
 		 * Condensation temperature; register 19, INT16 x 0.1 °C. Group:
 		 * readRefrigerantTemperatures.
 		 */
 		CONDENSATION_TEMPERATURE(Doc.of(OpenemsType.INTEGER) //
-				.unit(Unit.DEZIDEGREE_CELSIUS)), //
+				.unit(Unit.DEZIDEGREE_CELSIUS) //
+				.persistencePriority(PersistencePriority.MEDIUM)), //
 		/**
 		 * Hot gas temperature; register 20, INT16 x 0.1 °C. Group:
 		 * readRefrigerantTemperatures.
 		 */
 		HOT_GAS_TEMPERATURE(Doc.of(OpenemsType.INTEGER) //
-				.unit(Unit.DEZIDEGREE_CELSIUS)), //
+				.unit(Unit.DEZIDEGREE_CELSIUS) //
+				.persistencePriority(PersistencePriority.MEDIUM)), //
 		/**
 		 * Pressure register 21. Unit to be clarified on the device. Group:
 		 * readPressures.
 		 */
 		PRESSURE_1(Doc.of(OpenemsType.INTEGER) //
-				.text("Pressure register 21; designation/unit to be verified on the device")), //
+				.text("Pressure register 21; designation/unit to be verified on the device") //
+				.persistencePriority(PersistencePriority.MEDIUM)), //
 		/**
 		 * Pressure register 22. Unit to be clarified on the device. Group:
 		 * readPressures.
 		 */
 		PRESSURE_2(Doc.of(OpenemsType.INTEGER) //
-				.text("Pressure register 22; designation/unit to be verified on the device")), //
+				.text("Pressure register 22; designation/unit to be verified on the device") //
+				.persistencePriority(PersistencePriority.MEDIUM)), //
 		/**
 		 * Pump flag 1; register 23, flag (value > 0). Group: readPumpFlags.
 		 */
-		PUMP_1_ACTIVE(Doc.of(OpenemsType.BOOLEAN)), //
+		PUMP_1_ACTIVE(Doc.of(OpenemsType.BOOLEAN) //
+				.persistencePriority(PersistencePriority.MEDIUM)), //
 		/**
 		 * Pump flag 2; register 24, flag (value > 0). Group: readPumpFlags.
 		 */
-		PUMP_2_ACTIVE(Doc.of(OpenemsType.BOOLEAN)), //
+		PUMP_2_ACTIVE(Doc.of(OpenemsType.BOOLEAN) //
+				.persistencePriority(PersistencePriority.MEDIUM)), //
 		/**
 		 * Volume flow; register 28. Unit to be clarified on the device. Group:
 		 * readFlowRate.
 		 */
 		VOLUME_FLOW(Doc.of(OpenemsType.INTEGER) //
-				.text("Volume flow register 28; unit to be verified on the device")), //
+				.text("Volume flow register 28; unit to be verified on the device") //
+				.persistencePriority(PersistencePriority.MEDIUM)), //
 		/**
 		 * Fresh water temperature; register 31, INT16 x 0.1 °C. Group:
 		 * readFreshWaterTemperature.
 		 */
 		FRESH_WATER_TEMPERATURE(Doc.of(OpenemsType.INTEGER) //
-				.unit(Unit.DEZIDEGREE_CELSIUS)), //
+				.unit(Unit.DEZIDEGREE_CELSIUS) //
+				.persistencePriority(PersistencePriority.MEDIUM)), //
 		/**
 		 * Delayed outdoor temperature; register 33, INT16 x 0.1 °C. Group:
 		 * readDelayedOutdoorTemperature.
 		 */
 		OUTDOOR_TEMPERATURE_DELAYED(Doc.of(OpenemsType.INTEGER) //
-				.unit(Unit.DEZIDEGREE_CELSIUS)), //
+				.unit(Unit.DEZIDEGREE_CELSIUS) //
+				.persistencePriority(PersistencePriority.MEDIUM)), //
 		/**
 		 * Mixer circuit setpoint 1; register 35, INT16 x 0.1 °C. Group:
 		 * readMixerCircuitSetpoints.
 		 */
 		MIXER_CIRCUIT_SETPOINT_1(Doc.of(OpenemsType.INTEGER) //
-				.unit(Unit.DEZIDEGREE_CELSIUS)), //
+				.unit(Unit.DEZIDEGREE_CELSIUS) //
+				.persistencePriority(PersistencePriority.LOW)), //
 		/**
 		 * Mixer circuit setpoint 2; register 36, INT16 x 0.1 °C. Group:
 		 * readMixerCircuitSetpoints.
 		 */
 		MIXER_CIRCUIT_SETPOINT_2(Doc.of(OpenemsType.INTEGER) //
-				.unit(Unit.DEZIDEGREE_CELSIUS)), //
+				.unit(Unit.DEZIDEGREE_CELSIUS) //
+				.persistencePriority(PersistencePriority.LOW)), //
 		/**
 		 * Expansion valve; register 40. Group: readExpansionValve.
 		 */
 		EXPANSION_VALVE(Doc.of(OpenemsType.INTEGER) //
-				.text("Expansion valve register 40; unit to be verified on the device")), //
+				.text("Expansion valve register 40; unit to be verified on the device") //
+				.persistencePriority(PersistencePriority.LOW)), //
 		/**
 		 * Operating hours 1; register 42, UINT32. Group: readOperatingHours.
 		 */
 		OPERATING_HOURS_1(Doc.of(OpenemsType.LONG) //
-				.unit(Unit.HOUR)), //
+				.unit(Unit.HOUR) //
+				.persistencePriority(PersistencePriority.LOW)), //
 		/**
 		 * Operating hours 2; register 44, UINT32. Group: readOperatingHours.
 		 */
 		OPERATING_HOURS_2(Doc.of(OpenemsType.LONG) //
-				.unit(Unit.HOUR)), //
+				.unit(Unit.HOUR) //
+				.persistencePriority(PersistencePriority.LOW)), //
 		/**
 		 * Holding register 101. Group: readHoldingRegisters.
 		 */
-		HOLDING_101(Doc.of(OpenemsType.INTEGER)), //
+		HOLDING_101(Doc.of(OpenemsType.INTEGER) //
+				.persistencePriority(PersistencePriority.LOW)), //
 		/**
 		 * Holding register 102. Group: readHoldingRegisters.
 		 */
-		HOLDING_102(Doc.of(OpenemsType.INTEGER)), //
+		HOLDING_102(Doc.of(OpenemsType.INTEGER) //
+				.persistencePriority(PersistencePriority.LOW)), //
 		/**
 		 * Holding register 103. Group: readHoldingRegisters.
 		 */
-		HOLDING_103(Doc.of(OpenemsType.INTEGER)), //
+		HOLDING_103(Doc.of(OpenemsType.INTEGER) //
+				.persistencePriority(PersistencePriority.LOW)), //
 		/**
 		 * Holding register 104. Group: readHoldingRegisters.
 		 */
-		HOLDING_104(Doc.of(OpenemsType.INTEGER)), //
+		HOLDING_104(Doc.of(OpenemsType.INTEGER) //
+				.persistencePriority(PersistencePriority.LOW)), //
 		/**
 		 * Holding register 105. Group: readHoldingRegisters.
 		 */
-		HOLDING_105(Doc.of(OpenemsType.INTEGER)), //
+		HOLDING_105(Doc.of(OpenemsType.INTEGER) //
+				.persistencePriority(PersistencePriority.LOW)), //
 		/**
 		 * Holding register 106. Group: readHoldingRegisters.
 		 */
-		HOLDING_106(Doc.of(OpenemsType.INTEGER)), //
+		HOLDING_106(Doc.of(OpenemsType.INTEGER) //
+				.persistencePriority(PersistencePriority.LOW)), //
 		/**
 		 * External request register 117. Group: readExternalRequest.
 		 */
-		EXTERNAL_REQUEST_117(Doc.of(OpenemsType.BOOLEAN)), //
+		EXTERNAL_REQUEST_117(Doc.of(OpenemsType.BOOLEAN) //
+				.persistencePriority(PersistencePriority.LOW)), //
 		/**
 		 * Compressor speed setpoint; register 126, per mille. Group: readSpeedSetpoint.
+		 * LOW: mirror of the device-internal setpoint, debug only.
 		 */
 		COMPRESSOR_SPEED_SETPOINT(Doc.of(OpenemsType.INTEGER) //
-				.unit(Unit.THOUSANDTH)), //
+				.unit(Unit.THOUSANDTH) //
+				.persistencePriority(PersistencePriority.LOW)), //
 		/**
 		 * External request register 127. Group: readExternalRequest.
 		 */
-		EXTERNAL_REQUEST_127(Doc.of(OpenemsType.BOOLEAN)), //
+		EXTERNAL_REQUEST_127(Doc.of(OpenemsType.BOOLEAN) //
+				.persistencePriority(PersistencePriority.LOW)), //
 		/**
 		 * External sensor override register 129. Group: readExternalSensorOverrides.
 		 */
-		SENSOR_OVERRIDE_129(Doc.of(OpenemsType.INTEGER)), //
+		SENSOR_OVERRIDE_129(Doc.of(OpenemsType.INTEGER) //
+				.persistencePriority(PersistencePriority.LOW)), //
 		/**
 		 * External sensor override register 130. Group: readExternalSensorOverrides.
 		 */
-		SENSOR_OVERRIDE_130(Doc.of(OpenemsType.INTEGER)), //
+		SENSOR_OVERRIDE_130(Doc.of(OpenemsType.INTEGER) //
+				.persistencePriority(PersistencePriority.LOW)), //
 		/**
 		 * External sensor override register 131. Group: readExternalSensorOverrides.
 		 */
-		SENSOR_OVERRIDE_131(Doc.of(OpenemsType.INTEGER)), //
+		SENSOR_OVERRIDE_131(Doc.of(OpenemsType.INTEGER) //
+				.persistencePriority(PersistencePriority.LOW)), //
 		/**
 		 * External sensor override register 132. Group: readExternalSensorOverrides.
 		 */
-		SENSOR_OVERRIDE_132(Doc.of(OpenemsType.INTEGER)), //
+		SENSOR_OVERRIDE_132(Doc.of(OpenemsType.INTEGER) //
+				.persistencePriority(PersistencePriority.LOW)), //
 		/**
 		 * External sensor override register 133. Group: readExternalSensorOverrides.
 		 */
-		SENSOR_OVERRIDE_133(Doc.of(OpenemsType.INTEGER)), //
+		SENSOR_OVERRIDE_133(Doc.of(OpenemsType.INTEGER) //
+				.persistencePriority(PersistencePriority.LOW)), //
 		/**
 		 * External sensor override register 134. Group: readExternalSensorOverrides.
 		 */
-		SENSOR_OVERRIDE_134(Doc.of(OpenemsType.INTEGER)), //
+		SENSOR_OVERRIDE_134(Doc.of(OpenemsType.INTEGER) //
+				.persistencePriority(PersistencePriority.LOW)), //
 		/**
 		 * Second stage register 147. Group: readSecondStage.
 		 */
-		SECOND_STAGE_147(Doc.of(OpenemsType.INTEGER)), //
+		SECOND_STAGE_147(Doc.of(OpenemsType.INTEGER) //
+				.persistencePriority(PersistencePriority.LOW)), //
 		/**
 		 * Second stage register 148. Group: readSecondStage.
 		 */
-		SECOND_STAGE_148(Doc.of(OpenemsType.INTEGER)), //
-
+		SECOND_STAGE_148(Doc.of(OpenemsType.INTEGER) //
+				.persistencePriority(PersistencePriority.LOW)), //
 		// 5.5 Write channels; without a Modbus write task in read-only mode
 		/**
 		 * Electric power setpoint (register 125, demand profile 3). Written only in
