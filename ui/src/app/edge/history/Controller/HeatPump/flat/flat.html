@@ -1,0 +1,6 @@
+@if (isInitialized) {
+  <oe-flat-widget [title]="component.alias" [icon]="{ name: 'oe-heatpump', color: 'dark' }" button [link]="'/device/' + edge.id + newNavigationUrlSegment + '/history/' + component.id + '/managedheatpumpchart'">
+    <oe-flat-widget-line [name]="'HEAT_PUMP.THERMAL_POWER' | translate" [channelAddress]="component.id + '/ThermalPower'" [converter]="Utils.CONVERT_WATT_TO_KILOWATT"></oe-flat-widget-line>
+    <oe-flat-widget-line [name]="'HEAT_PUMP.CONSUMPTION_ENERGY' | translate" [channelAddress]="component.id + '/ActiveConsumptionEnergy'" [converter]="Utils.CONVERT_TO_KILO_WATTHOURS"></oe-flat-widget-line>
+  </oe-flat-widget>
+}

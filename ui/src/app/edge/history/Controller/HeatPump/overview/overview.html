@@ -1,0 +1,26 @@
+@if (isInitialized && component) {
+  <oe-chart [title]="component.alias">
+    <ion-segment [value]="selectedTab" (ionChange)="setTab($event)">
+      <ion-segment-button value="temperatures">
+        <ion-label>{{ "HEAT_PUMP.HISTORY.TEMPERATURES" | translate }}</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="powerEnergy">
+        <ion-label>{{ "HEAT_PUMP.HISTORY.POWER_AND_ENERGY" | translate }}</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="cop">
+        <ion-label>{{ "HEAT_PUMP.HISTORY.COP" | translate }}</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+    @switch (selectedTab) {
+      @case ("temperatures") {
+        <controller-heatpump-temperatures-chart [isOnlyChart]="true" [component]="component"></controller-heatpump-temperatures-chart>
+      }
+      @case ("powerEnergy") {
+        <controller-heatpump-power-energy-chart [isOnlyChart]="true" [component]="component"></controller-heatpump-power-energy-chart>
+      }
+      @case ("cop") {
+        <controller-heatpump-cop-chart [isOnlyChart]="true" [component]="component"></controller-heatpump-cop-chart>
+      }
+    }
+  </oe-chart>
+}

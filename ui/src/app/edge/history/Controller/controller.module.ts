@@ -8,6 +8,7 @@ import { ControllerIoSingleThreshold } from "../../live/Controller/Io/ChannelSin
 import { FixDigitalOutputHistory } from "../../live/Controller/Io/FixDigitalOutput/history/fix-digital-output-history.module";
 import { ControllerModbusTcpApi } from "../../live/Controller/ModbusTcpApi/history/modbusTcpApi.module";
 import { ControllerEss } from "./Ess/ess.module";
+import { ControllerHeatPumpHistoryModule } from "./HeatPump/heatpump.module";
 import { ControllerIo } from "./Io/Io.module";
 
 @NgModule({
@@ -18,6 +19,7 @@ import { ControllerIo } from "./Io/Io.module";
         ControllerEss,
         ControllerEssGridOptimizedCharge,
         ControllerHeat,
+        ControllerHeatPumpHistoryModule,
         ControllerIo,
         ControllerIoSingleThreshold,
         ControllerModbusTcpApi,
@@ -30,6 +32,7 @@ import { ControllerIo } from "./Io/Io.module";
         ControllerEss,
         ControllerEssGridOptimizedCharge,
         ControllerHeat,
+        ControllerHeatPumpHistoryModule,
         ControllerIo,
         ControllerIoSingleThreshold,
         ControllerModbusTcpApi,

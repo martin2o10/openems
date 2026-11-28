@@ -104,6 +104,11 @@
                   <controller-io-heatingelement-widget [componentId]="widget.componentId"></controller-io-heatingelement-widget>
                 </ion-col>
               }
+              @case ("io.openems.edge.heat.api.ManagedHeatPump") {
+                <ion-col size="12" size-md="6" size-lg="4" size-xl="3">
+                  <controller-heatpump-history-widget [componentId]="widget.componentId"></controller-heatpump-history-widget>
+                </ion-col>
+              }
               @case ("Heat.Askoma") {
                 <ion-col size="12" size-md="6" size-lg="4" size-xl="3">
                   <controller-heat-widget [componentId]="widget.componentId"></controller-heat-widget>

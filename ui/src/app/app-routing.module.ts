@@ -2,6 +2,7 @@ import { inject, NgModule } from "@angular/core";
 import { NoPreloading, RedirectFunction, RouterModule, Routes } from "@angular/router";
 import { CookieService } from "ngx-cookie-service";
 import { EdgeComponent } from "./edge/edge.component";
+import { ControllerHeatPumpOverviewComponent } from "./edge/history/Controller/HeatPump/overview/overview";
 import { DelayedSellToGridChartOverviewComponent } from "./edge/history/delayedselltogrid/symmetricpeakshavingchartoverview/delayedselltogridchartoverview.component";
 import { HistoryComponent as EdgeHistoryComponent } from "./edge/history/history.component";
 import { HistoryDataService } from "./edge/history/historydataservice";
@@ -85,6 +86,10 @@ export const history: (/** Determines if titles in headers can be set */ customH
             {
                 path: ":componentId/heatchart",
                 component: ControllerHeatOverviewComponent,
+            },
+            {
+                path: ":componentId/managedheatpumpchart",
+                component: ControllerHeatPumpOverviewComponent,
             },
             {
                 path: ":componentId/enerixchart",
