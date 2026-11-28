@@ -8,19 +8,19 @@ OpenEMS (FEMS) is a modular energy management system:
 - **Backend** (`io.openems.backend.*`) aggregates, monitors, and supports remote control.
 - **UI** (`ui/`) is the Angular/Ionic frontend for real-time monitoring.
 
-Main stacks: Java 25, Gradle, OSGi/bnd workspace, JUnit, Angular/Ionic.
+Main stacks: Java 25, Gradle, OSGi/bnd workspace, JUnit 5 (Jupiter), Angular/Ionic.
 
 ## Working Style
 
 - Prefer small, focused diffs. Formatting changes to files you touch are not considered unrelated churn: run the project's formatter on every file you change (see `ui/AGENTS.md` for the UI), even if it reformats pre-existing lines in those files.
-- Java files must be equivalent to the output of Eclipse "Source > Format" (JDT default profile) plus "Organize Imports"; no custom formatter profile is used. See `.github/skills/oe-java-format/SKILL.md` for how to apply and verify this, including headless verification.
+- Java files must match Eclipse "Source > Format" + "Organize Imports" (JDT default profile). See `.github/skills/oe-java-format/SKILL.md`.
 - Prefer self-explanatory code with clear names and simple structure. Add comments only when they explain non-obvious intent, constraints, or tradeoffs. Comments should be only in English.
 - Preserve existing behavior unless a change is explicitly requested.
 - Follow nearby code and existing FEMS/OpenEMS utilities, modules, helper APIs, and configuration patterns before adding abstractions.
 - Use the existing Utils classes where possible (e.g. `io.openems.common.utils.*` like `JsonUtils`, `TextProvider`, `ReflectionUtils`, or `io.openems.edge.common.channel.ChannelUtils`) instead of hand-rolled helpers; this applies to production code and tests.
 - Run the narrowest relevant validation for the changed area.
 - Do not bump dependencies, wrappers, plugins, or introduce new frameworks unless explicitly requested.
-- `cnf/pom.xml` must explicitly declare every Maven dependency of the OSGi runtime, including transitive ones, so it acts as a complete and reliable SBOM. When adding a dependency, also add its compile- and runtime-scope transitive dependencies at the same version (skip `optional`, `provided`, and `test` scopes) and verify with the app resolve tasks (e.g. `.\gradlew.bat :io.openems.backend.application:resolve.BackendApp`).
+- `cnf/pom.xml` must explicitly declare every Maven dependency that is actually used in compile or runtime, including transitive ones, so it acts as a complete and reliable SBOM of the packages in use. When adding a dependency, also add its compile- and runtime-scope transitive dependencies at the same version (skip `optional`, `provided`, and `test` scopes) and verify with the app resolve tasks (e.g. `.\gradlew.bat :io.openems.backend.application:resolve.BackendApp`).
 - Never create a Git commit without asking the user first. Leave changes uncommitted for review; commit only after the user explicitly confirms (or asks you to commit).
 
 ## Java / Edge / Backend
@@ -42,12 +42,10 @@ Main stacks: Java 25, Gradle, OSGi/bnd workspace, JUnit, Angular/Ionic.
 
 ## Tests
 
-Use dedicated skills for detailed test-writing patterns:
+Use JUnit 5 (Jupiter) for all Java tests; do not use JUnit 4. Use dedicated skills for detailed test-writing patterns:
 
 - `.github/skills/oe-junit/SKILL.md` for Java Edge/Backend tests.
 - `.github/skills/oe-ui-test/SKILL.md` for Angular/Ionic UI tests.
-
-Preserve intentional trailing `//` markers in fluent `ComponentTest` chains.
 
 ## Reviews
 

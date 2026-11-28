@@ -53,11 +53,11 @@ public class OnNotificationTest {
 				FunctionUtils::returnNothing, //
 				FunctionUtils::returnNothing, //
 				() -> timedataManager, //
+				mock(), //
 				getEdge, //
 				FunctionUtils::doNothing, //
-				FunctionUtils::doNothing, //
-				FunctionUtils::doNothing, //
-				FunctionUtils::doNothing);
+				FunctionUtils::doNothing //
+		);
 
 		// Mock the environment, as Prometheus metrics are not available in unit tests
 		final var spyOnNotification = spy(onNotification);

@@ -12,9 +12,9 @@ import java.util.function.Supplier;
 import org.java_websocket.WebSocket;
 import org.osgi.service.event.EventAdmin;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.openems.backend.common.edge.jsonrpc.ConnectedEdges;
+import io.openems.backend.common.edge.subscription.SubscriptionManager;
 import io.openems.backend.common.metadata.Edge;
 import io.openems.backend.common.metadata.Edge.Events;
 import io.openems.backend.common.timedata.TimedataManager;
@@ -33,42 +33,41 @@ import io.openems.common.jsonrpc.notification.ResendDataNotification;
 import io.openems.common.jsonrpc.notification.ScheduleNotification;
 import io.openems.common.jsonrpc.notification.SystemLogNotification;
 import io.openems.common.jsonrpc.notification.TimestampedDataNotification;
+import io.openems.common.logger.ContextLogger;
 import io.openems.common.types.ChannelAddress;
 import io.openems.common.types.SemanticVersion;
 
 public class OnNotification implements io.openems.common.websocket.OnNotification {
 
-	private final Logger log = LoggerFactory.getLogger(OnNotification.class);
-
 	private final String name;
+	private final Logger log;
 	private final Supplier<EventAdmin> eventAdmin;
 	private final Supplier<UiWebsocket> uiWebsocket;
 	private final Supplier<TimedataManager> timedataManager;
+	private final SubscriptionManager subscriptionManager;
 	private final Function<String, Optional<Edge>> getEdge;
 	private final BiConsumer<String, SystemLogNotification> handleSystemLogNotification;
 	private final BiConsumer<String, ScheduleNotification> handleScheduleNotification;
-	private final BiConsumer<Logger, String> logInfo;
-	private final BiConsumer<Logger, String> logWarn;
 
 	public OnNotification(//
 			String name, //
 			Supplier<EventAdmin> eventAdmin, //
 			Supplier<UiWebsocket> uiWebsocket, //
 			Supplier<TimedataManager> timedataManager, //
+			SubscriptionManager subscriptionManager, //
 			Function<String, Optional<Edge>> getEdge, //
 			BiConsumer<String, SystemLogNotification> handleSystemLogNotification, //
-			BiConsumer<String, ScheduleNotification> handleScheduleNotification, //
-			BiConsumer<Logger, String> logInfo, //
-			BiConsumer<Logger, String> logWarn) {
+			BiConsumer<String, ScheduleNotification> handleScheduleNotification //
+	) {
 		this.name = name;
+		this.log = new ContextLogger(OnNotification.class, name);
 		this.eventAdmin = eventAdmin;
 		this.uiWebsocket = uiWebsocket;
 		this.timedataManager = timedataManager;
+		this.subscriptionManager = subscriptionManager;
 		this.getEdge = getEdge;
 		this.handleSystemLogNotification = handleSystemLogNotification;
 		this.handleScheduleNotification = handleScheduleNotification;
-		this.logInfo = logInfo;
-		this.logWarn = logWarn;
 	}
 
 	protected Closeable startTimer(String method) {
@@ -78,7 +77,7 @@ public class OnNotification implements io.openems.common.websocket.OnNotificatio
 	@Override
 	public void accept(WebSocket ws, JsonrpcNotification notification) throws OpenemsNamedException {
 		final var method = notification.getMethod();
-		try (final var timer = this.startTimer(notification.getFullyQualifiedMethod())) {
+		try (final var _ = this.startTimer(notification.getFullyQualifiedMethod())) {
 			WsData wsData = ws.getAttachment();
 
 			switch (method) {
@@ -87,7 +86,7 @@ public class OnNotification implements io.openems.common.websocket.OnNotificatio
 			case EdgeRpcNotification.METHOD //
 				-> this.handleEdgeRpcNotification(EdgeRpcNotification.from(notification), wsData);
 			default //
-				-> this.logWarn.accept(this.log, "Unhandled Notification: " + notification);
+				-> this.log.warn("Unhandled Notification: {}", notification);
 			}
 		} catch (IOException e) {
 			this.log.debug("Failed to close timer for notification: {}", method, e);
@@ -174,7 +173,7 @@ public class OnNotification implements io.openems.common.websocket.OnNotificatio
 		case LogMessageNotification.METHOD //
 			-> this.handleLogMessageNotification(LogMessageNotification.from(notification), edgeId);
 		default //
-			-> this.logWarn.accept(this.log, "[" + edgeId + "] Unhandled Notification: " + notification);
+			-> this.log.warn("[{}] Unhandled Notification: {}", edgeId, notification);
 		}
 	}
 
@@ -226,7 +225,7 @@ public class OnNotification implements io.openems.common.websocket.OnNotificatio
 				edgeCache.updateAggregatedData(notification);
 				timedataManager.write(edgeId, notification);
 			}
-			case ResendDataNotification unused -> {
+			case ResendDataNotification _ -> {
 				// Nothing
 			}
 			}
@@ -290,9 +289,7 @@ public class OnNotification implements io.openems.common.websocket.OnNotificatio
 	 * @param edgeId  the Edge-ID
 	 */
 	private void handleLogMessageNotification(LogMessageNotification message, String edgeId) {
-		this.logInfo.accept(this.log, "Edge [" + edgeId + "] " //
-				+ message.level.getName() + "-Message: " //
-				+ message.msg);
+		this.log.info("Edge [{}] {}-Message: {}", edgeId, message.level.getName(), message.msg);
 	}
 
 	private void announceOnline(String edgeId) {
@@ -304,8 +301,9 @@ public class OnNotification implements io.openems.common.websocket.OnNotificatio
 		edge.setLastmessage();
 	}
 
-	private void announceOffline(String edgeId) {
-		this.getEdge.apply(edgeId).ifPresent(OnNotification::announceOffline);
+	private void announceOffline(BackendEdgeClient backendEdgeClient) {
+		this.getEdge.apply(backendEdgeClient.getEdgeId()).ifPresent(OnNotification::announceOffline);
+		this.subscriptionManager.cleanupClient(backendEdgeClient);
 	}
 
 	protected static void announceOffline(Edge edge) {

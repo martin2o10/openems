@@ -475,6 +475,16 @@ export namespace DummyConfig {
             ],
         };
 
+        export const CONTROLLER_ESS_PREPARE_BATTERY_EXTENSION: Factory = {
+            id: "Controller.Ess.PrepareBatteryExtension",
+            natureIds: [
+                "io.openems.edge.controller.ess.fixstateofcharge.ControllerEssPrepareBatteryExtensionImpl",
+                "io.openems.edge.controller.ess.fixstateofcharge.api.FixStateOfCharge",
+                "io.openems.edge.common.component.OpenemsComponent",
+                "io.openems.edge.controller.api.Controller",
+            ],
+        };
+
         export const CONTROLLER_ESS_GRIDOPTIMIZEDCHARGE: Factory = {
             id: "Controller.Ess.GridOptimizedCharge",
             natureIds: [
@@ -1009,6 +1019,17 @@ export namespace DummyConfig {
             id: id,
             alias: alias ?? id,
             factory: Factory.CONTROLLER_ESS_FIXACTIVEPOWER,
+            properties: {},
+            channels: {},
+        });
+
+        export const CONTROLLER_ESS_PREPARE_BATTERY_EXTENSION = (
+            id: string = "ctrlPrepareBatteryExtension0",
+            alias?: string,
+        ): Component => ({
+            id: id,
+            alias: alias ?? id,
+            factory: Factory.CONTROLLER_ESS_PREPARE_BATTERY_EXTENSION,
             properties: {},
             channels: {},
         });
@@ -1588,5 +1609,47 @@ describe("hasPropertyValue", () => {
 
     it("#compareWrongTypes", () => {
         expect(component.hasPropertyValue("numberValueStrng", 42)).toBeTrue();
+    });
+});
+
+describe("getComponentFromOtherComponentsProperty", () => {
+    const ess = DummyConfig.Component.ESS_GENERIC_MANAGEDSYMMETRIC("ess0");
+    const controller = DummyConfig.Component.CONTROLLER_ESS_EMERGENCY_CAPACITY_RESERVE({
+        id: "ctrlEmergencyCapacityReserve0",
+        essId: "ess0",
+    });
+
+    it("returns the referenced component if the property points to an existing component", () => {
+        const config = DummyConfig.from(ess, controller);
+        expect(config.getComponentFromOtherComponentsProperty("ctrlEmergencyCapacityReserve0", "ess.id")).toBe(
+            config.components["ess0"],
+        );
+    });
+
+    it("returns null if the other component does not exist", () => {
+        const config = DummyConfig.from(ess);
+        expect(config.getComponentFromOtherComponentsProperty("unknown0", "ess.id")).toBeNull();
+    });
+
+    it("returns null if the property does not exist on the other component", () => {
+        const config = DummyConfig.from(ess, controller);
+        expect(config.getComponentFromOtherComponentsProperty("ctrlEmergencyCapacityReserve0", "meter.id")).toBeNull();
+    });
+
+    it("returns null if the property references a non-existing component", () => {
+        const config = DummyConfig.from(controller);
+        expect(config.getComponentFromOtherComponentsProperty("ctrlEmergencyCapacityReserve0", "ess.id")).toBeNull();
+    });
+
+    it("returns null if the property value is null", () => {
+        const controllerWithNullReference: Component = {
+            id: "ctrlEmergencyCapacityReserve0",
+            alias: "ctrlEmergencyCapacityReserve0",
+            factory: DummyConfig.Factory.CONTROLLER_ESS_EMERGENCY_CAPACITY_RESERVE,
+            properties: { "ess.id": null },
+            channels: {},
+        };
+        const config = DummyConfig.from(ess, controllerWithNullReference);
+        expect(config.getComponentFromOtherComponentsProperty("ctrlEmergencyCapacityReserve0", "ess.id")).toBeNull();
     });
 });
