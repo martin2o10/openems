@@ -36,14 +36,14 @@ describe("HeatPump history chart data", () => {
             ]);
         });
 
-        it("converts dezidegree values to degrees", () => {
+        it("converts historic values (raw/1000) to degrees", () => {
             const chartData = getTemperaturesChartData(component, translate);
             const output = chartData.output({
-                OutdoorTemperature: [50, null],
-                FlowTemperature: [480, null],
-                ReturnTemperature: [350, null],
-                DomesticHotWaterTemperature: [420, null],
-                Temperature: [300, null],
+                OutdoorTemperature: [0.05, null],
+                FlowTemperature: [0.48, null],
+                ReturnTemperature: [0.35, null],
+                DomesticHotWaterTemperature: [0.42, null],
+                Temperature: [0.3, null],
             });
             expect(output[0].converter()).toEqual([5, null]);
             expect(output[1].converter()).toEqual([48, null]);
@@ -53,9 +53,9 @@ describe("HeatPump history chart data", () => {
     });
 
     describe("getPowerEnergyChartData", () => {
-        it("shows power in kW in the line chart", () => {
+        it("passes the historic kW values through in the line chart", () => {
             const chartData = getPowerEnergyChartData(component, translate, "line");
-            const output = chartData.output({ ActivePower: [1500, null], ThermalPower: [5200, null] });
+            const output = chartData.output({ ActivePower: [1.5, null], ThermalPower: [5.2, null] });
             expect(output.map((d) => d.name)).toEqual(["Electric power", "Thermal power"]);
             expect(output[0].converter()).toEqual([1.5, null]);
             expect(output[1].converter()).toEqual([5.2, null]);
@@ -87,7 +87,7 @@ describe("HeatPump history chart data", () => {
         it("passes the COP values through", () => {
             const chartData = getCopChartData(component, translate);
             expect(chartData.input[0].powerChannel?.toString()).toBe("heatPump0/CoefficientOfPerformance");
-            const output = chartData.output({ CoefficientOfPerformance: [3.5, null] });
+            const output = chartData.output({ CoefficientOfPerformance: [0.0035, null] });
             expect(output[0].name).toBe("Coefficient of performance (COP)");
             expect(output[0].converter()).toEqual([3.5, null]);
         });

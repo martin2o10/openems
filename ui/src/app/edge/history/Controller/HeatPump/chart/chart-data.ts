@@ -32,8 +32,9 @@ export function getTemperaturesChartData(
     return {
         input: input,
         output: (data: HistoryUtils.ChannelData) => {
+            // Historic data is delivered divided by 1000; DEZIDEGREE_CELSIUS needs x100 to show °C
             const toDegrees = (values: (number | null)[] | undefined) =>
-                values?.map((value) => (value == null ? null : NumberUtils.divideSafely(value, 10)));
+                values?.map((value) => (value == null ? null : NumberUtils.multiplySafely(value, 100)));
 
             return [
                 {
@@ -176,11 +177,9 @@ export function getPowerEnergyChartData(
 
             return [
                 {
+                    // Historic data is delivered in kW already (raw W / 1000)
                     name: translate.instant("HEAT_PUMP.ELECTRIC_POWER"),
-                    converter: () =>
-                        data["ActivePower"]?.map((value) =>
-                            value == null ? null : NumberUtils.divideSafely(value, 1000),
-                        ),
+                    converter: () => data["ActivePower"]?.map((value) => value),
                     color: ChartConstants.Colors.BLUE,
                     yAxisId: ChartAxis.LEFT,
                     stack: 0,
@@ -188,10 +187,7 @@ export function getPowerEnergyChartData(
                 },
                 {
                     name: translate.instant("HEAT_PUMP.THERMAL_POWER"),
-                    converter: () =>
-                        data["ThermalPower"]?.map((value) =>
-                            value == null ? null : NumberUtils.divideSafely(value, 1000),
-                        ),
+                    converter: () => data["ThermalPower"]?.map((value) => value),
                     color: ChartConstants.Colors.GREEN,
                     yAxisId: ChartAxis.LEFT,
                     stack: 0,
@@ -233,7 +229,11 @@ export function getCopChartData(component: EdgeConfig.Component, translate: Tran
         output: (data: HistoryUtils.ChannelData) => [
             {
                 name: translate.instant("HEAT_PUMP.COP"),
-                converter: () => data["CoefficientOfPerformance"]?.map((value) => value),
+                // Historic data is delivered divided by 1000; COP is dimensionless -> x1000
+                converter: () =>
+                    data["CoefficientOfPerformance"]?.map((value) =>
+                        value == null ? null : NumberUtils.multiplySafely(value, 1000),
+                    ),
                 color: ChartConstants.Colors.GREEN,
                 yAxisId: ChartAxis.LEFT,
                 stack: 0,
