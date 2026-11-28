@@ -5,7 +5,8 @@
         "CONSUMPTION_ENERGY": "Consumption energy",
         "COP": "Coefficient of performance (COP)",
         "DEFROST_VALVE_ACTIVE": "Defrost valve active",
-        "DEMAND": {
+        "DEMAND": "Demand",
+        "DEMAND_VALUES": {
             "COOLING": "Cooling",
             "DOMESTIC_HOT_WATER": "Domestic hot water",
             "NONE": "No demand",
@@ -50,7 +51,8 @@
             "SUCTION_GAS_TEMPERATURE": "Suction gas temperature",
             "VOLUME_FLOW": "Volume flow"
         },
-        "OPERATING_MODE": {
+        "OPERATING_MODE": "Operating mode",
+        "OPERATING_MODE_VALUES": {
             "AUTOMATIC": "Automatic",
             "CONTINUOUS": "Continuous",
             "COOLING": "Cooling",

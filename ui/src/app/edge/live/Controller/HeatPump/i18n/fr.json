@@ -5,7 +5,8 @@
         "CONSUMPTION_ENERGY": "Énergie consommée",
         "COP": "Coefficient de performance (COP)",
         "DEFROST_VALVE_ACTIVE": "Vanne de dégivrage active",
-        "DEMAND": {
+        "DEMAND": "Demande",
+        "DEMAND_VALUES": {
             "COOLING": "Refroidissement",
             "DOMESTIC_HOT_WATER": "Eau chaude",
             "NONE": "Aucune demande",
@@ -50,7 +51,8 @@
             "SUCTION_GAS_TEMPERATURE": "Température de gaz d'aspiration",
             "VOLUME_FLOW": "Débit volumique"
         },
-        "OPERATING_MODE": {
+        "OPERATING_MODE": "Mode de fonctionnement",
+        "OPERATING_MODE_VALUES": {
             "AUTOMATIC": "Automatique",
             "CONTINUOUS": "Continu",
             "COOLING": "Refroidissement",

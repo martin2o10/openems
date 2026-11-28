@@ -5,7 +5,8 @@
         "CONSUMPTION_ENERGY": "消費エネルギー",
         "COP": "成績係数 (COP)",
         "DEFROST_VALVE_ACTIVE": "除霜弁アクティブ",
-        "DEMAND": {
+        "DEMAND": "要求",
+        "DEMAND_VALUES": {
             "COOLING": "冷房",
             "DOMESTIC_HOT_WATER": "給湯",
             "NONE": "要求なし",
@@ -50,7 +51,8 @@
             "SUCTION_GAS_TEMPERATURE": "吸入ガス温度",
             "VOLUME_FLOW": "体積流量"
         },
-        "OPERATING_MODE": {
+        "OPERATING_MODE": "運転モード",
+        "OPERATING_MODE_VALUES": {
             "AUTOMATIC": "自動",
             "CONTINUOUS": "連続",
             "COOLING": "冷房",

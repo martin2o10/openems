@@ -5,7 +5,8 @@
         "CONSUMPTION_ENERGY": "Energía consumida",
         "COP": "Coeficiente de rendimiento (COP)",
         "DEFROST_VALVE_ACTIVE": "Válvula de desescarche activa",
-        "DEMAND": {
+        "DEMAND": "Demanda",
+        "DEMAND_VALUES": {
             "COOLING": "Refrigeración",
             "DOMESTIC_HOT_WATER": "Agua caliente",
             "NONE": "Sin demanda",
@@ -50,7 +51,8 @@
             "SUCTION_GAS_TEMPERATURE": "Temperatura de gas de aspiración",
             "VOLUME_FLOW": "Caudal volumétrico"
         },
-        "OPERATING_MODE": {
+        "OPERATING_MODE": "Modo de operación",
+        "OPERATING_MODE_VALUES": {
             "AUTOMATIC": "Automático",
             "CONTINUOUS": "Continuo",
             "COOLING": "Refrigeración",

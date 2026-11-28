@@ -5,7 +5,8 @@
         "CONSUMPTION_ENERGY": "Förbrukad energi",
         "COP": "Värmefaktor (COP)",
         "DEFROST_VALVE_ACTIVE": "Avfrostningsventil aktiv",
-        "DEMAND": {
+        "DEMAND": "Förfrågan",
+        "DEMAND_VALUES": {
             "COOLING": "Kyla",
             "DOMESTIC_HOT_WATER": "Varmvatten",
             "NONE": "Ingen förfrågan",
@@ -50,7 +51,8 @@
             "SUCTION_GAS_TEMPERATURE": "Suggasstemperatur",
             "VOLUME_FLOW": "Volymflöde"
         },
-        "OPERATING_MODE": {
+        "OPERATING_MODE": "Driftläge",
+        "OPERATING_MODE_VALUES": {
             "AUTOMATIC": "Automatisk",
             "CONTINUOUS": "Kontinuerlig",
             "COOLING": "Kyla",

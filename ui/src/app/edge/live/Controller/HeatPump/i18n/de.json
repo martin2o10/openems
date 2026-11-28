@@ -5,7 +5,8 @@
         "CONSUMPTION_ENERGY": "Verbrauchsenergie",
         "COP": "Leistungszahl (COP)",
         "DEFROST_VALVE_ACTIVE": "Abtauventil aktiv",
-        "DEMAND": {
+        "DEMAND": "Bedarf",
+        "DEMAND_VALUES": {
             "COOLING": "Kühlen",
             "DOMESTIC_HOT_WATER": "Warmwasser",
             "NONE": "Kein Bedarf",
@@ -50,7 +51,8 @@
             "SUCTION_GAS_TEMPERATURE": "Sauggastemperatur",
             "VOLUME_FLOW": "Volumenstrom"
         },
-        "OPERATING_MODE": {
+        "OPERATING_MODE": "Betriebsmodus",
+        "OPERATING_MODE_VALUES": {
             "AUTOMATIC": "Automatisch",
             "CONTINUOUS": "Dauerbetrieb",
             "COOLING": "Kühlen",

@@ -120,30 +120,30 @@ export const CONVERT_OPERATING_MODE_TO_LABEL = (translate: TranslateService) => 
     return (value: number | null): string => {
         switch (value) {
             case OperatingMode.OFF:
-                return translate.instant("HEAT_PUMP.OPERATING_MODE.OFF");
+                return translate.instant("HEAT_PUMP.OPERATING_MODE_VALUES.OFF");
             case OperatingMode.AUTOMATIC:
-                return translate.instant("HEAT_PUMP.OPERATING_MODE.AUTOMATIC");
+                return translate.instant("HEAT_PUMP.OPERATING_MODE_VALUES.AUTOMATIC");
             case OperatingMode.COOLING:
-                return translate.instant("HEAT_PUMP.OPERATING_MODE.COOLING");
+                return translate.instant("HEAT_PUMP.OPERATING_MODE_VALUES.COOLING");
             case OperatingMode.SUMMER:
-                return translate.instant("HEAT_PUMP.OPERATING_MODE.SUMMER");
+                return translate.instant("HEAT_PUMP.OPERATING_MODE_VALUES.SUMMER");
             case OperatingMode.CONTINUOUS:
-                return translate.instant("HEAT_PUMP.OPERATING_MODE.CONTINUOUS");
+                return translate.instant("HEAT_PUMP.OPERATING_MODE_VALUES.CONTINUOUS");
             case OperatingMode.SETBACK:
-                return translate.instant("HEAT_PUMP.OPERATING_MODE.SETBACK");
+                return translate.instant("HEAT_PUMP.OPERATING_MODE_VALUES.SETBACK");
             case OperatingMode.HOLIDAY:
-                return translate.instant("HEAT_PUMP.OPERATING_MODE.HOLIDAY");
+                return translate.instant("HEAT_PUMP.OPERATING_MODE_VALUES.HOLIDAY");
             case OperatingMode.PARTY:
-                return translate.instant("HEAT_PUMP.OPERATING_MODE.PARTY");
+                return translate.instant("HEAT_PUMP.OPERATING_MODE_VALUES.PARTY");
             case OperatingMode.SCREED_DRYING:
-                return translate.instant("HEAT_PUMP.OPERATING_MODE.SCREED_DRYING");
+                return translate.instant("HEAT_PUMP.OPERATING_MODE_VALUES.SCREED_DRYING");
             case OperatingMode.GRID_OPERATOR_LOCK:
-                return translate.instant("HEAT_PUMP.OPERATING_MODE.GRID_OPERATOR_LOCK");
+                return translate.instant("HEAT_PUMP.OPERATING_MODE_VALUES.GRID_OPERATOR_LOCK");
             case OperatingMode.MAIN_SWITCH_OFF:
-                return translate.instant("HEAT_PUMP.OPERATING_MODE.MAIN_SWITCH_OFF");
+                return translate.instant("HEAT_PUMP.OPERATING_MODE_VALUES.MAIN_SWITCH_OFF");
             case OperatingMode.UNDEFINED:
             default:
-                return translate.instant("HEAT_PUMP.OPERATING_MODE.UNDEFINED");
+                return translate.instant("HEAT_PUMP.OPERATING_MODE_VALUES.UNDEFINED");
         }
     };
 };
@@ -157,16 +157,16 @@ export const CONVERT_DEMAND_TO_LABEL = (translate: TranslateService) => {
     return (value: number | null): string => {
         switch (value) {
             case Demand.NONE:
-                return translate.instant("HEAT_PUMP.DEMAND.NONE");
+                return translate.instant("HEAT_PUMP.DEMAND_VALUES.NONE");
             case Demand.COOLING:
-                return translate.instant("HEAT_PUMP.DEMAND.COOLING");
+                return translate.instant("HEAT_PUMP.DEMAND_VALUES.COOLING");
             case Demand.SPACE_HEATING:
-                return translate.instant("HEAT_PUMP.DEMAND.SPACE_HEATING");
+                return translate.instant("HEAT_PUMP.DEMAND_VALUES.SPACE_HEATING");
             case Demand.DOMESTIC_HOT_WATER:
-                return translate.instant("HEAT_PUMP.DEMAND.DOMESTIC_HOT_WATER");
+                return translate.instant("HEAT_PUMP.DEMAND_VALUES.DOMESTIC_HOT_WATER");
             case Demand.UNDEFINED:
             default:
-                return translate.instant("HEAT_PUMP.DEMAND.UNDEFINED");
+                return translate.instant("HEAT_PUMP.DEMAND_VALUES.UNDEFINED");
         }
     };
 };

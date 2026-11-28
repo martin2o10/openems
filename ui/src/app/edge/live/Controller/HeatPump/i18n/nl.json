@@ -5,7 +5,8 @@
         "CONSUMPTION_ENERGY": "Verbruikte energie",
         "COP": "Coefficiënt (COP)",
         "DEFROST_VALVE_ACTIVE": "Ontdooiklep actief",
-        "DEMAND": {
+        "DEMAND": "Vraag",
+        "DEMAND_VALUES": {
             "COOLING": "Koelen",
             "DOMESTIC_HOT_WATER": "Warm water",
             "NONE": "Geen vraag",
@@ -50,7 +51,8 @@
             "SUCTION_GAS_TEMPERATURE": "Zuiggastemperatuur",
             "VOLUME_FLOW": "Volumestroom"
         },
-        "OPERATING_MODE": {
+        "OPERATING_MODE": "Bedrijfsmodus",
+        "OPERATING_MODE_VALUES": {
             "AUTOMATIC": "Automatisch",
             "CONTINUOUS": "Continu",
             "COOLING": "Koelen",

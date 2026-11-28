@@ -5,7 +5,8 @@
         "CONSUMPTION_ENERGY": "Sunaudota energija",
         "COP": "Naudingumo koeficientas (COP)",
         "DEFROST_VALVE_ACTIVE": "Atitirpinimo vožtuvas aktyvus",
-        "DEMAND": {
+        "DEMAND": "Poreikis",
+        "DEMAND_VALUES": {
             "COOLING": "Vėsinimas",
             "DOMESTIC_HOT_WATER": "Karštas vanduo",
             "NONE": "Nėra poreikio",
@@ -50,7 +51,8 @@
             "SUCTION_GAS_TEMPERATURE": "Įsiurbiamų dujų temperatūra",
             "VOLUME_FLOW": "Tūrinė srovė"
         },
-        "OPERATING_MODE": {
+        "OPERATING_MODE": "Veikimo režimas",
+        "OPERATING_MODE_VALUES": {
             "AUTOMATIC": "Automatinis",
             "CONTINUOUS": "Nuolatinis",
             "COOLING": "Vėsinimas",

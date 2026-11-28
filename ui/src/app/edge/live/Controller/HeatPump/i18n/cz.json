@@ -5,7 +5,8 @@
         "CONSUMPTION_ENERGY": "Spotřebovaná energie",
         "COP": "Topný faktor (COP)",
         "DEFROST_VALVE_ACTIVE": "Ventil odmrazování aktivní",
-        "DEMAND": {
+        "DEMAND": "Požadavek",
+        "DEMAND_VALUES": {
             "COOLING": "Chlazení",
             "DOMESTIC_HOT_WATER": "Teplá voda",
             "NONE": "Žádný požadavek",
@@ -50,7 +51,8 @@
             "SUCTION_GAS_TEMPERATURE": "Teplota sání",
             "VOLUME_FLOW": "Objemový průtok"
         },
-        "OPERATING_MODE": {
+        "OPERATING_MODE": "Provozní režim",
+        "OPERATING_MODE_VALUES": {
             "AUTOMATIC": "Automaticky",
             "CONTINUOUS": "Nepřetržitý provoz",
             "COOLING": "Chlazení",
