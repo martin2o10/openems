@@ -1,0 +1,83 @@
+{
+    "HEAT_PUMP": {
+        "COMPRESSOR_RUNNING": "Verdichter läuft",
+        "COMPRESSOR_SPEED": "Verdichterdrehzahl",
+        "CONSUMPTION_ENERGY": "Verbrauchsenergie",
+        "COP": "Leistungszahl (COP)",
+        "DEFROST_VALVE_ACTIVE": "Abtauventil aktiv",
+        "DEMAND": {
+            "COOLING": "Kühlen",
+            "DOMESTIC_HOT_WATER": "Warmwasser",
+            "NONE": "Kein Bedarf",
+            "SPACE_HEATING": "Heizen",
+            "UNDEFINED": "Undefiniert"
+        },
+        "DEVICE_FAULT": "Gerätefehler",
+        "DOMESTIC_HOT_WATER_TEMPERATURE": "Warmwassertemperatur",
+        "ELECTRIC_POWER": "Elektrische Leistung",
+        "ENERGY": {
+            "ELECTRIC_DHWS": "Elektrische Energie - Warmwasser",
+            "ELECTRIC_HEATING": "Elektrische Energie - Heizen",
+            "THERMAL_DHWS": "Thermische Energie - Warmwasser",
+            "THERMAL_HEATING": "Thermische Energie - Heizen",
+            "THERMAL_TOTAL": "Thermische Energie - gesamt"
+        },
+        "FAULT_LEVEL": {
+            "FAULT": "Fehler",
+            "INFO": "Info",
+            "OK": "Ok",
+            "WARNING": "Warnung"
+        },
+        "FLOW_TEMPERATURE": "Vorlauftemperatur",
+        "GRID_OPERATOR_RELEASE": "EVU-Freigabe",
+        "HISTORY": {
+            "COP": "COP",
+            "POWER_AND_ENERGY": "Leistung & Energie",
+            "TEMPERATURES": "Temperaturen"
+        },
+        "KUER": {
+            "CONDENSATION_TEMPERATURE": "Kondensationstemperatur",
+            "EVAPORATION_TEMPERATURE": "Verdampfungstemperatur",
+            "HOT_GAS_TEMPERATURE": "Heißgastemperatur",
+            "OPERATING_HOURS_1": "Betriebsstunden 1",
+            "OPERATING_HOURS_2": "Betriebsstunden 2",
+            "PRESSURE_1": "Druck 1",
+            "PRESSURE_2": "Druck 2",
+            "PUMP_1_ACTIVE": "Pumpe 1 aktiv",
+            "PUMP_2_ACTIVE": "Pumpe 2 aktiv",
+            "SOURCE_FLOW_TEMPERATURE": "Quellentemperatur Vorlauf",
+            "SOURCE_RETURN_TEMPERATURE": "Quellentemperatur Rücklauf",
+            "SUCTION_GAS_TEMPERATURE": "Sauggastemperatur",
+            "VOLUME_FLOW": "Volumenstrom"
+        },
+        "OPERATING_MODE": {
+            "AUTOMATIC": "Automatisch",
+            "CONTINUOUS": "Dauerbetrieb",
+            "COOLING": "Kühlen",
+            "GRID_OPERATOR_LOCK": "EVU-Sperre",
+            "HOLIDAY": "Urlaub",
+            "MAIN_SWITCH_OFF": "Hauptschalter aus",
+            "OFF": "Aus",
+            "PARTY": "Party",
+            "SCREED_DRYING": "Estrichtrocknung",
+            "SETBACK": "Absenkbetrieb",
+            "SUMMER": "Sommer",
+            "UNDEFINED": "Undefiniert"
+        },
+        "OPERATING_STATE": {
+            "BLOCKED": "Blockiert",
+            "COOLING": "Kühlen",
+            "DEFROST": "Abtauen",
+            "DOMESTIC_HOT_WATER": "Warmwasser",
+            "FAULT": "Fehler",
+            "OFF": "Aus",
+            "SPACE_HEATING": "Heizen",
+            "UNDEFINED": "Undefiniert"
+        },
+        "OUTDOOR_TEMPERATURE": "Außentemperatur",
+        "REMAINING_HEAT_ENERGY": "Verbleibende Wärmeenergie",
+        "RETURN_TEMPERATURE": "Rücklauftemperatur",
+        "TARGET_TEMPERATURE": "Zieltemperatur",
+        "THERMAL_POWER": "Thermische Leistung"
+    }
+}

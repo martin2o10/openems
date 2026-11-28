@@ -1,0 +1,83 @@
+{
+    "HEAT_PUMP": {
+        "COMPRESSOR_RUNNING": "Compressor draait",
+        "COMPRESSOR_SPEED": "Compressortoerental",
+        "CONSUMPTION_ENERGY": "Verbruikte energie",
+        "COP": "Coefficiënt (COP)",
+        "DEFROST_VALVE_ACTIVE": "Ontdooiklep actief",
+        "DEMAND": {
+            "COOLING": "Koelen",
+            "DOMESTIC_HOT_WATER": "Warm water",
+            "NONE": "Geen vraag",
+            "SPACE_HEATING": "Verwarmen",
+            "UNDEFINED": "Ongedefinieerd"
+        },
+        "DEVICE_FAULT": "Apparaatfout",
+        "DOMESTIC_HOT_WATER_TEMPERATURE": "Warmwatertemperatuur",
+        "ELECTRIC_POWER": "Elektrisch vermogen",
+        "ENERGY": {
+            "ELECTRIC_DHWS": "Elektrische energie - warm water",
+            "ELECTRIC_HEATING": "Elektrische energie - verwarmen",
+            "THERMAL_DHWS": "Thermische energie - warm water",
+            "THERMAL_HEATING": "Thermische energie - verwarmen",
+            "THERMAL_TOTAL": "Thermische energie - totaal"
+        },
+        "FAULT_LEVEL": {
+            "FAULT": "Fout",
+            "INFO": "Info",
+            "OK": "OK",
+            "WARNING": "Waarschuwing"
+        },
+        "FLOW_TEMPERATURE": "Aanvoertemperatuur",
+        "GRID_OPERATOR_RELEASE": "Vrijgave netbeheerder",
+        "HISTORY": {
+            "COP": "COP",
+            "POWER_AND_ENERGY": "Vermogen & energie",
+            "TEMPERATURES": "Temperaturen"
+        },
+        "KUER": {
+            "CONDENSATION_TEMPERATURE": "Condensatietemperatuur",
+            "EVAPORATION_TEMPERATURE": "Verdampingstemperatuur",
+            "HOT_GAS_TEMPERATURE": "Heetgastemperatuur",
+            "OPERATING_HOURS_1": "Bedrijfsuren 1",
+            "OPERATING_HOURS_2": "Bedrijfsuren 2",
+            "PRESSURE_1": "Druk 1",
+            "PRESSURE_2": "Druk 2",
+            "PUMP_1_ACTIVE": "Pomp 1 actief",
+            "PUMP_2_ACTIVE": "Pomp 2 actief",
+            "SOURCE_FLOW_TEMPERATURE": "Brontemperatuur - aanvoer",
+            "SOURCE_RETURN_TEMPERATURE": "Brontemperatuur - retour",
+            "SUCTION_GAS_TEMPERATURE": "Zuiggastemperatuur",
+            "VOLUME_FLOW": "Volumestroom"
+        },
+        "OPERATING_MODE": {
+            "AUTOMATIC": "Automatisch",
+            "CONTINUOUS": "Continu",
+            "COOLING": "Koelen",
+            "GRID_OPERATOR_LOCK": "Netbeheerdervergrendeling",
+            "HOLIDAY": "Vakantie",
+            "MAIN_SWITCH_OFF": "Hoofdschakelaar uit",
+            "OFF": "Uit",
+            "PARTY": "Feest",
+            "SCREED_DRYING": "Droogschricht",
+            "SETBACK": "Verlaging",
+            "SUMMER": "Zomer",
+            "UNDEFINED": "Ongedefinieerd"
+        },
+        "OPERATING_STATE": {
+            "BLOCKED": "Geblokkeerd",
+            "COOLING": "Koelen",
+            "DEFROST": "Ontdooien",
+            "DOMESTIC_HOT_WATER": "Warm water",
+            "FAULT": "Fout",
+            "OFF": "Uit",
+            "SPACE_HEATING": "Verwarmen",
+            "UNDEFINED": "Ongedefinieerd"
+        },
+        "OUTDOOR_TEMPERATURE": "Buitentemperatuur",
+        "REMAINING_HEAT_ENERGY": "Resterende warmte-energie",
+        "RETURN_TEMPERATURE": "Retourtemperatuur",
+        "TARGET_TEMPERATURE": "Doeltemperatuur",
+        "THERMAL_POWER": "Thermisch vermogen"
+    }
+}

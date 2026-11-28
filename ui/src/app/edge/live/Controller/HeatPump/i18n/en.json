@@ -1,0 +1,83 @@
+{
+    "HEAT_PUMP": {
+        "COMPRESSOR_RUNNING": "Compressor running",
+        "COMPRESSOR_SPEED": "Compressor speed",
+        "CONSUMPTION_ENERGY": "Consumption energy",
+        "COP": "Coefficient of performance (COP)",
+        "DEFROST_VALVE_ACTIVE": "Defrost valve active",
+        "DEMAND": {
+            "COOLING": "Cooling",
+            "DOMESTIC_HOT_WATER": "Domestic hot water",
+            "NONE": "No demand",
+            "SPACE_HEATING": "Space heating",
+            "UNDEFINED": "Undefined"
+        },
+        "DEVICE_FAULT": "Device fault",
+        "DOMESTIC_HOT_WATER_TEMPERATURE": "Hot water temperature",
+        "ELECTRIC_POWER": "Electric power",
+        "ENERGY": {
+            "ELECTRIC_DHWS": "Electric energy - hot water",
+            "ELECTRIC_HEATING": "Electric energy - heating",
+            "THERMAL_DHWS": "Thermal energy - hot water",
+            "THERMAL_HEATING": "Thermal energy - heating",
+            "THERMAL_TOTAL": "Thermal energy - total"
+        },
+        "FAULT_LEVEL": {
+            "FAULT": "Fault",
+            "INFO": "Info",
+            "OK": "Ok",
+            "WARNING": "Warning"
+        },
+        "FLOW_TEMPERATURE": "Flow temperature",
+        "GRID_OPERATOR_RELEASE": "Grid operator release",
+        "HISTORY": {
+            "COP": "COP",
+            "POWER_AND_ENERGY": "Power & energy",
+            "TEMPERATURES": "Temperatures"
+        },
+        "KUER": {
+            "CONDENSATION_TEMPERATURE": "Condensation temperature",
+            "EVAPORATION_TEMPERATURE": "Evaporation temperature",
+            "HOT_GAS_TEMPERATURE": "Hot gas temperature",
+            "OPERATING_HOURS_1": "Operating hours 1",
+            "OPERATING_HOURS_2": "Operating hours 2",
+            "PRESSURE_1": "Pressure 1",
+            "PRESSURE_2": "Pressure 2",
+            "PUMP_1_ACTIVE": "Pump 1 active",
+            "PUMP_2_ACTIVE": "Pump 2 active",
+            "SOURCE_FLOW_TEMPERATURE": "Source flow temperature",
+            "SOURCE_RETURN_TEMPERATURE": "Source return temperature",
+            "SUCTION_GAS_TEMPERATURE": "Suction gas temperature",
+            "VOLUME_FLOW": "Volume flow"
+        },
+        "OPERATING_MODE": {
+            "AUTOMATIC": "Automatic",
+            "CONTINUOUS": "Continuous",
+            "COOLING": "Cooling",
+            "GRID_OPERATOR_LOCK": "Grid operator lock",
+            "HOLIDAY": "Holiday",
+            "MAIN_SWITCH_OFF": "Main switch off",
+            "OFF": "Off",
+            "PARTY": "Party",
+            "SCREED_DRYING": "Screed drying",
+            "SETBACK": "Setback",
+            "SUMMER": "Summer",
+            "UNDEFINED": "Undefined"
+        },
+        "OPERATING_STATE": {
+            "BLOCKED": "Blocked",
+            "COOLING": "Cooling",
+            "DEFROST": "Defrost",
+            "DOMESTIC_HOT_WATER": "Domestic hot water",
+            "FAULT": "Fault",
+            "OFF": "Off",
+            "SPACE_HEATING": "Space heating",
+            "UNDEFINED": "Undefined"
+        },
+        "OUTDOOR_TEMPERATURE": "Outdoor temperature",
+        "REMAINING_HEAT_ENERGY": "Remaining heat energy",
+        "RETURN_TEMPERATURE": "Return temperature",
+        "TARGET_TEMPERATURE": "Target temperature",
+        "THERMAL_POWER": "Thermal power"
+    }
+}

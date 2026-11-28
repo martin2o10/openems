@@ -1,0 +1,83 @@
+{
+    "HEAT_PUMP": {
+        "COMPRESSOR_RUNNING": "Kompressor igång",
+        "COMPRESSOR_SPEED": "Kompressorhastighet",
+        "CONSUMPTION_ENERGY": "Förbrukad energi",
+        "COP": "Värmefaktor (COP)",
+        "DEFROST_VALVE_ACTIVE": "Avfrostningsventil aktiv",
+        "DEMAND": {
+            "COOLING": "Kyla",
+            "DOMESTIC_HOT_WATER": "Varmvatten",
+            "NONE": "Ingen förfrågan",
+            "SPACE_HEATING": "Uppvärmning",
+            "UNDEFINED": "Odefinierad"
+        },
+        "DEVICE_FAULT": "Enhetsfel",
+        "DOMESTIC_HOT_WATER_TEMPERATURE": "Varmvattentemperatur",
+        "ELECTRIC_POWER": "Elektrisk effekt",
+        "ENERGY": {
+            "ELECTRIC_DHWS": "Elektrisk energi - varmvatten",
+            "ELECTRIC_HEATING": "Elektrisk energi - uppvärmning",
+            "THERMAL_DHWS": "Termisk energi - varmvatten",
+            "THERMAL_HEATING": "Termisk energi - uppvärmning",
+            "THERMAL_TOTAL": "Termisk energi - totalt"
+        },
+        "FAULT_LEVEL": {
+            "FAULT": "Fel",
+            "INFO": "Info",
+            "OK": "OK",
+            "WARNING": "Varning"
+        },
+        "FLOW_TEMPERATURE": "Framledningstemperatur",
+        "GRID_OPERATOR_RELEASE": "Nätoperatörens frigivning",
+        "HISTORY": {
+            "COP": "COP",
+            "POWER_AND_ENERGY": "Effekt & energi",
+            "TEMPERATURES": "Temperaturer"
+        },
+        "KUER": {
+            "CONDENSATION_TEMPERATURE": "Kondenseringstemperatur",
+            "EVAPORATION_TEMPERATURE": "Förångningstemperatur",
+            "HOT_GAS_TEMPERATURE": "Hetgastemperatur",
+            "OPERATING_HOURS_1": "Drifttimmar 1",
+            "OPERATING_HOURS_2": "Drifttimmar 2",
+            "PRESSURE_1": "Tryck 1",
+            "PRESSURE_2": "Tryck 2",
+            "PUMP_1_ACTIVE": "Pump 1 aktiv",
+            "PUMP_2_ACTIVE": "Pump 2 aktiv",
+            "SOURCE_FLOW_TEMPERATURE": "Källtemperatur - framledning",
+            "SOURCE_RETURN_TEMPERATURE": "Källtemperatur - retur",
+            "SUCTION_GAS_TEMPERATURE": "Suggasstemperatur",
+            "VOLUME_FLOW": "Volymflöde"
+        },
+        "OPERATING_MODE": {
+            "AUTOMATIC": "Automatisk",
+            "CONTINUOUS": "Kontinuerlig",
+            "COOLING": "Kyla",
+            "GRID_OPERATOR_LOCK": "Nätoperatörslås",
+            "HOLIDAY": "Semester",
+            "MAIN_SWITCH_OFF": "Huvudbrytare av",
+            "OFF": "Av",
+            "PARTY": "Fest",
+            "SCREED_DRYING": "Torkning av avjämningsmassa",
+            "SETBACK": "Nattabsänkning",
+            "SUMMER": "Sommar",
+            "UNDEFINED": "Odefinierad"
+        },
+        "OPERATING_STATE": {
+            "BLOCKED": "Blockerad",
+            "COOLING": "Kyla",
+            "DEFROST": "Avfrostning",
+            "DOMESTIC_HOT_WATER": "Varmvatten",
+            "FAULT": "Fel",
+            "OFF": "Av",
+            "SPACE_HEATING": "Uppvärmning",
+            "UNDEFINED": "Odefinierad"
+        },
+        "OUTDOOR_TEMPERATURE": "Utomhustemperatur",
+        "REMAINING_HEAT_ENERGY": "Återstående värmeenergi",
+        "RETURN_TEMPERATURE": "Returtemperatur",
+        "TARGET_TEMPERATURE": "Måltemperatur",
+        "THERMAL_POWER": "Termisk effekt"
+    }
+}

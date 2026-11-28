@@ -17,6 +17,7 @@ export enum WidgetClass {
 export enum WidgetNature {
     "io.openems.edge.evcs.api.Evcs",
     "io.openems.edge.heat.api.ManagedHeatElement",
+    "io.openems.edge.heat.api.ManagedHeatPump",
     "io.openems.impl.controller.channelthreshold.ChannelThresholdController", // TODO deprecated
     "io.openems.edge.io.api.DigitalInput",
 }
@@ -66,6 +67,7 @@ export enum WidgetFactory {
     "GoodWe.Charger.Mppt.Two-String",
     "GoodWe.Grid-Meter",
     "Heat.Askoma",
+    "Heat.Broetje.Neo",
     "Heat.MyPv.AcThor9s",
     "Heat.MyPv",
     "Meter.Microcare.SDM630",

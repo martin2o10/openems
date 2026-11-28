@@ -1,0 +1,83 @@
+{
+    "HEAT_PUMP": {
+        "COMPRESSOR_RUNNING": "Compresor en marcha",
+        "COMPRESSOR_SPEED": "Velocidad del compresor",
+        "CONSUMPTION_ENERGY": "Energía consumida",
+        "COP": "Coeficiente de rendimiento (COP)",
+        "DEFROST_VALVE_ACTIVE": "Válvula de desescarche activa",
+        "DEMAND": {
+            "COOLING": "Refrigeración",
+            "DOMESTIC_HOT_WATER": "Agua caliente",
+            "NONE": "Sin demanda",
+            "SPACE_HEATING": "Calefacción",
+            "UNDEFINED": "No definido"
+        },
+        "DEVICE_FAULT": "Fallo del dispositivo",
+        "DOMESTIC_HOT_WATER_TEMPERATURE": "Temperatura del agua caliente",
+        "ELECTRIC_POWER": "Potencia eléctrica",
+        "ENERGY": {
+            "ELECTRIC_DHWS": "Energía eléctrica - agua caliente",
+            "ELECTRIC_HEATING": "Energía eléctrica - calefacción",
+            "THERMAL_DHWS": "Energía térmica - agua caliente",
+            "THERMAL_HEATING": "Energía térmica - calefacción",
+            "THERMAL_TOTAL": "Energía térmica - total"
+        },
+        "FAULT_LEVEL": {
+            "FAULT": "Fallo",
+            "INFO": "Info",
+            "OK": "OK",
+            "WARNING": "Advertencia"
+        },
+        "FLOW_TEMPERATURE": "Temperatura de ida",
+        "GRID_OPERATOR_RELEASE": "Autorización del operador de red",
+        "HISTORY": {
+            "COP": "COP",
+            "POWER_AND_ENERGY": "Potencia y energía",
+            "TEMPERATURES": "Temperaturas"
+        },
+        "KUER": {
+            "CONDENSATION_TEMPERATURE": "Temperatura de condensación",
+            "EVAPORATION_TEMPERATURE": "Temperatura de evaporación",
+            "HOT_GAS_TEMPERATURE": "Temperatura de gas caliente",
+            "OPERATING_HOURS_1": "Horas de funcionamiento 1",
+            "OPERATING_HOURS_2": "Horas de funcionamiento 2",
+            "PRESSURE_1": "Presión 1",
+            "PRESSURE_2": "Presión 2",
+            "PUMP_1_ACTIVE": "Bomba 1 activa",
+            "PUMP_2_ACTIVE": "Bomba 2 activa",
+            "SOURCE_FLOW_TEMPERATURE": "Temperatura de fuente - ida",
+            "SOURCE_RETURN_TEMPERATURE": "Temperatura de fuente - retorno",
+            "SUCTION_GAS_TEMPERATURE": "Temperatura de gas de aspiración",
+            "VOLUME_FLOW": "Caudal volumétrico"
+        },
+        "OPERATING_MODE": {
+            "AUTOMATIC": "Automático",
+            "CONTINUOUS": "Continuo",
+            "COOLING": "Refrigeración",
+            "GRID_OPERATOR_LOCK": "Bloqueo del operador de red",
+            "HOLIDAY": "Vacaciones",
+            "MAIN_SWITCH_OFF": "Interruptor principal apagado",
+            "OFF": "Apagado",
+            "PARTY": "Fiesta",
+            "SCREED_DRYING": "Secado de solera",
+            "SETBACK": "Reducción",
+            "SUMMER": "Verano",
+            "UNDEFINED": "No definido"
+        },
+        "OPERATING_STATE": {
+            "BLOCKED": "Bloqueado",
+            "COOLING": "Refrigeración",
+            "DEFROST": "Desescarche",
+            "DOMESTIC_HOT_WATER": "Agua caliente",
+            "FAULT": "Fallo",
+            "OFF": "Apagado",
+            "SPACE_HEATING": "Calefacción",
+            "UNDEFINED": "No definido"
+        },
+        "OUTDOOR_TEMPERATURE": "Temperatura exterior",
+        "REMAINING_HEAT_ENERGY": "Energía térmica restante",
+        "RETURN_TEMPERATURE": "Temperatura de retorno",
+        "TARGET_TEMPERATURE": "Temperatura objetivo",
+        "THERMAL_POWER": "Potencia térmica"
+    }
+}

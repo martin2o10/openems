@@ -299,6 +299,19 @@ export namespace DummyConfig {
             ],
         };
 
+        export const HEAT_BROETJE_NEO: Factory = {
+            id: "Heat.Broetje.Neo",
+            natureIds: [
+                "io.openems.edge.heat.broetje.neo.HeatBroetjeNeo",
+                "io.openems.edge.heat.api.ManagedHeatPump",
+                "io.openems.edge.heat.api.Heat",
+                "io.openems.edge.meter.api.ElectricityMeter",
+                "io.openems.edge.bridge.modbus.api.ModbusComponent",
+                "io.openems.edge.common.component.OpenemsComponent",
+                "io.openems.edge.timedata.api.TimedataProvider",
+            ],
+        };
+
         export const CONTROLLER_IO_HEATINGELEMENT: Factory = {
             id: "Controller.IO.HeatingElement",
             natureIds: [
@@ -846,6 +859,22 @@ export namespace DummyConfig {
                 enabled: true,
                 mode: "AUTOMATIC",
                 "meter.id": "meter3",
+            },
+            channels: {},
+        });
+
+        export const HEAT_BROETJE_NEO = (
+            id: string,
+            alias?: string,
+            properties: { [key: string]: any } = {},
+        ): Component => ({
+            id: id,
+            alias: alias ?? id,
+            factory: Factory.HEAT_BROETJE_NEO,
+            properties: {
+                enabled: true,
+                readOnly: true,
+                ...properties,
             },
             channels: {},
         });

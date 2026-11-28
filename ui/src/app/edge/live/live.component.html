@@ -157,6 +157,10 @@
                       <oe-controller-io-heating-element [componentId]="widget.componentId"></oe-controller-io-heating-element>
                     </ion-col>
 
+                    <ion-col size="12" *ngSwitchCase="'io.openems.edge.heat.api.ManagedHeatPump'" [attr.size-lg]="widgetColumnSize" class="ion-no-padding">
+                      <oe-controller-heatpump [componentId]="widget.componentId"></oe-controller-heatpump>
+                    </ion-col>
+
                     <ion-col size="12" *ngSwitchCase="'Heat.Askoma'" [attr.size-lg]="widgetColumnSize" class="ion-no-padding">
                       <oe-controller-heat [componentId]="widget.componentId"></oe-controller-heat>
                     </ion-col>

@@ -1,0 +1,83 @@
+{
+    "HEAT_PUMP": {
+        "COMPRESSOR_RUNNING": "Kompresor běží",
+        "COMPRESSOR_SPEED": "Otáčky kompresoru",
+        "CONSUMPTION_ENERGY": "Spotřebovaná energie",
+        "COP": "Topný faktor (COP)",
+        "DEFROST_VALVE_ACTIVE": "Ventil odmrazování aktivní",
+        "DEMAND": {
+            "COOLING": "Chlazení",
+            "DOMESTIC_HOT_WATER": "Teplá voda",
+            "NONE": "Žádný požadavek",
+            "SPACE_HEATING": "Vytápění",
+            "UNDEFINED": "Nedefinováno"
+        },
+        "DEVICE_FAULT": "Porucha zařízení",
+        "DOMESTIC_HOT_WATER_TEMPERATURE": "Teplota teplé vody",
+        "ELECTRIC_POWER": "Elektrický výkon",
+        "ENERGY": {
+            "ELECTRIC_DHWS": "Elektrická energie - teplá voda",
+            "ELECTRIC_HEATING": "Elektrická energie - vytápění",
+            "THERMAL_DHWS": "Tepelná energie - teplá voda",
+            "THERMAL_HEATING": "Tepelná energie - vytápění",
+            "THERMAL_TOTAL": "Tepelná energie - celkem"
+        },
+        "FAULT_LEVEL": {
+            "FAULT": "Porucha",
+            "INFO": "Info",
+            "OK": "OK",
+            "WARNING": "Varování"
+        },
+        "FLOW_TEMPERATURE": "Teplota přívodu",
+        "GRID_OPERATOR_RELEASE": "Uvolnění provozovatelem sítě",
+        "HISTORY": {
+            "COP": "COP",
+            "POWER_AND_ENERGY": "Výkon & energie",
+            "TEMPERATURES": "Teploty"
+        },
+        "KUER": {
+            "CONDENSATION_TEMPERATURE": "Teplota kondenzace",
+            "EVAPORATION_TEMPERATURE": "Teplota výparníku",
+            "HOT_GAS_TEMPERATURE": "Teplota horkého plynu",
+            "OPERATING_HOURS_1": "Provozní hodiny 1",
+            "OPERATING_HOURS_2": "Provozní hodiny 2",
+            "PRESSURE_1": "Tlak 1",
+            "PRESSURE_2": "Tlak 2",
+            "PUMP_1_ACTIVE": "Čerpadlo 1 aktivní",
+            "PUMP_2_ACTIVE": "Čerpadlo 2 aktivní",
+            "SOURCE_FLOW_TEMPERATURE": "Teplota zdroje - přívod",
+            "SOURCE_RETURN_TEMPERATURE": "Teplota zdroje - zpátečka",
+            "SUCTION_GAS_TEMPERATURE": "Teplota sání",
+            "VOLUME_FLOW": "Objemový průtok"
+        },
+        "OPERATING_MODE": {
+            "AUTOMATIC": "Automaticky",
+            "CONTINUOUS": "Nepřetržitý provoz",
+            "COOLING": "Chlazení",
+            "GRID_OPERATOR_LOCK": "Zámek provozovatele sítě",
+            "HOLIDAY": "Dovolená",
+            "MAIN_SWITCH_OFF": "Hlavní vypínač vypnut",
+            "OFF": "Vypnuto",
+            "PARTY": "Párty",
+            "SCREED_DRYING": "Vysoušení potěru",
+            "SETBACK": "Útlum",
+            "SUMMER": "Léto",
+            "UNDEFINED": "Nedefinováno"
+        },
+        "OPERATING_STATE": {
+            "BLOCKED": "Blokováno",
+            "COOLING": "Chlazení",
+            "DEFROST": "Odmrazování",
+            "DOMESTIC_HOT_WATER": "Teplá voda",
+            "FAULT": "Porucha",
+            "OFF": "Vypnuto",
+            "SPACE_HEATING": "Vytápění",
+            "UNDEFINED": "Nedefinováno"
+        },
+        "OUTDOOR_TEMPERATURE": "Venkovní teplota",
+        "REMAINING_HEAT_ENERGY": "Zbývající tepelná energie",
+        "RETURN_TEMPERATURE": "Teplota zpátečky",
+        "TARGET_TEMPERATURE": "Cílová teplota",
+        "THERMAL_POWER": "Tepelný výkon"
+    }
+}

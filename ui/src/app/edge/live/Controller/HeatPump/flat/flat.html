@@ -1,0 +1,19 @@
+@if (isInitialized) {
+  <oe-flat-widget [modalComponent]="modalComponent" [title]="component.alias" [icon]="{ color: 'dark', name: 'oe-heatpump' }">
+    <oe-flat-widget-line [name]="'GENERAL.STATUS' | translate">
+      <ion-icon name="oe-heatpump" [style.color]="stateColor"></ion-icon>
+      {{ CONVERT_OPERATING_STATE_TO_LABEL(operatingState) }}
+    </oe-flat-widget-line>
+    <oe-flat-widget-line [name]="'HEAT_PUMP.THERMAL_POWER' | translate" [channelAddress]="component.id + '/ThermalPower'" [converter]="CONVERT_WATT_TO_KILOWATT"></oe-flat-widget-line>
+    <oe-flat-widget-line [name]="'HEAT_PUMP.ELECTRIC_POWER' | translate" [channelAddress]="component.id + '/ActivePower'" [converter]="CONVERT_WATT_TO_KILOWATT"></oe-flat-widget-line>
+    <oe-flat-widget-line [name]="'EDGE.INDEX.WIDGETS.HEAT.TEMPERATURE' | translate" [channelAddress]="component.id + '/Temperature'" [converter]="Converter.DEZIDEGREE_CELSIUS_TO_DEGREE_CELSIUS"></oe-flat-widget-line>
+    @if (component.factoryId === FACTORY_ID_HEAT_BROETJE_NEO) {
+      <oe-flat-widget-line [name]="'HEAT_PUMP.COP' | translate" [channelAddress]="component.id + '/CoefficientOfPerformance'" [converter]="CONVERT_COP"></oe-flat-widget-line>
+      <oe-flat-widget-line [name]="'HEAT_PUMP.OUTDOOR_TEMPERATURE' | translate" [channelAddress]="component.id + '/OutdoorTemperature'" [converter]="Converter.DEZIDEGREE_CELSIUS_TO_DEGREE_CELSIUS"></oe-flat-widget-line>
+      <oe-flat-widget-line [name]="'HEAT_PUMP.FLOW_TEMPERATURE' | translate" [channelAddress]="component.id + '/FlowTemperature'" [converter]="Converter.DEZIDEGREE_CELSIUS_TO_DEGREE_CELSIUS"></oe-flat-widget-line>
+      <oe-flat-widget-line [name]="'HEAT_PUMP.RETURN_TEMPERATURE' | translate" [channelAddress]="component.id + '/ReturnTemperature'" [converter]="Converter.DEZIDEGREE_CELSIUS_TO_DEGREE_CELSIUS"></oe-flat-widget-line>
+      <oe-flat-widget-line [name]="'HEAT_PUMP.DOMESTIC_HOT_WATER_TEMPERATURE' | translate" [channelAddress]="component.id + '/DomesticHotWaterTemperature'" [converter]="Converter.DEZIDEGREE_CELSIUS_TO_DEGREE_CELSIUS"></oe-flat-widget-line>
+      <oe-flat-widget-line [name]="'HEAT_PUMP.OPERATING_MODE' | translate" [channelAddress]="component.id + '/OperatingMode'" [converter]="CONVERT_OPERATING_MODE_TO_LABEL"></oe-flat-widget-line>
+    }
+  </oe-flat-widget>
+}

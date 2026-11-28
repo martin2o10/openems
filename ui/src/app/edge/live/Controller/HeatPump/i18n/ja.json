@@ -1,0 +1,83 @@
+{
+    "HEAT_PUMP": {
+        "COMPRESSOR_RUNNING": "圧縮機運転中",
+        "COMPRESSOR_SPEED": "圧縮機回転数",
+        "CONSUMPTION_ENERGY": "消費エネルギー",
+        "COP": "成績係数 (COP)",
+        "DEFROST_VALVE_ACTIVE": "除霜弁アクティブ",
+        "DEMAND": {
+            "COOLING": "冷房",
+            "DOMESTIC_HOT_WATER": "給湯",
+            "NONE": "要求なし",
+            "SPACE_HEATING": "暖房",
+            "UNDEFINED": "未定義"
+        },
+        "DEVICE_FAULT": "機器異常",
+        "DOMESTIC_HOT_WATER_TEMPERATURE": "給湯温度",
+        "ELECTRIC_POWER": "電力",
+        "ENERGY": {
+            "ELECTRIC_DHWS": "電気エネルギー - 給湯",
+            "ELECTRIC_HEATING": "電気エネルギー - 暖房",
+            "THERMAL_DHWS": "熱エネルギー - 給湯",
+            "THERMAL_HEATING": "熱エネルギー - 暖房",
+            "THERMAL_TOTAL": "熱エネルギー - 合計"
+        },
+        "FAULT_LEVEL": {
+            "FAULT": "異常",
+            "INFO": "情報",
+            "OK": "OK",
+            "WARNING": "警告"
+        },
+        "FLOW_TEMPERATURE": "往き温度",
+        "GRID_OPERATOR_RELEASE": "電力会社の許可",
+        "HISTORY": {
+            "COP": "COP",
+            "POWER_AND_ENERGY": "電力とエネルギー",
+            "TEMPERATURES": "温度"
+        },
+        "KUER": {
+            "CONDENSATION_TEMPERATURE": "凝縮温度",
+            "EVAPORATION_TEMPERATURE": "蒸発温度",
+            "HOT_GAS_TEMPERATURE": "ホットガス温度",
+            "OPERATING_HOURS_1": "運転時間 1",
+            "OPERATING_HOURS_2": "運転時間 2",
+            "PRESSURE_1": "圧力 1",
+            "PRESSURE_2": "圧力 2",
+            "PUMP_1_ACTIVE": "ポンプ1動作中",
+            "PUMP_2_ACTIVE": "ポンプ2動作中",
+            "SOURCE_FLOW_TEMPERATURE": "熱源温度 - 往き",
+            "SOURCE_RETURN_TEMPERATURE": "熱源温度 - 還り",
+            "SUCTION_GAS_TEMPERATURE": "吸入ガス温度",
+            "VOLUME_FLOW": "体積流量"
+        },
+        "OPERATING_MODE": {
+            "AUTOMATIC": "自動",
+            "CONTINUOUS": "連続",
+            "COOLING": "冷房",
+            "GRID_OPERATOR_LOCK": "電力会社ロック",
+            "HOLIDAY": "休暇",
+            "MAIN_SWITCH_OFF": "主スイッチ OFF",
+            "OFF": "オフ",
+            "PARTY": "パーティー",
+            "SCREED_DRYING": "スクリード乾燥",
+            "SETBACK": "低下",
+            "SUMMER": "夏",
+            "UNDEFINED": "未定義"
+        },
+        "OPERATING_STATE": {
+            "BLOCKED": "ブロック中",
+            "COOLING": "冷房",
+            "DEFROST": "除霜",
+            "DOMESTIC_HOT_WATER": "給湯",
+            "FAULT": "異常",
+            "OFF": "オフ",
+            "SPACE_HEATING": "暖房",
+            "UNDEFINED": "未定義"
+        },
+        "OUTDOOR_TEMPERATURE": "外気温度",
+        "REMAINING_HEAT_ENERGY": "残り熱エネルギー",
+        "RETURN_TEMPERATURE": "還り温度",
+        "TARGET_TEMPERATURE": "目標温度",
+        "THERMAL_POWER": "熱出力"
+    }
+}

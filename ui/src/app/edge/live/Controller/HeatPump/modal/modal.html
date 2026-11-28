@@ -1,0 +1,61 @@
+@if (isInitialized && component) {
+  <oe-modal [title]="component.alias">
+    <oe-modal-line [name]="'GENERAL.STATUS' | translate" [channelAddress]="component.id + '/OperatingState'" [converter]="CONVERT_OPERATING_STATE_TO_LABEL"></oe-modal-line>
+    <oe-modal-line [name]="'HEAT_PUMP.THERMAL_POWER' | translate" [channelAddress]="component.id + '/ThermalPower'" [converter]="CONVERT_WATT_TO_KILOWATT"></oe-modal-line>
+    <oe-modal-line [name]="'HEAT_PUMP.ELECTRIC_POWER' | translate" [channelAddress]="component.id + '/ActivePower'" [converter]="CONVERT_WATT_TO_KILOWATT"></oe-modal-line>
+    <oe-modal-line [name]="'HEAT_PUMP.CONSUMPTION_ENERGY' | translate" [channelAddress]="component.id + '/ActiveConsumptionEnergy'" [converter]="CONVERT_TO_KILO_WATTHOURS"></oe-modal-line>
+    <oe-modal-line [name]="'EDGE.INDEX.WIDGETS.HEAT.TEMPERATURE' | translate" [channelAddress]="component.id + '/Temperature'" [converter]="Converter.DEZIDEGREE_CELSIUS_TO_DEGREE_CELSIUS"></oe-modal-line>
+    <oe-modal-line [name]="'HEAT_PUMP.TARGET_TEMPERATURE' | translate" [channelAddress]="component.id + '/TargetTemperature'" [converter]="Converter.DEZIDEGREE_CELSIUS_TO_DEGREE_CELSIUS"></oe-modal-line>
+    <oe-modal-line [name]="'HEAT_PUMP.REMAINING_HEAT_ENERGY' | translate" [channelAddress]="component.id + '/RemainingHeatEnergy'" [converter]="CONVERT_TO_WATTHOURS"></oe-modal-line>
+
+    @if (isBroetjeNeo()) {
+      <oe-modal-horizontal-line></oe-modal-horizontal-line>
+      <oe-modal-line [name]="'HEAT_PUMP.COP' | translate" [channelAddress]="component.id + '/CoefficientOfPerformance'" [converter]="CONVERT_COP"></oe-modal-line>
+      <oe-modal-line [name]="'HEAT_PUMP.OPERATING_MODE' | translate" [channelAddress]="component.id + '/OperatingMode'" [converter]="CONVERT_OPERATING_MODE_TO_LABEL"></oe-modal-line>
+      <oe-modal-line [name]="'HEAT_PUMP.DEMAND' | translate" [channelAddress]="component.id + '/Demand'" [converter]="CONVERT_DEMAND_TO_LABEL"></oe-modal-line>
+      <oe-modal-line [name]="'HEAT_PUMP.COMPRESSOR_RUNNING' | translate" [channelAddress]="component.id + '/CompressorRunning'" [converter]="CONVERT_BOOLEAN_TO_ON_OFF"></oe-modal-line>
+      <oe-modal-line [name]="'HEAT_PUMP.COMPRESSOR_SPEED' | translate" [channelAddress]="component.id + '/CompressorSpeed'" [converter]="CONVERT_THOUSANDTH_TO_PERCENT"></oe-modal-line>
+      <oe-modal-line [name]="'HEAT_PUMP.GRID_OPERATOR_RELEASE' | translate" [channelAddress]="component.id + '/GridOperatorRelease'" [converter]="CONVERT_BOOLEAN_TO_ON_OFF"></oe-modal-line>
+      <oe-modal-line [name]="'HEAT_PUMP.DEVICE_FAULT' | translate" [channelAddress]="component.id + '/DeviceFault'" [converter]="CONVERT_FAULT_LEVEL_TO_LABEL"></oe-modal-line>
+      <oe-modal-line [name]="'HEAT_PUMP.DEFROST_VALVE_ACTIVE' | translate" [channelAddress]="component.id + '/DefrostValveActive'" [converter]="CONVERT_BOOLEAN_TO_ON_OFF"></oe-modal-line>
+
+      <oe-modal-horizontal-line></oe-modal-horizontal-line>
+      <oe-modal-line [name]="'HEAT_PUMP.ENERGY.THERMAL_HEATING' | translate" [channelAddress]="component.id + '/ThermalEnergyHeating'" [converter]="CONVERT_TO_KILO_WATTHOURS"></oe-modal-line>
+      <oe-modal-line [name]="'HEAT_PUMP.ENERGY.ELECTRIC_HEATING' | translate" [channelAddress]="component.id + '/ElectricEnergyHeating'" [converter]="CONVERT_TO_KILO_WATTHOURS"></oe-modal-line>
+      <oe-modal-line [name]="'HEAT_PUMP.ENERGY.THERMAL_DHWS' | translate" [channelAddress]="component.id + '/ThermalEnergyDhws'" [converter]="CONVERT_TO_KILO_WATTHOURS"></oe-modal-line>
+      <oe-modal-line [name]="'HEAT_PUMP.ENERGY.ELECTRIC_DHWS' | translate" [channelAddress]="component.id + '/ElectricEnergyDhws'" [converter]="CONVERT_TO_KILO_WATTHOURS"></oe-modal-line>
+      <oe-modal-line [name]="'HEAT_PUMP.ENERGY.THERMAL_TOTAL' | translate" [channelAddress]="component.id + '/ThermalEnergyTotal'" [converter]="CONVERT_TO_KILO_WATTHOURS"></oe-modal-line>
+
+      @if (isKuerEnabled("readPressures")) {
+        <oe-modal-horizontal-line></oe-modal-horizontal-line>
+        <oe-modal-line [name]="'HEAT_PUMP.KUER.PRESSURE_1' | translate" [channelAddress]="component.id + '/Pressure1'" [converter]="Converter.TO_STRING"></oe-modal-line>
+        <oe-modal-line [name]="'HEAT_PUMP.KUER.PRESSURE_2' | translate" [channelAddress]="component.id + '/Pressure2'" [converter]="Converter.TO_STRING"></oe-modal-line>
+      }
+      @if (isKuerEnabled("readSourceTemperatures")) {
+        <oe-modal-horizontal-line></oe-modal-horizontal-line>
+        <oe-modal-line [name]="'HEAT_PUMP.KUER.SOURCE_FLOW_TEMPERATURE' | translate" [channelAddress]="component.id + '/SourceFlowTemperature'" [converter]="Converter.DEZIDEGREE_CELSIUS_TO_DEGREE_CELSIUS"></oe-modal-line>
+        <oe-modal-line [name]="'HEAT_PUMP.KUER.SOURCE_RETURN_TEMPERATURE' | translate" [channelAddress]="component.id + '/SourceReturnTemperature'" [converter]="Converter.DEZIDEGREE_CELSIUS_TO_DEGREE_CELSIUS"></oe-modal-line>
+      }
+      @if (isKuerEnabled("readRefrigerantTemperatures")) {
+        <oe-modal-horizontal-line></oe-modal-horizontal-line>
+        <oe-modal-line [name]="'HEAT_PUMP.KUER.SUCTION_GAS_TEMPERATURE' | translate" [channelAddress]="component.id + '/SuctionGasTemperature'" [converter]="Converter.DEZIDEGREE_CELSIUS_TO_DEGREE_CELSIUS"></oe-modal-line>
+        <oe-modal-line [name]="'HEAT_PUMP.KUER.EVAPORATION_TEMPERATURE' | translate" [channelAddress]="component.id + '/EvaporationTemperature'" [converter]="Converter.DEZIDEGREE_CELSIUS_TO_DEGREE_CELSIUS"></oe-modal-line>
+        <oe-modal-line [name]="'HEAT_PUMP.KUER.CONDENSATION_TEMPERATURE' | translate" [channelAddress]="component.id + '/CondensationTemperature'" [converter]="Converter.DEZIDEGREE_CELSIUS_TO_DEGREE_CELSIUS"></oe-modal-line>
+        <oe-modal-line [name]="'HEAT_PUMP.KUER.HOT_GAS_TEMPERATURE' | translate" [channelAddress]="component.id + '/HotGasTemperature'" [converter]="Converter.DEZIDEGREE_CELSIUS_TO_DEGREE_CELSIUS"></oe-modal-line>
+      }
+      @if (isKuerEnabled("readPumpFlags")) {
+        <oe-modal-horizontal-line></oe-modal-horizontal-line>
+        <oe-modal-line [name]="'HEAT_PUMP.KUER.PUMP_1_ACTIVE' | translate" [channelAddress]="component.id + '/Pump1Active'" [converter]="CONVERT_BOOLEAN_TO_ON_OFF"></oe-modal-line>
+        <oe-modal-line [name]="'HEAT_PUMP.KUER.PUMP_2_ACTIVE' | translate" [channelAddress]="component.id + '/Pump2Active'" [converter]="CONVERT_BOOLEAN_TO_ON_OFF"></oe-modal-line>
+      }
+      @if (isKuerEnabled("readFlowRate")) {
+        <oe-modal-line [name]="'HEAT_PUMP.KUER.VOLUME_FLOW' | translate" [channelAddress]="component.id + '/VolumeFlow'" [converter]="Converter.TO_STRING"></oe-modal-line>
+      }
+      @if (isKuerEnabled("readOperatingHours")) {
+        <oe-modal-horizontal-line></oe-modal-horizontal-line>
+        <oe-modal-line [name]="'HEAT_PUMP.KUER.OPERATING_HOURS_1' | translate" [channelAddress]="component.id + '/OperatingHours1'" [converter]="Converter.CONVERT_TO_HOUR"></oe-modal-line>
+        <oe-modal-line [name]="'HEAT_PUMP.KUER.OPERATING_HOURS_2' | translate" [channelAddress]="component.id + '/OperatingHours2'" [converter]="Converter.CONVERT_TO_HOUR"></oe-modal-line>
+      }
+    }
+  </oe-modal>
+}

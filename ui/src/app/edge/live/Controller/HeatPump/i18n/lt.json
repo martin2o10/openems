@@ -1,0 +1,83 @@
+{
+    "HEAT_PUMP": {
+        "COMPRESSOR_RUNNING": "Kompresorius veikia",
+        "COMPRESSOR_SPEED": "Kompresoriaus greitis",
+        "CONSUMPTION_ENERGY": "Sunaudota energija",
+        "COP": "Naudingumo koeficientas (COP)",
+        "DEFROST_VALVE_ACTIVE": "Atitirpinimo vožtuvas aktyvus",
+        "DEMAND": {
+            "COOLING": "Vėsinimas",
+            "DOMESTIC_HOT_WATER": "Karštas vanduo",
+            "NONE": "Nėra poreikio",
+            "SPACE_HEATING": "Šildymas",
+            "UNDEFINED": "Nenurodyta"
+        },
+        "DEVICE_FAULT": "Įrenginio gedimas",
+        "DOMESTIC_HOT_WATER_TEMPERATURE": "Karšto vandens temperatūra",
+        "ELECTRIC_POWER": "Elektrinė galia",
+        "ENERGY": {
+            "ELECTRIC_DHWS": "Elektrinė energija - karštas vanduo",
+            "ELECTRIC_HEATING": "Elektrinė energija - šildymas",
+            "THERMAL_DHWS": "Šiluminė energija - karštas vanduo",
+            "THERMAL_HEATING": "Šiluminė energija - šildymas",
+            "THERMAL_TOTAL": "Šiluminė energija - iš viso"
+        },
+        "FAULT_LEVEL": {
+            "FAULT": "Gedimas",
+            "INFO": "Informacija",
+            "OK": "OK",
+            "WARNING": "Įspėjimas"
+        },
+        "FLOW_TEMPERATURE": "Tiekimo temperatūra",
+        "GRID_OPERATOR_RELEASE": "Tinklo operatoriaus leidimas",
+        "HISTORY": {
+            "COP": "COP",
+            "POWER_AND_ENERGY": "Galia ir energija",
+            "TEMPERATURES": "Temperatūros"
+        },
+        "KUER": {
+            "CONDENSATION_TEMPERATURE": "Kondensacijos temperatūra",
+            "EVAPORATION_TEMPERATURE": "Garavimo temperatūra",
+            "HOT_GAS_TEMPERATURE": "Karštų dujų temperatūra",
+            "OPERATING_HOURS_1": "Darbo valandos 1",
+            "OPERATING_HOURS_2": "Darbo valandos 2",
+            "PRESSURE_1": "Slėgis 1",
+            "PRESSURE_2": "Slėgis 2",
+            "PUMP_1_ACTIVE": "Siurblys 1 aktyvus",
+            "PUMP_2_ACTIVE": "Siurblys 2 aktyvus",
+            "SOURCE_FLOW_TEMPERATURE": "Šaltinio temperatūra - tiekimas",
+            "SOURCE_RETURN_TEMPERATURE": "Šaltinio temperatūra - grįžimas",
+            "SUCTION_GAS_TEMPERATURE": "Įsiurbiamų dujų temperatūra",
+            "VOLUME_FLOW": "Tūrinė srovė"
+        },
+        "OPERATING_MODE": {
+            "AUTOMATIC": "Automatinis",
+            "CONTINUOUS": "Nuolatinis",
+            "COOLING": "Vėsinimas",
+            "GRID_OPERATOR_LOCK": "Tinklo operatoriaus užraktas",
+            "HOLIDAY": "Atostogos",
+            "MAIN_SWITCH_OFF": "Pagrindinis jungiklis išjungtas",
+            "OFF": "Išjungta",
+            "PARTY": "Vakaras",
+            "SCREED_DRYING": "Grindų džiovinimas",
+            "SETBACK": "Sumažinimas",
+            "SUMMER": "Vasara",
+            "UNDEFINED": "Nenurodyta"
+        },
+        "OPERATING_STATE": {
+            "BLOCKED": "Užblokuota",
+            "COOLING": "Vėsinimas",
+            "DEFROST": "Atitirpinimas",
+            "DOMESTIC_HOT_WATER": "Karštas vanduo",
+            "FAULT": "Gedimas",
+            "OFF": "Išjungta",
+            "SPACE_HEATING": "Šildymas",
+            "UNDEFINED": "Nenurodyta"
+        },
+        "OUTDOOR_TEMPERATURE": "Lauko temperatūra",
+        "REMAINING_HEAT_ENERGY": "Likusioji šiluminė energija",
+        "RETURN_TEMPERATURE": "Grįžimo temperatūra",
+        "TARGET_TEMPERATURE": "Tikslinė temperatūra",
+        "THERMAL_POWER": "Šiluminė galia"
+    }
+}

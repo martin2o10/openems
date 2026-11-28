@@ -1,0 +1,83 @@
+{
+    "HEAT_PUMP": {
+        "COMPRESSOR_RUNNING": "Compresseur en marche",
+        "COMPRESSOR_SPEED": "Vitesse du compresseur",
+        "CONSUMPTION_ENERGY": "Énergie consommée",
+        "COP": "Coefficient de performance (COP)",
+        "DEFROST_VALVE_ACTIVE": "Vanne de dégivrage active",
+        "DEMAND": {
+            "COOLING": "Refroidissement",
+            "DOMESTIC_HOT_WATER": "Eau chaude",
+            "NONE": "Aucune demande",
+            "SPACE_HEATING": "Chauffage",
+            "UNDEFINED": "Non défini"
+        },
+        "DEVICE_FAULT": "Défaut de l'appareil",
+        "DOMESTIC_HOT_WATER_TEMPERATURE": "Température de l'eau chaude",
+        "ELECTRIC_POWER": "Puissance électrique",
+        "ENERGY": {
+            "ELECTRIC_DHWS": "Énergie électrique - eau chaude",
+            "ELECTRIC_HEATING": "Énergie électrique - chauffage",
+            "THERMAL_DHWS": "Énergie thermique - eau chaude",
+            "THERMAL_HEATING": "Énergie thermique - chauffage",
+            "THERMAL_TOTAL": "Énergie thermique - total"
+        },
+        "FAULT_LEVEL": {
+            "FAULT": "Défaut",
+            "INFO": "Info",
+            "OK": "OK",
+            "WARNING": "Avertissement"
+        },
+        "FLOW_TEMPERATURE": "Température de départ",
+        "GRID_OPERATOR_RELEASE": "Autorisation de l'exploitant du réseau",
+        "HISTORY": {
+            "COP": "COP",
+            "POWER_AND_ENERGY": "Puissance et énergie",
+            "TEMPERATURES": "Températures"
+        },
+        "KUER": {
+            "CONDENSATION_TEMPERATURE": "Température de condensation",
+            "EVAPORATION_TEMPERATURE": "Température d'évaporation",
+            "HOT_GAS_TEMPERATURE": "Température de gaz chaud",
+            "OPERATING_HOURS_1": "Heures de fonctionnement 1",
+            "OPERATING_HOURS_2": "Heures de fonctionnement 2",
+            "PRESSURE_1": "Pression 1",
+            "PRESSURE_2": "Pression 2",
+            "PUMP_1_ACTIVE": "Pompe 1 active",
+            "PUMP_2_ACTIVE": "Pompe 2 active",
+            "SOURCE_FLOW_TEMPERATURE": "Température de source - départ",
+            "SOURCE_RETURN_TEMPERATURE": "Température de source - retour",
+            "SUCTION_GAS_TEMPERATURE": "Température de gaz d'aspiration",
+            "VOLUME_FLOW": "Débit volumique"
+        },
+        "OPERATING_MODE": {
+            "AUTOMATIC": "Automatique",
+            "CONTINUOUS": "Continu",
+            "COOLING": "Refroidissement",
+            "GRID_OPERATOR_LOCK": "Verrouillage exploitant du réseau",
+            "HOLIDAY": "Vacances",
+            "MAIN_SWITCH_OFF": "Interrupteur principal éteint",
+            "OFF": "Arrêt",
+            "PARTY": "Fête",
+            "SCREED_DRYING": "Séchage de chape",
+            "SETBACK": "Réduit",
+            "SUMMER": "Été",
+            "UNDEFINED": "Non défini"
+        },
+        "OPERATING_STATE": {
+            "BLOCKED": "Bloqué",
+            "COOLING": "Refroidissement",
+            "DEFROST": "Dégivrage",
+            "DOMESTIC_HOT_WATER": "Eau chaude",
+            "FAULT": "Défaut",
+            "OFF": "Arrêt",
+            "SPACE_HEATING": "Chauffage",
+            "UNDEFINED": "Non défini"
+        },
+        "OUTDOOR_TEMPERATURE": "Température extérieure",
+        "REMAINING_HEAT_ENERGY": "Énergie thermique restante",
+        "RETURN_TEMPERATURE": "Température de retour",
+        "TARGET_TEMPERATURE": "Température cible",
+        "THERMAL_POWER": "Puissance thermique"
+    }
+}
